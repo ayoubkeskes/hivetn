@@ -21,7 +21,18 @@ const ProjectCard = ({ project, onNavigate, actions, overlay }) => (
     </div>
     <div className="project-content">
       <h3 className="project-title">{project.title}</h3>
-      <p className="project-creator">{project.creator}</p>
+      <p 
+        className="project-creator"
+        style={project.creatorId ? { cursor: 'pointer', textDecoration: 'underline' } : {}}
+        onClick={(e) => {
+          if (project.creatorId) {
+            e.stopPropagation();
+            onNavigate('publicProfile', project.creatorId);
+          }
+        }}
+      >
+        {project.creator}
+      </p>
       <p className="project-desc">{project.desc}</p>
 
       <div className="project-stats">

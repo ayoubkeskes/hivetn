@@ -184,23 +184,27 @@
 }
 
 .pe-action-btn {
-  min-height: 58px;
-  padding: 0 28px;
-  border-radius: 16px;
+  min-height: 52px;
+  padding: 0 22px;
+  border-radius: 999px;
   border: 1px solid transparent;
   font-family: inherit;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
 
 .pe-action-btn:hover {
   transform: translateY(-1px);
+}
+
+.pe-action-btn:active {
+  transform: scale(0.97);
 }
 
 .pe-action-btn:focus-visible {
@@ -217,26 +221,26 @@
 }
 
 .pe-action-btn--ghost {
-  color: #d8fceb;
-  background: rgba(12, 230, 136, 0.08);
-  border-color: rgba(12, 230, 136, 0.32);
+  color: #dcfdf0;
+  background: rgba(12, 230, 136, 0.05);
+  border-color: rgba(12, 230, 136, 0.22);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .pe-action-btn--ghost:hover {
-  background: rgba(12, 230, 136, 0.14);
-  border-color: rgba(12, 230, 136, 0.48);
-  box-shadow: 0 14px 28px rgba(12, 230, 136, 0.12);
+  background: rgba(12, 230, 136, 0.1);
+  border-color: rgba(12, 230, 136, 0.34);
+  box-shadow: 0 10px 22px rgba(12, 230, 136, 0.1);
 }
 
 .pe-action-btn--primary {
   color: #07120d;
-  background: linear-gradient(135deg, #0ce688 0%, #05ce78 100%);
-  box-shadow: 0 14px 30px rgba(12, 230, 136, 0.22);
+  background: linear-gradient(135deg, #19e88e 0%, #08ce7a 52%, #05bf71 100%);
+  box-shadow: 0 12px 24px rgba(12, 230, 136, 0.2);
 }
 
 .pe-action-btn--primary:hover {
-  box-shadow: 0 18px 36px rgba(12, 230, 136, 0.28);
+  box-shadow: 0 16px 30px rgba(12, 230, 136, 0.26);
 }
 
 .pe-action-btn__icon,
@@ -245,6 +249,10 @@
   align-items: center;
   justify-content: center;
   line-height: 1;
+}
+
+.pe-action-btn__icon:empty {
+  display: none;
 }
 
 .pe-action-btn__icon {
@@ -1025,28 +1033,27 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 28px;
-  border-radius: 10px;
+  min-height: 52px;
+  padding: 8px 22px;
+  border-radius: 999px;
   font-size: 15px;
   font-weight: 600;
   font-family: 'Inter', -apple-system, sans-serif;
   cursor: pointer;
-  transition: all 0.25s ease;
-  border: 1px solid rgba(12, 230, 136, 0.4);
-  background: linear-gradient(135deg, #0ce688 0%, #0ab56b 100%);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  border: 1px solid rgba(12, 230, 136, 0.22);
+  background: rgba(12, 230, 136, 0.06);
   color: #0b0f19;
-  box-shadow: 0 4px 15px rgba(12, 230, 136, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
   white-space: nowrap;
 }
 
 .pe-save-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(12, 230, 136, 0.35);
+  transform: translateY(-1px);
 }
 
 .pe-save-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(12, 230, 136, 0.2);
+  transform: scale(0.97);
 }
 
 .pe-save-btn:disabled {
@@ -1054,6 +1061,19 @@
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+.pe-save-btn--danger {
+  background: rgba(255, 77, 79, 0.03);
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.34);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+.pe-save-btn--danger:hover {
+  background: rgba(255, 77, 79, 0.08);
+  border-color: rgba(255, 107, 107, 0.5);
+  box-shadow: 0 10px 22px rgba(255, 77, 79, 0.12);
 }
 
 /* ── Feedback Messages (inline in editor) ── */

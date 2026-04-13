@@ -8,6 +8,7 @@ import pledgeRoutes from "../modules/pledges/pledge.routes.js";
 import notificationRoutes from "../modules/notifications/notification.routes.js";
 import supportRoutes from "../modules/support/support.routes.js";
 import adminSupportRoutes from "../modules/support/admin-support.routes.js";
+import userRoutes from "../modules/users/user.routes.js";
 
 const router = Router();
 
@@ -19,6 +20,7 @@ router.use("/saved", savedRoutes);
 router.use("/pledges", pledgeRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/support", supportRoutes);
+router.use("/users", userRoutes);
 
 router.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });

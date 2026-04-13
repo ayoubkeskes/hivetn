@@ -417,7 +417,15 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                 <span className="pd-badge-icon">Categorie</span> {campaign.category || "Non categorisee"}
               </div>
               <div className="pd-badge-item">
-                <span className="pd-badge-icon">Porteur</span> {campaign.creator_name || "Createur inconnu"}
+                <span className="pd-badge-icon">Porteur</span> 
+                <span 
+                  style={{ cursor: "pointer", textDecoration: "underline", color: "white" }} 
+                  onClick={() => onNavigate("publicProfile", campaign.porteur_id)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  {campaign.creator_name || "Createur inconnu"}
+                </span>
               </div>
               <div className="pd-badge-item">
                 <span className="pd-badge-icon">Statut</span> {getStatusLabel(campaign.status)}

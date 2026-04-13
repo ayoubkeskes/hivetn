@@ -25,7 +25,7 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
   const launchMonth = draftProject?.launchMonth || '';
   const launchYear = draftProject?.launchYear || '';
 
-  const normalizeGoalValue = (value) => value.replace(/[^\\d]/g, '').slice(0, 9);
+  const normalizeGoalValue = (value) => value.replace(/\D/g, '').slice(0, 9);
 
   const sanitizeDatePart = (value, maxLength) => value.replace(/\D/g, '').slice(0, maxLength);
 

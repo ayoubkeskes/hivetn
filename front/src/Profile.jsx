@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "./Home.css";
 import "./Profile.css";
 import "./Settings.css";
+import "./PublicUserProfile.css";
 import Navbar from "./Navbar";
 import ProjectCard from "./components/ProjectCard";
 import { buildApiUrl } from "./shared/services/api.js";
@@ -143,19 +144,28 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
   const superbackerGoal = 25;
   const superbackerProgress = Math.min((supportedCount / superbackerGoal) * 100, 100);
 
+  const rawUserLocation = storedUser.location || storedUser.city || storedUser.country || "";
+  const userLocation = rawUserLocation || "Information non disponible";
+  const hasUserLocation = Boolean(rawUserLocation);
+  
+  const memberSinceStr = storedUser.created_at || storedUser.createdAt;
+  const memberSince = memberSinceStr
+    ? new Date(memberSinceStr).toLocaleDateString("fr-FR", { year: "numeric", month: "long" }) 
+    : "Date non disponible";
+  
+  const activeCampaignsCount = createdProjects.filter((project) => project.dbStatus === "ACTIVE").length;
+  const userStatusLabel = storedUser.role === "ADMIN" 
+    ? "Administrateur" 
+    : createdProjects.length > 0 
+      ? "Créateur actif" 
+      : "Membre";
+
   return (
     <div className="profile-page-wrapper">
-      <div className="profile-privacy-banner">
-        <div className="banner-text">
-          <span style={{ color: "#0ce688", fontSize: "18px" }}>???</span>
-          Cette page de profil n'est visible que par vous.
-        </div>
-        <button className="banner-btn" onClick={() => onNavigate("settings")}>Gerer vos parametres de confidentialite</button>
-      </div>
-
       <Navbar onNavigate={onNavigate} isAuthenticated={isAuthenticated} onLogout={onLogout} activeTab="profile" />
 
       <div className="profile-main">
+
         <div className="profile-header">
           <div className="profile-large-avatar">
             {storedUser.avatar ? (
@@ -242,19 +252,89 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
         )}
 
         {activeTab === "about" && (
-          storedUser.bio ? (
-            <div className="profile-content-empty" style={{ textAlign: "left" }}>
-              <h3>Biographie</h3>
-              <p style={{ lineHeight: "1.7", color: "#d4d4d8", whiteSpace: "pre-wrap" }}>{storedUser.bio}</p>
-              <button className="settings-btn-outline" onClick={() => onNavigate("settings")} style={{ marginTop: "16px" }}>Modifier la bio</button>
+          <section className="pub-about" id="panel-about" role="tabpanel" aria-labelledby="tab-about">
+            {/* ── Biographie ── */}
+            <div className="pub-about__card">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                <h3 className="pub-about__card-title" style={{ margin: 0 }}>Biographie</h3>
+                <button className="settings-btn-outline" style={{ padding: "6px 12px", fontSize: "12px", minWidth: "auto", margin: 0 }} onClick={() => onNavigate("settings")}>Modifier</button>
+              </div>
+              {storedUser.bio ? (
+                <p className="pub-about__bio" style={{ whiteSpace: "pre-wrap" }}>{storedUser.bio}</p>
+              ) : (
+                <div className="pub-about__empty">
+                  <span className="pub-about__empty-icon" aria-hidden="true">📝</span>
+                  <p>Aucune biographie disponible. Ajoutez-en une depuis vos paramètres pour vous présenter à la communauté.</p>
+                </div>
+              )}
+              <p className="pub-about__note">
+                Ce profil public présente l'activité visible de ce membre sur Hive.tn.
+              </p>
             </div>
-          ) : (
-            <div className="profile-content-empty">
-              <h3>Aucune biographie</h3>
-              <p>Vous n'avez pas encore ajoute de description a votre profil public.</p>
-              <button className="settings-btn-outline" onClick={() => onNavigate("settings")}>Ajouter une bio</button>
+
+            {/* ── Informations ── */}
+            <div className="pub-about__card pub-about__card--info">
+              <div className="pub-about__trust">
+                <span className="pub-about__trust-dot" aria-hidden="true" />
+                {userStatusLabel}
+              </div>
+              <h3 className="pub-about__card-title">Informations</h3>
+              <div className="pub-about__info-list">
+                <div className={`pub-about__info-row ${!hasUserLocation ? "pub-about__info-row--empty" : ""}`}>
+                  <div className="pub-about__info-left">
+                    <span className="pub-about__info-icon" aria-hidden="true">📍</span>
+                    <span className="pub-about__info-label">Localisation</span>
+                  </div>
+                  <strong className="pub-about__info-value">
+                    {userLocation}
+                  </strong>
+                </div>
+                <div className="pub-about__info-row">
+                  <div className="pub-about__info-left">
+                    <span className="pub-about__info-icon" aria-hidden="true">📅</span>
+                    <span className="pub-about__info-label">Membre depuis</span>
+                  </div>
+                  <strong className="pub-about__info-value">{memberSince}</strong>
+                </div>
+                <div className="pub-about__info-row">
+                  <div className="pub-about__info-left">
+                    <span className="pub-about__info-icon" aria-hidden="true">
+                      {storedUser.role === "ADMIN" ? "🛡️" : createdProjects.length > 0 ? "🚀" : "👤"}
+                    </span>
+                    <span className="pub-about__info-label">Statut</span>
+                  </div>
+                  <strong className="pub-about__info-value">
+                    {userStatusLabel}
+                  </strong>
+                </div>
+              </div>
             </div>
-          )
+
+            {/* ── Résumé d'activité ── */}
+            <div className="pub-about__card pub-about__card--stats">
+              <h3 className="pub-about__card-title">Résumé d'activité</h3>
+              <div className="pub-about__stats-grid">
+                <div className="pub-about__stat">
+                  <span className="pub-about__stat-value">{createdProjects.length}</span>
+                  <span className="pub-about__stat-label">
+                    Projet{createdProjects.length > 1 ? "s" : ""} créé{createdProjects.length > 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div className="pub-about__stat">
+                  <span className="pub-about__stat-value">{supportedCount}</span>
+                  <span className="pub-about__stat-label">
+                    Projet{supportedCount > 1 ? "s" : ""} soutenu{supportedCount > 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div className="pub-about__stat">
+                  <span className="pub-about__stat-value">{activeCampaignsCount}</span>
+                  <span className="pub-about__stat-label">
+                    Campagne{activeCampaignsCount > 1 ? "s" : ""} active{activeCampaignsCount > 1 ? "s" : ""}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
         )}
 
         {activeTab === "backed" && (
