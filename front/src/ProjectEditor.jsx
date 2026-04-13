@@ -62,7 +62,7 @@ const normalizeCampaignToDraft = (campaign) => ({
 });
 
 const hasPrimaryMedia = (project) => Boolean(project?.image_url || project?.video_url);
-const TABS = ['Bases', 'RÃ©compenses', 'Histoire', 'Personnes', 'Paiement', 'Promotion'];
+const TABS = ['Bases', 'Recompenses', 'Histoire', 'Personnes'];
 
 const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
   const { id } = useParams();
@@ -74,6 +74,14 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showMissingMediaModal, setShowMissingMediaModal] = useState(false);
   const [feedbackModal, setFeedbackModal] = useState(null);
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userName = storedUser.name || 'Utilisateur';
+  const userInitials = userName
+    .split(' ')
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   // Load existing campaign if ID is passed
   useEffect(() => {
@@ -302,9 +310,90 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
+    const campaignId = draftProject?.campaignId || id;
+    const token = localStorage.getItem('token');
+
     setShowDeleteModal(false);
-    if (onNavigate) onNavigate('home');
+
+    if (!campaignId) {
+      openFeedbackModal({
+        tone: 'warning',
+        title: 'Aucun brouillon a supprimer',
+        message: 'Ce projet n a pas encore ete enregistre.',
+        details: 'Enregistrez d abord votre campagne si vous souhaitez ensuite la gerer ou la supprimer.',
+      });
+      return;
+    }
+
+    if (!token) {
+      openFeedbackModal({
+        tone: 'warning',
+        title: 'Connexion requise',
+        message: 'Reconnectez-vous pour supprimer ce brouillon en toute securite.',
+      });
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const res = await fetch(`${API_URL}/api/campaigns/${campaignId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        openFeedbackModal({
+          tone: 'error',
+          title: 'Suppression impossible',
+          message: data.message || 'Nous n avons pas pu supprimer ce brouillon.',
+          details: 'Verifiez que la campagne est encore en brouillon puis reessayez.',
+        });
+        return;
+      }
+
+      if (onSaveDraft) {
+        onSaveDraft({
+          campaignId: null,
+          title: '',
+          subtitle: '',
+          category: '',
+          goal: '',
+          image_url: '',
+          video_url: '',
+          rewards: [],
+          story: { blocks: [], risks: '', faqs: [] },
+        });
+      }
+
+      openFeedbackModal({
+        tone: 'success',
+        title: 'Brouillon supprime',
+        message: 'Votre campagne a bien ete retiree.',
+        details: 'Vous pouvez maintenant revenir a l accueil ou commencer un nouveau projet.',
+        onClose: () => {
+          if (onNavigate) {
+            onNavigate('home');
+          } else {
+            reactNavigate('/');
+          }
+        },
+      });
+    } catch (error) {
+      openFeedbackModal({
+        tone: 'error',
+        title: 'Serveur indisponible',
+        message: 'La suppression n a pas pu aboutir pour le moment.',
+        details: 'Verifiez votre connexion puis reessayez dans quelques instants.',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -324,24 +413,30 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
                 className={`pe-mode-btn ${!showPreview ? 'pe-mode-btn--active' : ''}`}
                 onClick={() => setShowPreview(false)}
               >
-                <span className="pe-mode-icon">âœï¸</span> Ã‰diteur
+                <span className="pe-mode-icon">E</span> Editeur
               </button>
               <button
                 className={`pe-mode-btn pe-mode-btn--preview ${showPreview ? 'pe-mode-btn--active pe-mode-btn--preview-active' : ''}`}
                 onClick={() => setShowPreview(true)}
               >
-                <span className="pe-mode-icon">ðŸ‘</span> AperÃ§u
+                <span className="pe-mode-icon">V</span> Apercu
               </button>
             </div>
           </div>
 
           {/* Colonne 3 - Avatar (droite) */}
           <div className="pe-header-right">
-            <img
-              src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80"
-              alt="Avatar"
-              className="pe-user-avatar"
-            />
+            {storedUser.avatar ? (
+              <img
+                src={storedUser.avatar}
+                alt={userName}
+                className="pe-user-avatar"
+              />
+            ) : (
+              <div className="pe-user-avatar pe-user-avatar--fallback" aria-label={userName}>
+                {userInitials}
+              </div>
+            )}
           </div>
         </div>
 
@@ -369,15 +464,10 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
       {!showPreview && (
         <main className="pe-main">
           {activeTab === 'Bases' && <BasicsTab draftProject={draftProject} onSaveDraft={onSaveDraft} onNavigate={onNavigate} />}
-          {activeTab === 'RÃ©compenses' && <RewardsTab draftProject={draftProject} onSaveDraft={onSaveDraft} />}
+          {activeTab === 'Recompenses' && <RewardsTab draftProject={draftProject} onSaveDraft={onSaveDraft} />}
           {activeTab === 'Histoire' && <StoryTab draftProject={draftProject} onSaveDraft={onSaveDraft} />}
           {activeTab === 'Personnes' && <PeopleTab />}
-          {activeTab !== 'Bases' && activeTab !== 'RÃ©compenses' && activeTab !== 'Histoire' && activeTab !== 'Personnes' && (
-            <div style={{ textAlign: 'center', padding: '100px', color: '#a1a1aa' }}>
-              <h2>{activeTab}</h2>
-              <p>Cet onglet est en cours de structuration.</p>
-            </div>
-          )}          {/* Bottom Action Bar */}
+          {/* Bottom Action Bar */}
           <div className="pe-action-bar">
             <button
               className={`pe-action-btn pe-action-btn--ghost ${isSaving ? 'is-disabled' : ''}`}
@@ -396,7 +486,7 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
                 onClick={handleNextTab}
               >
                 <span className="pe-action-btn__text">Suivant : {TABS[TABS.indexOf(activeTab) + 1]}</span>
-                <span className="pe-action-btn__arrow" aria-hidden="true">â†’</span>
+                <span className="pe-action-btn__arrow" aria-hidden="true">-&gt;</span>
               </button>
             ) : (
               <button

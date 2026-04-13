@@ -53,6 +53,18 @@ const getCampaignLockNotice = (status) => {
   };
 };
 
+const formatActivityDate = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("created");
@@ -95,6 +107,7 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
             category: campaign.category || "Non categorise",
             dbStatus: campaign.status,
             paidDonationCount: Number(campaign.paid_donation_count || 0),
+            createdAt: campaign.created_at || campaign.createdAt || campaign.updated_at || campaign.updatedAt || "",
           }));
           setCreatedProjects(projects);
         }
@@ -144,9 +157,7 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
   const superbackerGoal = 25;
   const superbackerProgress = Math.min((supportedCount / superbackerGoal) * 100, 100);
 
-  const rawUserLocation = storedUser.location || storedUser.city || storedUser.country || "";
-  const userLocation = rawUserLocation || "Information non disponible";
-  const hasUserLocation = Boolean(rawUserLocation);
+  const userLocation = "🇹🇳 Tunisie";
   
   const memberSinceStr = storedUser.created_at || storedUser.createdAt;
   const memberSince = memberSinceStr
@@ -159,6 +170,46 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
     : createdProjects.length > 0 
       ? "Créateur actif" 
       : "Membre";
+
+  const recentActivities = [
+    ...createdProjects.flatMap((project) => {
+      const activities = [];
+
+      if (project.createdAt) {
+        activities.push({
+          id: `created-${project.id}`,
+          date: project.createdAt,
+          label: "Campagne creee",
+          title: project.title,
+          description: `Nouvelle campagne ajoutee dans ${project.category}.`,
+        });
+      }
+
+      if (project.dbStatus === "PENDING" && project.createdAt) {
+        activities.push({
+          id: `pending-${project.id}`,
+          date: project.createdAt,
+          label: "Soumise a validation",
+          title: project.title,
+          description: "Votre campagne est actuellement en cours de verification par l'equipe Hive.",
+        });
+      }
+
+      return activities;
+    }),
+    ...backedProjects
+      .filter((project) => project.lastSupportedAt)
+      .map((project) => ({
+        id: `backed-${project.id}`,
+        date: project.lastSupportedAt,
+        label: "Projet soutenu",
+        title: project.title,
+        description: `Vous avez soutenu ce projet dans ${project.category}.`,
+      })),
+  ]
+    .filter((activity) => activity.date)
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 3);
 
   return (
     <div className="profile-page-wrapper">
@@ -280,7 +331,7 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
               </div>
               <h3 className="pub-about__card-title">Informations</h3>
               <div className="pub-about__info-list">
-                <div className={`pub-about__info-row ${!hasUserLocation ? "pub-about__info-row--empty" : ""}`}>
+                <div className="pub-about__info-row">
                   <div className="pub-about__info-left">
                     <span className="pub-about__info-icon" aria-hidden="true">📍</span>
                     <span className="pub-about__info-label">Localisation</span>
@@ -333,6 +384,28 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
                   </span>
                 </div>
               </div>
+            </div>
+            <div className="profile-about-activity-card">
+              <h3>Activite recente</h3>
+              {recentActivities.length > 0 ? (
+                <div className="profile-about-activity-list">
+                  {recentActivities.map((activity) => (
+                    <div key={activity.id} className="profile-about-activity-item">
+                      <span className="profile-about-activity-dot" aria-hidden="true" />
+                      <div className="profile-about-activity-content">
+                        <span className="profile-about-activity-label">{activity.label}</span>
+                        <strong>{activity.title}</strong>
+                        <p>
+                          {activity.description}
+                          {formatActivityDate(activity.date) ? ` • ${formatActivityDate(activity.date)}` : ""}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="profile-about-activity-empty">Aucune activite recente</p>
+              )}
             </div>
           </section>
         )}

@@ -110,7 +110,7 @@ const PublicUserProfile = ({ onNavigate, isAuthenticated, onLogout }) => {
     .toUpperCase()
     .slice(0, 2);
 
-  const userLocation = profile?.location || null;
+  const userLocation = "🇹🇳 Tunisie";
   const bioExcerpt = profile?.bio
     ? profile.bio.length > 120
       ? profile.bio.slice(0, 117).trim() + "…"
@@ -356,7 +356,7 @@ const PublicUserProfile = ({ onNavigate, isAuthenticated, onLogout }) => {
               </div>
               <h3 className="pub-about__card-title">Informations</h3>
               <div className="pub-about__info-list">
-                <div className={`pub-about__info-row ${!userLocation ? "pub-about__info-row--empty" : ""}`}>
+                <div className="pub-about__info-row">
                   <div className="pub-about__info-left">
                     <span className="pub-about__info-icon" aria-hidden="true">📍</span>
                     <span className="pub-about__info-label">Localisation</span>

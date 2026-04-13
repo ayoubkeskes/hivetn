@@ -254,7 +254,7 @@ const RewardsTab = ({ draftProject, onSaveDraft }) => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+          <div className="pe-reward-form-actions">
             <button
               className="cp-btn-next"
               style={{ width: 'auto', margin: 0 }}

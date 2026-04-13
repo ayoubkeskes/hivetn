@@ -10,6 +10,15 @@ const CreateProjectStep3 = ({ onNavigate, onSaveDraft, draftProject }) => {
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userName = storedUser.name || 'Utilisateur';
+  const userAvatar = storedUser.avatar || '';
+  const userInitials = userName
+    .split(' ')
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   const MAX_TITLE = 60;
   const MAX_SUBTITLE = 135;
@@ -134,12 +143,23 @@ const CreateProjectStep3 = ({ onNavigate, onSaveDraft, draftProject }) => {
     <div className="cp-wrapper">
       <header className="cp-header">
         <div className="cp-logo" onClick={() => onNavigate('home')}>Hive.tn</div>
-        <img
-          src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80"
-          alt="Avatar"
-          className="cp-user-avatar"
-          onClick={() => onNavigate('profile')}
-        />
+        {userAvatar ? (
+          <img
+            src={userAvatar}
+            alt={userName}
+            className="cp-user-avatar"
+            onClick={() => onNavigate('profile')}
+          />
+        ) : (
+          <div
+            className="cp-user-avatar cp-user-avatar--fallback"
+            onClick={() => onNavigate('profile')}
+            aria-label={userName}
+            title={userName}
+          >
+            {userInitials}
+          </div>
+        )}
       </header>
 
       <div className="cp-progress-container">

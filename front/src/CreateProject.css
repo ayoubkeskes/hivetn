@@ -37,6 +37,16 @@
   cursor: pointer;
 }
 
+.cp-user-avatar--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #19e88e, #08ce7a);
+  color: #07120d;
+  font-size: 14px;
+  font-weight: 800;
+}
+
 /* Progress Bar Segments */
 .cp-progress-container {
   display: flex;

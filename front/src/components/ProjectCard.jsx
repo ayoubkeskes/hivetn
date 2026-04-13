@@ -22,8 +22,7 @@ const ProjectCard = ({ project, onNavigate, actions, overlay }) => (
     <div className="project-content">
       <h3 className="project-title">{project.title}</h3>
       <p 
-        className="project-creator"
-        style={project.creatorId ? { cursor: 'pointer', textDecoration: 'underline' } : {}}
+        className={`project-creator${project.creatorId ? ' project-creator--link' : ''}`}
         onClick={(e) => {
           if (project.creatorId) {
             e.stopPropagation();

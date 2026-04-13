@@ -78,13 +78,13 @@ const SavedProjects = ({ onNavigate, isAuthenticated, onLogout }) => {
         </div>
 
         {loading && (
-          <div style={{ textAlign: "center", color: "#a1a1aa", padding: "60px 0" }}>
+          <div className="saved-loading-state">
             Chargement...
           </div>
         )}
 
         {!loading && savedProjects.length === 0 && (
-          <div style={{ textAlign: "center", padding: "80px 20px" }}>
+          <div className="saved-empty-state">
             <div style={{ fontSize: "64px", marginBottom: "20px" }}>📭</div>
             <h3 style={{ color: "#fff", fontSize: "24px", marginBottom: "12px" }}>Aucun projet enregistre</h3>
             <p style={{ color: "#a1a1aa", fontSize: "16px", lineHeight: "1.6", maxWidth: "450px", margin: "0 auto 30px auto" }}>
@@ -101,8 +101,8 @@ const SavedProjects = ({ onNavigate, isAuthenticated, onLogout }) => {
         )}
 
         {!loading && savedProjects.length > 0 && (
-          <div className="projects-section" style={{ padding: "0", maxWidth: "100%" }}>
-            <div className="projects-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))" }}>
+          <div className="projects-section saved-projects-section">
+            <div className="projects-grid saved-projects-grid">
               {savedProjects.map((project) => (
                 <ProjectCard
                   key={project.id}
