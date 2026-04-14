@@ -414,10 +414,34 @@
   gap: 12px;
 }
 
+.dropdown-item-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.dropdown-item-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .dropdown-item:hover {
   background-color: rgba(255, 255, 255, 0.05);
   color: #fff;
   padding-left: 20px;
+}
+
+.dropdown-item:hover .dropdown-item-icon {
+  color: #f3f4f6;
 }
 
 .dropdown-item.text-danger {
@@ -427,6 +451,10 @@
 .dropdown-item.text-danger:hover {
   background-color: rgba(255, 69, 58, 0.1);
   color: #ff453a;
+}
+
+.dropdown-item.text-danger .dropdown-item-icon {
+  color: currentColor;
 }
 
 .hero-section {

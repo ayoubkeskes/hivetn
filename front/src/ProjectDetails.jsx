@@ -9,8 +9,6 @@ import { buildApiUrl } from "./shared/services/api.js";
 import { formatMillimesToTnd, parseTndInput } from "./shared/utils/currency.js";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1528157777178-0062a444aeb8?w=1200&q=80";
-const QUICK_SUPPORT_AMOUNTS = [10, 25, 50, 100];
-
 const resolveMediaUrl = (url) => {
   if (!url) return "";
   if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
@@ -330,20 +328,18 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
     }
   };
 
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      alert("Lien de la campagne copie.");
-    } catch {
-      alert("Impossible de copier le lien automatiquement.");
-    }
-  };
-
   const rewardCount = campaign?.rewards?.length || 0;
   const amountRaised = Number(campaign?.amount_raised ?? campaign?.current_amount ?? 0);
   const fundedPercent = Math.max(0, Math.min(Number(campaign?.funded_percent || 0), 100));
   const backerCount = Number(campaign?.backer_count || 0);
-  const parsedSupportAmount = parseTndInput(supportAmount);
+  const creatorName = campaign?.creator_name || "Createur inconnu";
+  const creatorInitials = creatorName
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
   const story = campaign?.story || { blocks: [], risks: "", faqs: [] };
   const storyBlocks = story.blocks || [];
   const storyFaqs = (story.faqs || []).filter((faq) => faq?.question || faq?.answer);
@@ -412,159 +408,414 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
               )}
             </div>
 
-            <div className="pd-badges" style={{ flexWrap: "wrap" }}>
-              <div className="pd-badge-item">
-                <span className="pd-badge-icon">Categorie</span> {campaign.category || "Non categorisee"}
+            <div className="pd-badges pd-badges--hero">
+              <div
+                className="pd-creator-card pd-creator-card--meta"
+                onClick={() => onNavigate("publicProfile", campaign.porteur_id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onNavigate("publicProfile", campaign.porteur_id);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="pd-creator-avatar" aria-hidden="true">{creatorInitials || "?"}</div>
+                <div className="pd-creator-copy">
+                  <span className="pd-creator-label">Porteur du projet</span>
+                  <span className="pd-creator-name">{creatorName}</span>
+                </div>
               </div>
               <div className="pd-badge-item">
-                <span className="pd-badge-icon">Porteur</span> 
-                <span 
-                  style={{ cursor: "pointer", textDecoration: "underline", color: "white" }} 
-                  onClick={() => onNavigate("publicProfile", campaign.porteur_id)}
-                  role="button"
-                  tabIndex={0}
-                >
-                  {campaign.creator_name || "Createur inconnu"}
-                </span>
+                <span className="pd-badge-icon">Categorie</span> {campaign.category || "Non categorisee"}
               </div>
               <div className="pd-badge-item">
                 <span className="pd-badge-icon">Statut</span> {getStatusLabel(campaign.status)}
               </div>
             </div>
+
+            {false && (
+            <main className={`pd-sidebar-content ${activeTab === "story" ? "pd-sidebar-content--story" : ""}`}>
+              {activeTab === "story" && (
+                hasStoryContent ? (
+                  <div>
+                    <h2>Histoire</h2>
+                    {campaign.description && (
+                      <p className="pd-story-paragraph pd-story-intro">{campaign.description}</p>
+                    )}
+                    <div className="pd-story-flow">
+                      {storyBlocks.map((block, index) => {
+                        if (!block) return null;
+
+                        if (block.type === "image" && block.content) {
+                          return (
+                            <div key={block.id || `story-image-${index}`} className="pd-story-media-card">
+                              <img
+                                src={resolveMediaUrl(block.content)}
+                                alt={block.fileName || `Illustration ${index + 1}`}
+                                className="pd-story-image"
+                              />
+                            </div>
+                          );
+                        }
+
+                        if (block.type === "video" && block.content) {
+                          return (
+                            <div key={block.id || `story-video-${index}`} className="pd-story-media-card">
+                              <iframe
+                                src={getVideoEmbedUrl(block.content)}
+                                title={`Video du projet ${index + 1}`}
+                                className="pd-story-video"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            </div>
+                          );
+                        }
+
+                        const content = String(block.content || "").trim();
+                        if (!content) return null;
+
+                        if (block.type === "heading") {
+                          return <h3 key={block.id || `story-heading-${index}`} className="pd-story-heading">{content}</h3>;
+                        }
+
+                        if (block.type === "subheading") {
+                          return <h4 key={block.id || `story-subheading-${index}`} className="pd-story-subheading">{content}</h4>;
+                        }
+
+                        if (block.type === "list") {
+                          const items = content
+                            .split("\n")
+                            .map((item) => item.replace(/^[â€¢*\-\s]+/, "").trim())
+                            .filter(Boolean);
+
+                          if (items.length === 0) return null;
+
+                          return (
+                            <ul key={block.id || `story-list-${index}`} className="pd-story-list">
+                              {items.map((item, itemIndex) => (
+                                <li key={`${block.id || "story-list"}-${itemIndex}`}>{item}</li>
+                              ))}
+                            </ul>
+                          );
+                        }
+
+                        return <p key={block.id || `story-paragraph-${index}`} className="pd-story-paragraph">{content}</p>;
+                      })}
+                    </div>
+
+                    {story.risks && story.risks.trim() && (
+                      <section className="pd-story-section">
+                        <h2>Risques et defis</h2>
+                        <p className="pd-story-paragraph">{story.risks}</p>
+                      </section>
+                    )}
+
+                    {storyFaqs.length > 0 && (
+                      <section className="pd-story-section">
+                        <h2>Foire aux questions</h2>
+                        <div className="pd-faq-list">
+                          {storyFaqs.map((faq, index) => (
+                            <article key={`${faq.question || "faq"}-${index}`} className="pd-faq-card">
+                              <h3 className="pd-faq-question">{faq.question || `Question ${index + 1}`}</h3>
+                              <p className="pd-faq-answer">{faq.answer || "Reponse a venir."}</p>
+                            </article>
+                          ))}
+                        </div>
+                      </section>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <h2>Histoire</h2>
+                    {campaign.description && (
+                      <p className="pd-story-paragraph pd-story-intro">{campaign.description}</p>
+                    )}
+                    <p>
+                      {campaign.description
+                        ? "Le createur n a pas encore publie d elements supplementaires pour approfondir cette campagne."
+                        : "Le createur n a pas encore publie l histoire detaillee de cette campagne."}
+                    </p>
+                  </div>
+                )
+              )}
+
+              {activeTab === "rewards" && (
+                rewardCount > 0 ? (
+                  <div>
+                    <h2>Recompenses proposees</h2>
+                    <div style={{ display: "grid", gap: "14px" }}>
+                      {campaign.rewards.map((reward, index) => (
+                        <div key={`${reward.title || "reward"}-${index}`} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "18px", background: "rgba(255,255,255,0.02)" }}>
+                          {(reward.image || reward.image_url) && (
+                            <img
+                              src={resolveMediaUrl(reward.image || reward.image_url)}
+                              alt={reward.title || `Recompense ${index + 1}`}
+                              style={{ width: "100%", maxHeight: "220px", objectFit: "cover", borderRadius: "10px", marginBottom: "14px" }}
+                            />
+                          )}
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", alignItems: "center", marginBottom: "8px" }}>
+                            <strong style={{ color: "#fff", fontSize: "18px" }}>{reward.title || `Recompense ${index + 1}`}</strong>
+                            <span style={{ color: "#0ce688", fontWeight: 800 }}>{reward.price ? `${reward.price} DT` : "Montant libre"}</span>
+                          </div>
+                          <p style={{ margin: 0, color: "#c9d1d9", lineHeight: "1.6" }}>{reward.desc || "Aucune description pour cette recompense."}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <h2>Recompenses</h2>
+                    <p>Cette campagne ne contient actuellement aucune recompense enregistree.</p>
+                  </div>
+                )
+              )}
+
+              {activeTab === "comments" && (
+                <ProjectCommentsSection
+                  campaignId={campaign.id}
+                  isAuthenticated={isAuthenticated}
+                  onNavigate={onNavigate}
+                  onCountChange={setCommentCount}
+                />
+              )}
+            </main>
+            )}
           </div>
 
-          <div className="pd-stats-block">
-            <div className="pd-progress-bar">
-              <div className="pd-progress-fill" style={{ width: `${fundedPercent}%` }}></div>
-            </div>
-
-            <div className="pd-stat-group">
-              <div className="pd-stat-big">{formatMillimesToTnd(amountRaised)}</div>
-              <div className="pd-stat-label">montant atteint</div>
-            </div>
-
-            <div className="pd-stat-group">
-              <div className="pd-stat-big white">{fundedPercent}%</div>
-              <div className="pd-stat-label">de l objectif atteint</div>
-            </div>
-
-            <div className="pd-stat-group">
-              <div className="pd-stat-big white">{formatMillimesToTnd(campaign.target_amount)}</div>
-              <div className="pd-stat-label">objectif de la campagne</div>
-            </div>
-
-            <div className="pd-stat-group">
-              <div className="pd-stat-big white">{backerCount}</div>
-              <div className="pd-stat-label">soutien{backerCount > 1 ? "s" : ""} confirme{backerCount > 1 ? "s" : ""}</div>
-            </div>
-
-            <div className="pd-stat-group">
-              <div className="pd-stat-big white">{formatDate(campaign.created_at)}</div>
-              <div className="pd-stat-label">date de creation</div>
-            </div>
-
-            <div className="pd-support-panel" ref={supportCardRef}>
-              <div className="pd-support-panel__header">
-                <div>
-                  <p className="pd-support-panel__eyebrow">Soutien direct</p>
-                  <h2>Soutenir cette campagne</h2>
-                </div>
-                <span className="pd-support-panel__chip">TND</span>
+          <div className="pd-right-rail">
+            <div className="pd-stats-block">
+              <div className="pd-progress-bar">
+                <div className="pd-progress-fill" style={{ width: `${fundedPercent}%` }}></div>
               </div>
 
-              <div className="pd-support-panel__summary">
-                <div>
-                  <span>Campagne</span>
-                  <strong>{campaign.title}</strong>
-                </div>
-                <div>
-                  <span>Soutiens confirmes</span>
-                  <strong>{backerCount}</strong>
-                </div>
+              <div className="pd-stat-group">
+                <div className="pd-stat-big">{formatMillimesToTnd(amountRaised)}</div>
+                <div className="pd-stat-label">montant atteint</div>
               </div>
 
-              <label className="pd-support-field">
-                <span>Montant de soutien</span>
-                <input
-                  type="number"
-                  min="0.001"
-                  step="0.001"
-                  value={supportAmount}
-                  onChange={(event) => {
-                    setSupportAmount(event.target.value);
-                    if (supportError) setSupportError("");
-                    if (supportSuccess) setSupportSuccess("");
-                  }}
-                  placeholder="25"
-                />
-                <small>Montant en dinars tunisiens. Votre soutien est enregistre immediatement sur Hive.tn.</small>
-              </label>
+              <div className="pd-stat-group">
+                <div className="pd-stat-big white">{fundedPercent}%</div>
+                <div className="pd-stat-label">de l objectif atteint</div>
+              </div>
 
-              <div className="pd-support-quick-list">
-                {QUICK_SUPPORT_AMOUNTS.map((amount) => (
-                  <button
-                    key={amount}
-                    type="button"
-                    className={`pd-support-chip ${parsedSupportAmount === amount ? "is-active" : ""}`}
-                    onClick={() => {
-                      setSupportAmount(String(amount));
-                      if (supportError) setSupportError("");
-                      if (supportSuccess) setSupportSuccess("");
-                    }}
-                  >
-                    {amount} TND
-                  </button>
-                ))}
+              <div className="pd-stat-group">
+                <div className="pd-stat-big white">{formatMillimesToTnd(campaign.target_amount)}</div>
+                <div className="pd-stat-label">objectif de la campagne</div>
+              </div>
+
+              <div className="pd-stat-group">
+                <div className="pd-stat-big white">{backerCount}</div>
+                <div className="pd-stat-label">soutien{backerCount > 1 ? "s" : ""} confirme{backerCount > 1 ? "s" : ""}</div>
+              </div>
+
+              <div className="pd-stat-group">
+                <div className="pd-stat-big white">{formatDate(campaign.created_at)}</div>
+                <div className="pd-stat-label">date de creation</div>
+              </div>
+
+              <div className="pd-actions-row" ref={supportCardRef}>
+                <button
+                  type="button"
+                  className="pd-support-btn"
+                  disabled={campaign.status !== "ACTIVE" || supportSubmitting}
+                  onClick={() => handleStartSupport()}
+                >
+                  {supportSubmitting ? "Enregistrement..." : "Soutenir"}
+                </button>
+                <button
+                  type="button"
+                  className={`pd-save-badge ${isSaved ? "pd-saved-active" : ""}`}
+                  disabled={savingInProgress}
+                  onClick={() => handleSaveCampaign()}
+                  aria-label={isSaved ? "Campagne enregistrée" : "Enregistrer la campagne"}
+                  title={isSaved ? "Campagne enregistrée" : "Enregistrer la campagne"}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className="pd-save-badge__icon">
+                    <path d="M7 4.5h10a1 1 0 0 1 1 1V21l-6-3.8L6 21V5.5a1 1 0 0 1 1-1Z" />
+                  </svg>
+                </button>
               </div>
 
               {supportError && <p className="pd-support-feedback is-error">{supportError}</p>}
               {supportSuccess && <p className="pd-support-feedback is-success">{supportSuccess}</p>}
-
-              <p className="pd-support-feedback">
-                {campaign.status === "ACTIVE"
-                  ? "Chaque soutien confirme met a jour la collecte de la campagne et reste visible dans votre profil."
-                  : "Cette campagne ne peut pas recevoir de soutien tant qu elle n est pas active."}
-              </p>
-
-              <button
-                type="button"
-                className="pd-support-btn"
-                disabled={campaign.status !== "ACTIVE" || supportSubmitting}
-                onClick={() => handleStartSupport()}
-              >
-                {supportSubmitting ? "Enregistrement du soutien..." : "Soutenir maintenant"}
-              </button>
             </div>
 
-            <div className="pd-actions-row">
-              <button
-                className={`pd-remind-btn ${isSaved ? "pd-saved-active" : ""}`}
-                disabled={savingInProgress}
-                onClick={() => handleSaveCampaign()}
-              >
-                {isSaved ? "Enregistree" : "Enregistrer"}
-              </button>
-              <div className="pd-social-btn" onClick={handleCopyLink} role="button" tabIndex={0}>Copier</div>
-            </div>
-
-            <div className="pd-warning-text">
-              <strong>Soutien confirme.</strong> Votre contribution est rattachee a votre compte Hive.tn et met a jour la collecte de la campagne.
-            </div>
+            {false && (
+            <aside className="pd-sidebar-nav">
+              <div className="pd-sidebar-menu" role="tablist" aria-label="Navigation du projet">
+                <span className={`pd-tab-vertical ${activeTab === "story" ? "active" : ""}`} onClick={() => setActiveTab("story")} role="tab" aria-selected={activeTab === "story"} tabIndex={0}>Histoire</span>
+                <span className={`pd-tab-vertical ${activeTab === "rewards" ? "active" : ""}`} onClick={() => setActiveTab("rewards")} role="tab" aria-selected={activeTab === "rewards"} tabIndex={0}>Recompenses <span className="pd-tab-count">{rewardCount}</span></span>
+                <span className={`pd-tab-vertical ${activeTab === "comments" ? "active" : ""}`} onClick={() => setActiveTab("comments")} role="tab" aria-selected={activeTab === "comments"} tabIndex={0}>Commentaires <span className="pd-tab-count">{commentCount}</span></span>
+              </div>
+            </aside>
+            )}
           </div>
+        </div>
+
+        <div className="pd-content-grid">
+          <main className={`pd-sidebar-content ${activeTab === "story" ? "pd-sidebar-content--story" : ""}`}>
+            {activeTab === "story" && (
+              hasStoryContent ? (
+                <div>
+                  <h2>Histoire</h2>
+                  {campaign.description && (
+                    <p className="pd-story-paragraph pd-story-intro">{campaign.description}</p>
+                  )}
+                  <div className="pd-story-flow">
+                    {storyBlocks.map((block, index) => {
+                      if (!block) return null;
+
+                      if (block.type === "image" && block.content) {
+                        return (
+                          <div key={block.id || `story-image-${index}`} className="pd-story-media-card">
+                            <img
+                              src={resolveMediaUrl(block.content)}
+                              alt={block.fileName || `Illustration ${index + 1}`}
+                              className="pd-story-image"
+                            />
+                          </div>
+                        );
+                      }
+
+                      if (block.type === "video" && block.content) {
+                        return (
+                          <div key={block.id || `story-video-${index}`} className="pd-story-media-card">
+                            <iframe
+                              src={getVideoEmbedUrl(block.content)}
+                              title={`Video du projet ${index + 1}`}
+                              className="pd-story-video"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          </div>
+                        );
+                      }
+
+                      const content = String(block.content || "").trim();
+                      if (!content) return null;
+
+                      if (block.type === "heading") {
+                        return <h3 key={block.id || `story-heading-${index}`} className="pd-story-heading">{content}</h3>;
+                      }
+
+                      if (block.type === "subheading") {
+                        return <h4 key={block.id || `story-subheading-${index}`} className="pd-story-subheading">{content}</h4>;
+                      }
+
+                      if (block.type === "list") {
+                        const items = content
+                          .split("\n")
+                          .map((item) => item.replace(/^[Ã¢â‚¬Â¢*\-\s]+/, "").trim())
+                          .filter(Boolean);
+
+                        if (items.length === 0) return null;
+
+                        return (
+                          <ul key={block.id || `story-list-${index}`} className="pd-story-list">
+                            {items.map((item, itemIndex) => (
+                              <li key={`${block.id || "story-list"}-${itemIndex}`}>{item}</li>
+                            ))}
+                          </ul>
+                        );
+                      }
+
+                      return <p key={block.id || `story-paragraph-${index}`} className="pd-story-paragraph">{content}</p>;
+                    })}
+                  </div>
+
+                  {story.risks && story.risks.trim() && (
+                    <section className="pd-story-section">
+                      <h2>Risques et defis</h2>
+                      <p className="pd-story-paragraph">{story.risks}</p>
+                    </section>
+                  )}
+
+                  {storyFaqs.length > 0 && (
+                    <section className="pd-story-section">
+                      <h2>Foire aux questions</h2>
+                      <div className="pd-faq-list">
+                        {storyFaqs.map((faq, index) => (
+                          <article key={`${faq.question || "faq"}-${index}`} className="pd-faq-card">
+                            <h3 className="pd-faq-question">{faq.question || `Question ${index + 1}`}</h3>
+                            <p className="pd-faq-answer">{faq.answer || "Reponse a venir."}</p>
+                          </article>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <h2>Histoire</h2>
+                  {campaign.description && (
+                    <p className="pd-story-paragraph pd-story-intro">{campaign.description}</p>
+                  )}
+                  <p>
+                    {campaign.description
+                      ? "Le createur n a pas encore publie d elements supplementaires pour approfondir cette campagne."
+                      : "Le createur n a pas encore publie l histoire detaillee de cette campagne."}
+                  </p>
+                </div>
+              )
+            )}
+
+            {activeTab === "rewards" && (
+              rewardCount > 0 ? (
+                <div>
+                  <h2>Recompenses proposees</h2>
+                  <div style={{ display: "grid", gap: "14px" }}>
+                    {campaign.rewards.map((reward, index) => (
+                      <div key={`${reward.title || "reward"}-${index}`} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "18px", background: "rgba(255,255,255,0.02)" }}>
+                        {(reward.image || reward.image_url) && (
+                          <img
+                            src={resolveMediaUrl(reward.image || reward.image_url)}
+                            alt={reward.title || `Recompense ${index + 1}`}
+                            style={{ width: "100%", maxHeight: "220px", objectFit: "cover", borderRadius: "10px", marginBottom: "14px" }}
+                          />
+                        )}
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", alignItems: "center", marginBottom: "8px" }}>
+                          <strong style={{ color: "#fff", fontSize: "18px" }}>{reward.title || `Recompense ${index + 1}`}</strong>
+                          <span style={{ color: "#0ce688", fontWeight: 800 }}>{reward.price ? `${reward.price} DT` : "Montant libre"}</span>
+                        </div>
+                        <p style={{ margin: 0, color: "#c9d1d9", lineHeight: "1.6" }}>{reward.desc || "Aucune description pour cette recompense."}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h2>Recompenses</h2>
+                  <p>Cette campagne ne contient actuellement aucune recompense enregistree.</p>
+                </div>
+              )
+            )}
+
+            {activeTab === "comments" && (
+              <ProjectCommentsSection
+                campaignId={campaign.id}
+                isAuthenticated={isAuthenticated}
+                onNavigate={onNavigate}
+                onCountChange={setCommentCount}
+              />
+            )}
+          </main>
+
+          <aside className="pd-sidebar-nav">
+            <div className="pd-sidebar-menu" role="tablist" aria-label="Navigation du projet">
+              <span className={`pd-tab-vertical ${activeTab === "story" ? "active" : ""}`} onClick={() => setActiveTab("story")} role="tab" aria-selected={activeTab === "story"} tabIndex={0}>Histoire</span>
+              <span className={`pd-tab-vertical ${activeTab === "rewards" ? "active" : ""}`} onClick={() => setActiveTab("rewards")} role="tab" aria-selected={activeTab === "rewards"} tabIndex={0}>Recompenses <span className="pd-tab-count">{rewardCount}</span></span>
+              <span className={`pd-tab-vertical ${activeTab === "comments" ? "active" : ""}`} onClick={() => setActiveTab("comments")} role="tab" aria-selected={activeTab === "comments"} tabIndex={0}>Commentaires <span className="pd-tab-count">{commentCount}</span></span>
+            </div>
+          </aside>
         </div>
       </div>
 
+      {false && (
       <div className="pd-layout-container" style={{ position: "relative", zIndex: 1, boxSizing: "border-box" }}>
-        <aside className="pd-sidebar-nav">
-          <div className="pd-sidebar-menu" role="tablist" aria-label="Navigation du projet">
-            <span className={`pd-tab-vertical ${activeTab === "story" ? "active" : ""}`} onClick={() => setActiveTab("story")} role="tab" aria-selected={activeTab === "story"} tabIndex={0}>Histoire</span>
-            <span className={`pd-tab-vertical ${activeTab === "rewards" ? "active" : ""}`} onClick={() => setActiveTab("rewards")} role="tab" aria-selected={activeTab === "rewards"} tabIndex={0}>Recompenses <span className="pd-tab-count">{rewardCount}</span></span>
-            <span className={`pd-tab-vertical ${activeTab === "comments" ? "active" : ""}`} onClick={() => setActiveTab("comments")} role="tab" aria-selected={activeTab === "comments"} tabIndex={0}>Commentaires <span className="pd-tab-count">{commentCount}</span></span>
-            <span className={`pd-tab-vertical ${activeTab === "campaign" ? "active" : ""}`} onClick={() => setActiveTab("campaign")} role="tab" aria-selected={activeTab === "campaign"} tabIndex={0}>Description</span>
-          </div>
-        </aside>
-
-        <main className="pd-sidebar-content">
+        <main className={`pd-sidebar-content ${activeTab === "story" ? "pd-sidebar-content--story" : ""}`}>
           {activeTab === "campaign" && (
             <div>
               <h2>Description du projet</h2>
@@ -708,6 +959,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
           )}
         </main>
       </div>
+      )}
 
       {showLoginModal && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>

@@ -131,6 +131,51 @@
   box-shadow: 0 0 0 3px rgba(5, 206, 120, 0.1);
 }
 
+.settings-password-field {
+  position: relative;
+}
+
+.settings-input-password {
+  padding-right: 56px;
+}
+
+.settings-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #7f8796;
+  cursor: pointer;
+  padding: 4px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-password-toggle:hover {
+  color: #c7ced9;
+}
+
+.settings-password-toggle:focus-visible {
+  outline: 2px solid rgba(5, 206, 120, 0.5);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.settings-password-icon {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .settings-select {
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");

@@ -141,6 +141,56 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
     }
   };
 
+  const handleRemoveMedia = async (type) => {
+    if (!campaignId) {
+      if (onSaveDraft) {
+        onSaveDraft(type === 'image' ? { image_url: '' } : { video_url: '' });
+      }
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setSaveError('Vous devez être connecté.');
+      return;
+    }
+
+    const isImage = type === 'image';
+    if (isImage) setUploadingImage(true);
+    else setUploadingVideo(true);
+    setSaveError('');
+    setSaveMsg('');
+
+    try {
+      const res = await fetch(`${API_URL}/api/campaigns/${campaignId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(isImage ? { image_url: '' } : { video_url: '' }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setSaveError(data.message || `Erreur lors de la suppression de ${isImage ? "l'image" : 'la vidéo'}.`);
+        return;
+      }
+
+      setSaveMsg(`${isImage ? 'Image' : 'Vidéo'} supprimée avec succès ✓`);
+      if (onSaveDraft) {
+        onSaveDraft(isImage ? { image_url: '' } : { video_url: '' });
+      }
+      setTimeout(() => setSaveMsg(''), 3000);
+    } catch (err) {
+      setSaveError(`Erreur réseau lors de la suppression de ${isImage ? "l'image" : 'la vidéo'}.`);
+    } finally {
+      if (isImage) setUploadingImage(false);
+      else setUploadingVideo(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!campaignId) {
       setSaveError('Aucun projet en cours. Veuillez d\'abord créer un projet.');
@@ -361,10 +411,18 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
               Un seul media principal est autorise a la fois : image ou video.
               <br /><br />
               {draftProject?.image_url && (
-                <div style={{ marginTop: '10px' }}>
+                <div className="pe-media-preview-block">
                   <span style={{ color: '#0ce688' }}>✅ Image enregistrée</span>
                   <br/>
-                  <img src={`${API_URL}${draftProject.image_url}`} alt="Preview" style={{ maxWidth: '100%', maxHeight: '150px', marginTop: '10px', borderRadius: '8px', objectFit: 'cover' }} />
+                  <img src={`${API_URL}${draftProject.image_url}`} alt="Preview" className="pe-media-preview pe-media-preview--image" />
+                  <button
+                    type="button"
+                    className="pe-media-remove-btn"
+                    onClick={() => handleRemoveMedia('image')}
+                    disabled={uploadingImage}
+                  >
+                    Supprimer l'image
+                  </button>
                 </div>
               )}
             </div>
@@ -400,10 +458,18 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
               Cette video peut remplacer l'image principale si vous preferez presenter le projet en mouvement.
               <br /><br />
               {draftProject?.video_url && (
-                <div style={{ marginTop: '10px' }}>
+                <div className="pe-media-preview-block">
                   <span style={{ color: '#0ce688' }}>✅ Vidéo enregistrée</span>
                   <br/>
-                  <video src={`${API_URL}${draftProject.video_url}`} controls style={{ maxWidth: '100%', maxHeight: '200px', marginTop: '10px', borderRadius: '8px', background: '#000' }} />
+                  <video src={`${API_URL}${draftProject.video_url}`} controls className="pe-media-preview pe-media-preview--video" />
+                  <button
+                    type="button"
+                    className="pe-media-remove-btn"
+                    onClick={() => handleRemoveMedia('video')}
+                    disabled={uploadingVideo}
+                  >
+                    Supprimer la vidéo
+                  </button>
                 </div>
               )}
             </div>

@@ -599,6 +599,54 @@
   color: #a1a1aa;
 }
 
+.pe-media-preview-block {
+  margin-top: 10px;
+}
+
+.pe-media-preview {
+  max-width: 100%;
+  margin-top: 10px;
+  border-radius: 8px;
+}
+
+.pe-media-preview--image {
+  max-height: 150px;
+  object-fit: cover;
+}
+
+.pe-media-preview--video {
+  max-height: 200px;
+  background: #000;
+}
+
+.pe-media-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 107, 107, 0.34);
+  background: rgba(255, 77, 79, 0.06);
+  color: #ff8d8f;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pe-media-remove-btn:hover:not(:disabled) {
+  background: rgba(255, 77, 79, 0.12);
+  border-color: rgba(255, 107, 107, 0.5);
+  color: #ffc1c2;
+}
+
+.pe-media-remove-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 /* Radio buttons container */
 .pe-radio-group {
   display: flex;
