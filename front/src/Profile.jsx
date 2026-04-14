@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "./Home.css";
 import "./Profile.css";
 import "./Settings.css";
+import "./PublicUserProfile.css";
 import Navbar from "./Navbar";
 import ProjectCard from "./components/ProjectCard";
 import { buildApiUrl } from "./shared/services/api.js";
@@ -52,6 +53,18 @@ const getCampaignLockNotice = (status) => {
   };
 };
 
+const formatActivityDate = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("created");
@@ -94,6 +107,7 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
             category: campaign.category || "Non categorise",
             dbStatus: campaign.status,
             paidDonationCount: Number(campaign.paid_donation_count || 0),
+            createdAt: campaign.created_at || campaign.createdAt || campaign.updated_at || campaign.updatedAt || "",
           }));
           setCreatedProjects(projects);
         }
@@ -143,19 +157,66 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
   const superbackerGoal = 25;
   const superbackerProgress = Math.min((supportedCount / superbackerGoal) * 100, 100);
 
+  const userLocation = "🇹🇳 Tunisie";
+  
+  const memberSinceStr = storedUser.created_at || storedUser.createdAt;
+  const memberSince = memberSinceStr
+    ? new Date(memberSinceStr).toLocaleDateString("fr-FR", { year: "numeric", month: "long" }) 
+    : "Date non disponible";
+  
+  const activeCampaignsCount = createdProjects.filter((project) => project.dbStatus === "ACTIVE").length;
+  const userStatusLabel = storedUser.role === "ADMIN" 
+    ? "Administrateur" 
+    : createdProjects.length > 0 
+      ? "Créateur actif" 
+      : "Membre";
+
+  const recentActivities = [
+    ...createdProjects.flatMap((project) => {
+      const activities = [];
+
+      if (project.createdAt) {
+        activities.push({
+          id: `created-${project.id}`,
+          date: project.createdAt,
+          label: "Campagne creee",
+          title: project.title,
+          description: `Nouvelle campagne ajoutee dans ${project.category}.`,
+        });
+      }
+
+      if (project.dbStatus === "PENDING" && project.createdAt) {
+        activities.push({
+          id: `pending-${project.id}`,
+          date: project.createdAt,
+          label: "Soumise a validation",
+          title: project.title,
+          description: "Votre campagne est actuellement en cours de verification par l'equipe Hive.",
+        });
+      }
+
+      return activities;
+    }),
+    ...backedProjects
+      .filter((project) => project.lastSupportedAt)
+      .map((project) => ({
+        id: `backed-${project.id}`,
+        date: project.lastSupportedAt,
+        label: "Projet soutenu",
+        title: project.title,
+        description: `Vous avez soutenu ce projet dans ${project.category}.`,
+      })),
+  ]
+    .filter((activity) => activity.date)
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 3);
+
   return (
     <div className="profile-page-wrapper">
-      <div className="profile-privacy-banner">
-        <div className="banner-text">
-          <span style={{ color: "#0ce688", fontSize: "18px" }}>???</span>
-          Cette page de profil n'est visible que par vous.
-        </div>
-        <button className="banner-btn" onClick={() => onNavigate("settings")}>Gerer vos parametres de confidentialite</button>
-      </div>
-
       <Navbar onNavigate={onNavigate} isAuthenticated={isAuthenticated} onLogout={onLogout} activeTab="profile" />
 
       <div className="profile-main">
+
         <div className="profile-header">
           <div className="profile-large-avatar">
             {storedUser.avatar ? (
@@ -242,19 +303,111 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
         )}
 
         {activeTab === "about" && (
-          storedUser.bio ? (
-            <div className="profile-content-empty" style={{ textAlign: "left" }}>
-              <h3>Biographie</h3>
-              <p style={{ lineHeight: "1.7", color: "#d4d4d8", whiteSpace: "pre-wrap" }}>{storedUser.bio}</p>
-              <button className="settings-btn-outline" onClick={() => onNavigate("settings")} style={{ marginTop: "16px" }}>Modifier la bio</button>
+          <section className="pub-about" id="panel-about" role="tabpanel" aria-labelledby="tab-about">
+            {/* ── Biographie ── */}
+            <div className="pub-about__card">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                <h3 className="pub-about__card-title" style={{ margin: 0 }}>Biographie</h3>
+                <button className="settings-btn-outline" style={{ padding: "6px 12px", fontSize: "12px", minWidth: "auto", margin: 0 }} onClick={() => onNavigate("settings")}>Modifier</button>
+              </div>
+              {storedUser.bio ? (
+                <p className="pub-about__bio" style={{ whiteSpace: "pre-wrap" }}>{storedUser.bio}</p>
+              ) : (
+                <div className="pub-about__empty">
+                  <span className="pub-about__empty-icon" aria-hidden="true">📝</span>
+                  <p>Aucune biographie disponible. Ajoutez-en une depuis vos paramètres pour vous présenter à la communauté.</p>
+                </div>
+              )}
+              <p className="pub-about__note">
+                Ce profil public présente l'activité visible de ce membre sur Hive.tn.
+              </p>
             </div>
-          ) : (
-            <div className="profile-content-empty">
-              <h3>Aucune biographie</h3>
-              <p>Vous n'avez pas encore ajoute de description a votre profil public.</p>
-              <button className="settings-btn-outline" onClick={() => onNavigate("settings")}>Ajouter une bio</button>
+
+            {/* ── Informations ── */}
+            <div className="pub-about__card pub-about__card--info">
+              <div className="pub-about__trust">
+                <span className="pub-about__trust-dot" aria-hidden="true" />
+                {userStatusLabel}
+              </div>
+              <h3 className="pub-about__card-title">Informations</h3>
+              <div className="pub-about__info-list">
+                <div className="pub-about__info-row">
+                  <div className="pub-about__info-left">
+                    <span className="pub-about__info-icon" aria-hidden="true">📍</span>
+                    <span className="pub-about__info-label">Localisation</span>
+                  </div>
+                  <strong className="pub-about__info-value">
+                    {userLocation}
+                  </strong>
+                </div>
+                <div className="pub-about__info-row">
+                  <div className="pub-about__info-left">
+                    <span className="pub-about__info-icon" aria-hidden="true">📅</span>
+                    <span className="pub-about__info-label">Membre depuis</span>
+                  </div>
+                  <strong className="pub-about__info-value">{memberSince}</strong>
+                </div>
+                <div className="pub-about__info-row">
+                  <div className="pub-about__info-left">
+                    <span className="pub-about__info-icon" aria-hidden="true">
+                      {storedUser.role === "ADMIN" ? "🛡️" : createdProjects.length > 0 ? "🚀" : "👤"}
+                    </span>
+                    <span className="pub-about__info-label">Statut</span>
+                  </div>
+                  <strong className="pub-about__info-value">
+                    {userStatusLabel}
+                  </strong>
+                </div>
+              </div>
             </div>
-          )
+
+            {/* ── Résumé d'activité ── */}
+            <div className="pub-about__card pub-about__card--stats">
+              <h3 className="pub-about__card-title">Résumé d'activité</h3>
+              <div className="pub-about__stats-grid">
+                <div className="pub-about__stat">
+                  <span className="pub-about__stat-value">{createdProjects.length}</span>
+                  <span className="pub-about__stat-label">
+                    Projet{createdProjects.length > 1 ? "s" : ""} créé{createdProjects.length > 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div className="pub-about__stat">
+                  <span className="pub-about__stat-value">{supportedCount}</span>
+                  <span className="pub-about__stat-label">
+                    Projet{supportedCount > 1 ? "s" : ""} soutenu{supportedCount > 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div className="pub-about__stat">
+                  <span className="pub-about__stat-value">{activeCampaignsCount}</span>
+                  <span className="pub-about__stat-label">
+                    Campagne{activeCampaignsCount > 1 ? "s" : ""} active{activeCampaignsCount > 1 ? "s" : ""}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="profile-about-activity-card">
+              <h3>Activite recente</h3>
+              {recentActivities.length > 0 ? (
+                <div className="profile-about-activity-list">
+                  {recentActivities.map((activity) => (
+                    <div key={activity.id} className="profile-about-activity-item">
+                      <span className="profile-about-activity-dot" aria-hidden="true" />
+                      <div className="profile-about-activity-content">
+                        <span className="profile-about-activity-label">{activity.label}</span>
+                        <strong>{activity.title}</strong>
+                        <p>
+                          {activity.description}
+                          {formatActivityDate(activity.date) ? ` • ${formatActivityDate(activity.date)}` : ""}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="profile-about-activity-empty">Aucune activite recente</p>
+              )}
+            </div>
+          </section>
         )}
 
         {activeTab === "backed" && (

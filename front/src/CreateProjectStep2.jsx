@@ -3,6 +3,15 @@ import './CreateProject.css';
 
 const CreateProjectStep2 = ({ onNavigate }) => {
   const [hasAcceptedRules, setHasAcceptedRules] = useState(false);
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userName = storedUser.name || 'Utilisateur';
+  const userAvatar = storedUser.avatar || '';
+  const userInitials = userName
+    .split(' ')
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <div className="cp-wrapper">
@@ -10,12 +19,23 @@ const CreateProjectStep2 = ({ onNavigate }) => {
       {/* Minimal Header */}
       <header className="cp-header">
         <div className="cp-logo" onClick={() => onNavigate('home')}>Hive.tn</div>
-        <img 
-          src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80" 
-          alt="Avatar" 
-          className="cp-user-avatar"
-          onClick={() => onNavigate('profile')}
-        />
+        {userAvatar ? (
+          <img
+            src={userAvatar}
+            alt={userName}
+            className="cp-user-avatar"
+            onClick={() => onNavigate('profile')}
+          />
+        ) : (
+          <div
+            className="cp-user-avatar cp-user-avatar--fallback"
+            onClick={() => onNavigate('profile')}
+            aria-label={userName}
+            title={userName}
+          >
+            {userInitials}
+          </div>
+        )}
       </header>
 
       {/* Progress Bar (Étape 2) */}

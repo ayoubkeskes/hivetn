@@ -45,6 +45,7 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
     id: campaign.id,
     title: campaign.title,
     creatorName: campaign.creator_name || "Createur inconnu",
+    creatorId: campaign.porteur_id,
     creatorAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80",
     image: resolveMediaUrl(campaign.image_url),
     fundedPercent: Number(campaign.funded_percent || 0),
@@ -144,7 +145,16 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
                       </div>
                     </div>
 
-                    <div className="ks-creator-name">
+                    <div 
+                      className="ks-creator-name"
+                      style={project.creatorId ? { cursor: 'pointer', textDecoration: 'underline' } : {}}
+                      onClick={(e) => {
+                        if (project.creatorId) {
+                          e.stopPropagation();
+                          onNavigate("publicProfile", project.creatorId);
+                        }
+                      }}
+                    >
                       Par {project.creatorName}
                     </div>
 

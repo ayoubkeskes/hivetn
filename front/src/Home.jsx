@@ -37,6 +37,7 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
             id: campaign.id,
             title: campaign.title,
             creator: `Par ${campaign.creator_name || 'Createur inconnu'}`,
+            creatorId: campaign.porteur_id,
             desc: campaign.description || '',
             image: resolveMediaUrl(campaign.image_url),
             funded: Number(campaign.funded_percent || 0),

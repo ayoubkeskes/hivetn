@@ -62,7 +62,7 @@ const normalizeCampaignToDraft = (campaign) => ({
 });
 
 const hasPrimaryMedia = (project) => Boolean(project?.image_url || project?.video_url);
-const TABS = ['Bases', 'Récompenses', 'Histoire', 'Personnes', 'Paiement', 'Promotion'];
+const TABS = ['Bases', 'Recompenses', 'Histoire', 'Personnes'];
 
 const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
   const { id } = useParams();
@@ -73,6 +73,15 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showMissingMediaModal, setShowMissingMediaModal] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState(null);
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userName = storedUser.name || 'Utilisateur';
+  const userInitials = userName
+    .split(' ')
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   // Load existing campaign if ID is passed
   useEffect(() => {
@@ -98,10 +107,32 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
     fetchCampaign();
   }, [id]);
 
+  const openFeedbackModal = ({
+    tone = 'success',
+    title,
+    message,
+    details = '',
+    onClose,
+  }) => {
+    setFeedbackModal({ tone, title, message, details, onClose });
+  };
+  const closeFeedbackModal = () => {
+    const modal = feedbackModal;
+    setFeedbackModal(null);
+    if (modal?.onClose) {
+      modal.onClose();
+    }
+  };
+
   const handleSaveToDatabase = async ({ showSuccessAlert = true } = {}) => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert("Vous devez être connecté.");
+      openFeedbackModal({
+        tone: 'warning',
+        title: 'Connexion requise',
+        message: 'Connectez-vous pour enregistrer votre campagne en toute securite.',
+        details: 'Votre brouillon pourra ensuite etre sauvegarde et retrouve a tout moment.',
+      });
       return false;
     }
 
@@ -110,7 +141,7 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
     const payload = {
         title: draftProject?.title || '',
         description: draftProject?.subtitle || '',
-        category: draftProject?.category || 'Non catégorisé',
+        category: draftProject?.category || 'Non catÃ©gorisÃ©',
         target_amount: Number.isFinite(goalValue) && goalValue > 0 ? Math.round(goalValue * 1000) : 0,
         rewards: normalizeRewards(draftProject?.rewards),
         story: normalizeStory(draftProject?.story)
@@ -139,7 +170,12 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
         const data = await res.json();
         if (data.success) {
             if (showSuccessAlert) {
-              alert('Enregistrement r�ussi !');
+              openFeedbackModal({
+                tone: 'success',
+                title: 'Modifications enregistrees',
+                message: 'Votre campagne a bien ete mise a jour.',
+                details: 'Vous pouvez continuer votre edition en toute tranquillite.',
+              });
             }
             if (!currentId && data.campaign_id) {
                 onSaveDraft({
@@ -162,12 +198,21 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
             }));
             return true;
         } else {
-            const saveMessage = data.message || 'Validation Ã©chouÃ©e';
-            alert('Erreur: ' + (data.message || 'Validation échouée'));
+            openFeedbackModal({
+              tone: 'error',
+              title: 'Enregistrement impossible',
+              message: data.message || 'Nous n avons pas pu enregistrer vos modifications.',
+              details: 'Verifiez les informations saisies puis reessayez.',
+            });
             return false;
         }
     } catch (err) {
-        alert('Erreur serveur lors de la sauvegarde');
+        openFeedbackModal({
+          tone: 'error',
+          title: 'Serveur indisponible',
+          message: 'La sauvegarde n a pas pu aboutir pour le moment.',
+          details: 'Verifiez votre connexion puis reessayez dans quelques instants.',
+        });
         return false;
     } finally {
         setIsSaving(false);
@@ -176,12 +221,22 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
 
   const handleSubmitForReview = async () => {
     if (!draftProject?.campaignId) {
-       alert("Aucun brouillon enregistré. Enregistrez d'abord le projet.");
+       openFeedbackModal({
+         tone: 'warning',
+         title: 'Brouillon manquant',
+         message: 'Enregistrez d abord votre projet avant de demander la revision.',
+         details: 'Une premiere sauvegarde est necessaire pour creer votre campagne.',
+       });
        return;
     }
 
     if (!hasPrimaryMedia(draftProject)) {
-      alert("Ajoutez une image ou une video principale avant de soumettre votre campagne.");
+      openFeedbackModal({
+        tone: 'warning',
+        title: 'Media principal requis',
+        message: 'Ajoutez une image ou une video avant de soumettre votre campagne.',
+        details: 'Un visuel fort aide votre projet a inspirer confiance des la premiere impression.',
+      });
       setActiveTab('Bases');
       return;
     }
@@ -195,7 +250,7 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
     setIsSaving(true);
     try {
       // First, save any pending modifications
-      const saved = await handleSaveToDatabase();
+      const saved = await handleSaveToDatabase({ showSuccessAlert: false });
       if (saved === false) {
         return;
       }
@@ -206,13 +261,28 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
       });
       const data = await res.json();
       if (data.success) {
-        alert("Projet soumis avec succès !");
-        reactNavigate('/profile'); // or wherever fits best
+        openFeedbackModal({
+          tone: 'success',
+          title: 'Projet soumis avec succes',
+          message: 'Votre campagne a ete envoyee a l equipe Hive.tn pour verification.',
+          details: 'Nous vous informerons des qu une decision de moderation sera prise.',
+          onClose: () => reactNavigate('/profile'),
+        });
       } else {
-        alert("Erreur de soumission : " + (data.message || 'Validation échouée'));
+        openFeedbackModal({
+          tone: 'error',
+          title: 'Soumission impossible',
+          message: data.message || 'Nous n avons pas pu envoyer votre projet en revision.',
+          details: 'Reessayez apres avoir verifie les informations obligatoires.',
+        });
       }
     } catch (err) {
-      alert("Erreur serveur lors de la soumission.");
+      openFeedbackModal({
+        tone: 'error',
+        title: 'Serveur indisponible',
+        message: 'La soumission n a pas pu aboutir pour le moment.',
+        details: 'Reessayez dans quelques instants.',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -240,52 +310,139 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
+    const campaignId = draftProject?.campaignId || id;
+    const token = localStorage.getItem('token');
+
     setShowDeleteModal(false);
-    if (onNavigate) onNavigate('home');
+
+    if (!campaignId) {
+      openFeedbackModal({
+        tone: 'warning',
+        title: 'Aucun brouillon a supprimer',
+        message: 'Ce projet n a pas encore ete enregistre.',
+        details: 'Enregistrez d abord votre campagne si vous souhaitez ensuite la gerer ou la supprimer.',
+      });
+      return;
+    }
+
+    if (!token) {
+      openFeedbackModal({
+        tone: 'warning',
+        title: 'Connexion requise',
+        message: 'Reconnectez-vous pour supprimer ce brouillon en toute securite.',
+      });
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const res = await fetch(`${API_URL}/api/campaigns/${campaignId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        openFeedbackModal({
+          tone: 'error',
+          title: 'Suppression impossible',
+          message: data.message || 'Nous n avons pas pu supprimer ce brouillon.',
+          details: 'Verifiez que la campagne est encore en brouillon puis reessayez.',
+        });
+        return;
+      }
+
+      if (onSaveDraft) {
+        onSaveDraft({
+          campaignId: null,
+          title: '',
+          subtitle: '',
+          category: '',
+          goal: '',
+          image_url: '',
+          video_url: '',
+          rewards: [],
+          story: { blocks: [], risks: '', faqs: [] },
+        });
+      }
+
+      openFeedbackModal({
+        tone: 'success',
+        title: 'Brouillon supprime',
+        message: 'Votre campagne a bien ete retiree.',
+        details: 'Vous pouvez maintenant revenir a l accueil ou commencer un nouveau projet.',
+        onClose: () => {
+          if (onNavigate) {
+            onNavigate('home');
+          } else {
+            reactNavigate('/');
+          }
+        },
+      });
+    } catch (error) {
+      openFeedbackModal({
+        tone: 'error',
+        title: 'Serveur indisponible',
+        message: 'La suppression n a pas pu aboutir pour le moment.',
+        details: 'Verifiez votre connexion puis reessayez dans quelques instants.',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <div className="pe-wrapper">
 
-      {/* ── Header ── */}
+      {/* â”€â”€ Header â”€â”€ */}
       <header className="pe-header">
         <div className="pe-header-top">
 
           {/* Colonne 1 - Logo (gauche) */}
           <span className="pe-logo" onClick={() => onNavigate('home')}>Hive.tn</span>
 
-          {/* Colonne 2 - Toggle centré */}
+          {/* Colonne 2 - Toggle centrÃ© */}
           <div className="pe-header-center">
             <div className="pe-mode-toggle">
               <button
                 className={`pe-mode-btn ${!showPreview ? 'pe-mode-btn--active' : ''}`}
                 onClick={() => setShowPreview(false)}
               >
-                <span className="pe-mode-icon">✏️</span> Éditeur
+                <span className="pe-mode-icon">E</span> Editeur
               </button>
               <button
                 className={`pe-mode-btn pe-mode-btn--preview ${showPreview ? 'pe-mode-btn--active pe-mode-btn--preview-active' : ''}`}
                 onClick={() => setShowPreview(true)}
               >
-                <span className="pe-mode-icon">👁</span> Aperçu
+                <span className="pe-mode-icon">V</span> Apercu
               </button>
             </div>
           </div>
 
           {/* Colonne 3 - Avatar (droite) */}
           <div className="pe-header-right">
-            <img
-              src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80"
-              alt="Avatar"
-              className="pe-user-avatar"
-            />
+            {storedUser.avatar ? (
+              <img
+                src={storedUser.avatar}
+                alt={userName}
+                className="pe-user-avatar"
+              />
+            ) : (
+              <div className="pe-user-avatar pe-user-avatar--fallback" aria-label={userName}>
+                {userInitials}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Onglets — masqués en mode Aperçu */}
+        {/* Onglets â€” masquÃ©s en mode AperÃ§u */}
         {!showPreview && (
-          <nav className="pe-tabs" role="tablist" aria-label="Édition du projet">
+          <nav className="pe-tabs" role="tablist" aria-label="Ã‰dition du projet">
             {TABS.map(tab => (
               <span
                 key={tab}
@@ -303,26 +460,21 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
         )}
       </header>
 
-      {/* ── MODE ÉDITEUR ── */}
+      {/* â”€â”€ MODE Ã‰DITEUR â”€â”€ */}
       {!showPreview && (
         <main className="pe-main">
           {activeTab === 'Bases' && <BasicsTab draftProject={draftProject} onSaveDraft={onSaveDraft} onNavigate={onNavigate} />}
-          {activeTab === 'Récompenses' && <RewardsTab draftProject={draftProject} onSaveDraft={onSaveDraft} />}
+          {activeTab === 'Recompenses' && <RewardsTab draftProject={draftProject} onSaveDraft={onSaveDraft} />}
           {activeTab === 'Histoire' && <StoryTab draftProject={draftProject} onSaveDraft={onSaveDraft} />}
           {activeTab === 'Personnes' && <PeopleTab />}
-          {activeTab !== 'Bases' && activeTab !== 'Récompenses' && activeTab !== 'Histoire' && activeTab !== 'Personnes' && (
-            <div style={{ textAlign: 'center', padding: '100px', color: '#a1a1aa' }}>
-              <h2>{activeTab}</h2>
-              <p>Cet onglet est en cours de structuration.</p>
-            </div>
-          )}          {/* Bottom Action Bar */}
+          {/* Bottom Action Bar */}
           <div className="pe-action-bar">
             <button
               className={`pe-action-btn pe-action-btn--ghost ${isSaving ? 'is-disabled' : ''}`}
               onClick={handleSaveToDatabase}
               disabled={isSaving}
             >
-              <span className="pe-action-btn__icon">??</span>
+              <span className="pe-action-btn__icon" aria-hidden="true"></span>
               <span className="pe-action-btn__text">
                 {isSaving ? (id ? 'Enregistrement...' : 'Sauvegarde...') : (id ? 'Enregistrer les modifications' : 'Enregistrer le brouillon')}
               </span>
@@ -334,7 +486,7 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
                 onClick={handleNextTab}
               >
                 <span className="pe-action-btn__text">Suivant : {TABS[TABS.indexOf(activeTab) + 1]}</span>
-                <span className="pe-action-btn__arrow" aria-hidden="true">?</span>
+                <span className="pe-action-btn__arrow" aria-hidden="true">-&gt;</span>
               </button>
             ) : (
               <button
@@ -342,7 +494,7 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
                 onClick={handleSubmitForReview}
                 disabled={isSaving}
               >
-                <span className="pe-action-btn__icon">??</span>
+                <span className="pe-action-btn__icon" aria-hidden="true"></span>
                 <span className="pe-action-btn__text">Soumettre le projet</span>
               </button>
             )}
@@ -381,7 +533,7 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
         </main>
       )}
 
-      {/* ── MODE APERÇU (pleine page, même layout que l'éditeur) ── */}
+      {/* â”€â”€ MODE APERÃ‡U (pleine page, mÃªme layout que l'Ã©diteur) â”€â”€ */}
       {showPreview && (
         <main className="pe-main pe-preview-page">
           <div className="pe-preview-content">
@@ -390,13 +542,13 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
             <div className="pe-preview-hero">
               <span className="pe-preview-badge">
                 <span className="pe-preview-dot"></span>
-                Mode Prévisualisation
+                Mode PrÃ©visualisation
               </span>
               <h1 className="pe-preview-title">
                 {draftProject?.title || 'Titre de votre projet'}
               </h1>
               <p className="pe-preview-subtitle">
-                {draftProject?.subtitle || 'Un sous-titre accrocheur pour présenter votre concept.'}
+                {draftProject?.subtitle || 'Un sous-titre accrocheur pour prÃ©senter votre concept.'}
               </p>
             </div>
 
@@ -422,7 +574,7 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
               <aside className="pe-preview-sidebar">
                 <div className="pe-preview-amount">0 DT</div>
                 <div className="pe-preview-goal">
-                  engagés sur un objectif de <strong>{draftProject?.goal || '0'} DT</strong>
+                  engagÃ©s sur un objectif de <strong>{draftProject?.goal || '0'} DT</strong>
                 </div>
 
                 <div className="pe-preview-progress-bg">
@@ -445,7 +597,7 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
                 </button>
 
                 <p className="pe-preview-notice">
-                  ⚠️ Ceci est un aperçu — le projet n'est pas encore publié.
+                  âš ï¸ Ceci est un aperÃ§u â€” le projet n'est pas encore publiÃ©.
                 </p>
               </aside>
             </div>
@@ -686,11 +838,108 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
           </div>
         </div>
       )}
+      {feedbackModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(4, 7, 13, 0.78)',
+            backdropFilter: 'blur(10px)',
+            zIndex: 1001,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '560px',
+              background: 'linear-gradient(180deg, rgba(23, 28, 39, 0.98), rgba(14, 18, 27, 0.98))',
+              border:
+                feedbackModal.tone === 'error'
+                  ? '1px solid rgba(248, 113, 113, 0.22)'
+                  : feedbackModal.tone === 'warning'
+                  ? '1px solid rgba(251, 191, 36, 0.22)'
+                  : '1px solid rgba(12, 230, 136, 0.16)',
+              borderRadius: '24px',
+              boxShadow: '0 30px 90px rgba(0, 0, 0, 0.42)',
+              padding: '32px',
+              textAlign: 'center',
+            }}
+          >
+            <div
+              style={{
+                width: '76px',
+                height: '76px',
+                margin: '0 auto 18px',
+                borderRadius: '999px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '28px',
+                fontWeight: 800,
+                color: feedbackModal.tone === 'error' ? '#fff' : '#111',
+                background:
+                  feedbackModal.tone === 'error'
+                    ? 'radial-gradient(circle at 30% 30%, rgba(248, 113, 113, 0.95), rgba(239, 68, 68, 0.78))'
+                    : feedbackModal.tone === 'warning'
+                    ? 'radial-gradient(circle at 30% 30%, rgba(251, 191, 36, 0.95), rgba(245, 158, 11, 0.78))'
+                    : 'radial-gradient(circle at 30% 30%, rgba(12, 230, 136, 0.92), rgba(8, 182, 104, 0.78))',
+                boxShadow:
+                  feedbackModal.tone === 'error'
+                    ? '0 16px 36px rgba(239, 68, 68, 0.2)'
+                    : feedbackModal.tone === 'warning'
+                    ? '0 16px 36px rgba(245, 158, 11, 0.2)'
+                    : '0 16px 36px rgba(12, 230, 136, 0.18)',
+              }}
+            >
+              {feedbackModal.tone === 'success' ? 'OK' : '!'}
+            </div>
+            <h2 style={{ margin: '0 0 12px', color: '#fff', fontSize: '28px', fontWeight: 800 }}>
+              {feedbackModal.title}
+            </h2>
+            <p style={{ margin: '0 0 10px', color: '#d4d4d8', fontSize: '16px', lineHeight: '1.7' }}>
+              {feedbackModal.message}
+            </p>
+            {feedbackModal.details ? (
+              <p style={{ margin: '0 0 28px', color: '#a1a1aa', fontSize: '14px', lineHeight: '1.6' }}>
+                {feedbackModal.details}
+              </p>
+            ) : null}
+            <button
+              type="button"
+              className="nav-btn-solid"
+              onClick={closeFeedbackModal}
+              style={{
+                minWidth: '180px',
+                background:
+                  feedbackModal.tone === 'error'
+                    ? 'linear-gradient(135deg, #f87171, #ef4444)'
+                    : feedbackModal.tone === 'warning'
+                    ? 'linear-gradient(135deg, #fbbf24, #f59e0b)'
+                    : 'linear-gradient(135deg, #0ce688, #09c774)',
+                color: feedbackModal.tone === 'error' ? '#fff' : '#111',
+                boxShadow:
+                  feedbackModal.tone === 'error'
+                    ? '0 12px 30px rgba(239, 68, 68, 0.25)'
+                    : feedbackModal.tone === 'warning'
+                    ? '0 12px 30px rgba(245, 158, 11, 0.22)'
+                    : '0 12px 30px rgba(12, 230, 136, 0.25)',
+              }}
+            >
+              Compris
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default ProjectEditor;
+
 
 
 

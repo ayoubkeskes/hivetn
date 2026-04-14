@@ -10,6 +10,7 @@ const GoogleAuthCallback = React.lazy(() => import("@/modules/auth/pages/GoogleA
 const ForgotPassword = React.lazy(() => import("@/modules/auth/pages/ForgotPassword.jsx"));
 const Settings = React.lazy(() => import("@/modules/profile/pages/Settings.jsx"));
 const Profile = React.lazy(() => import("@/modules/profile/pages/Profile.jsx"));
+const PublicUserProfile = React.lazy(() => import("@/modules/profile/pages/PublicUserProfile.jsx"));
 const SavedProjects = React.lazy(() => import("@/modules/campaigns/pages/SavedProjects.jsx"));
 const ProjectDetails = React.lazy(() => import("@/modules/campaigns/pages/ProjectDetails.jsx"));
 const Discover = React.lazy(() => import("@/modules/campaigns/pages/Discover.jsx"));
@@ -84,6 +85,12 @@ function AppRoutes() {
     if (view === "projectEditor") {
       const campaignId = typeof payload === "object" ? payload?.id : payload;
       navigate(campaignId ? `/editor/${campaignId}` : "/editor");
+      return;
+    }
+
+    if (view === "publicProfile") {
+      const userId = typeof payload === "object" ? payload?.id : payload;
+      navigate(userId ? `/users/${userId}` : "/");
       return;
     }
 
@@ -233,6 +240,10 @@ function AppRoutes() {
         <Route
           path="/profile"
           element={<Profile isAuthenticated={isAuthenticated} onNavigate={handleNavigate} onLogout={handleLogout} />}
+        />
+        <Route
+          path="/users/:id"
+          element={<PublicUserProfile isAuthenticated={isAuthenticated} onNavigate={handleNavigate} onLogout={handleLogout} />}
         />
         <Route
           path="/saved"

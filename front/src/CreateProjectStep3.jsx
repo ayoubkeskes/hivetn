@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './CreateProject.css';
 
 const API_URL = 'http://localhost:5000';
@@ -10,6 +10,16 @@ const CreateProjectStep3 = ({ onNavigate, onSaveDraft, draftProject }) => {
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userName = storedUser.name || 'Utilisateur';
+  const userAvatar = storedUser.avatar || '';
+  const userInitials = userName
+    .split(' ')
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   const MAX_TITLE = 60;
   const MAX_SUBTITLE = 135;
@@ -44,6 +54,21 @@ const CreateProjectStep3 = ({ onNavigate, onSaveDraft, draftProject }) => {
       if (onSaveDraft) {
         onSaveDraft({ photoName: file.name });
       }
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImageFile(null);
+    setPhotoName('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
+    if (onSaveDraft) {
+      onSaveDraft({
+        photoName: '',
+        image_url: '',
+      });
     }
   };
 
@@ -134,12 +159,23 @@ const CreateProjectStep3 = ({ onNavigate, onSaveDraft, draftProject }) => {
     <div className="cp-wrapper">
       <header className="cp-header">
         <div className="cp-logo" onClick={() => onNavigate('home')}>Hive.tn</div>
-        <img
-          src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80"
-          alt="Avatar"
-          className="cp-user-avatar"
-          onClick={() => onNavigate('profile')}
-        />
+        {userAvatar ? (
+          <img
+            src={userAvatar}
+            alt={userName}
+            className="cp-user-avatar"
+            onClick={() => onNavigate('profile')}
+          />
+        ) : (
+          <div
+            className="cp-user-avatar cp-user-avatar--fallback"
+            onClick={() => onNavigate('profile')}
+            aria-label={userName}
+            title={userName}
+          >
+            {userInitials}
+          </div>
+        )}
       </header>
 
       <div className="cp-progress-container">
@@ -196,6 +232,7 @@ const CreateProjectStep3 = ({ onNavigate, onSaveDraft, draftProject }) => {
                 id="project-photo"
                 className="cp-file-input"
                 accept="image/png, image/jpeg, image/jpg"
+                ref={fileInputRef}
                 onChange={handleFileChange}
               />
               <label htmlFor="project-photo" className="cp-file-label">
@@ -204,18 +241,19 @@ const CreateProjectStep3 = ({ onNavigate, onSaveDraft, draftProject }) => {
               {!photoName && <span className="cp-file-hint">Formats supportes: JPEG, PNG, GIF. Ratio conseille 16:9.</span>}
 
               {imagePreview && (
-                <div style={{ marginTop: '16px' }}>
+                <div className="cp-image-preview-block">
                   <img
                     src={imagePreview}
                     alt="Apercu du projet"
-                    style={{
-                      width: '100%',
-                      maxHeight: '220px',
-                      objectFit: 'cover',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                    }}
+                    className="cp-image-preview"
                   />
+                  <button
+                    type="button"
+                    className="cp-btn-remove-image"
+                    onClick={handleRemoveImage}
+                  >
+                    Supprimer l'image
+                  </button>
                 </div>
               )}
             </div>

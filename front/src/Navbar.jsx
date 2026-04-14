@@ -160,6 +160,50 @@ const Navbar = ({ onNavigate, isAuthenticated, onLogout, activeTab }) => {
     }
   };
 
+  const profileMenuItems = [
+    {
+      key: 'profile',
+      label: 'Profil',
+      icon: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" />
+          <path d="M4 20a8 8 0 0 1 16 0" />
+        </svg>
+      ),
+    },
+    {
+      key: 'settings',
+      label: 'Parametres',
+      icon: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 15.5A3.5 3.5 0 1 0 8.5 12a3.5 3.5 0 0 0 3.5 3.5Z" />
+          <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 1-2 0 1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 1 0-2 1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 1 2 0 1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 1 0 2 1.7 1.7 0 0 0-.6 1Z" />
+        </svg>
+      ),
+    },
+    {
+      key: 'support',
+      label: 'Support',
+      icon: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 12a8 8 0 0 1 16 0" />
+          <path d="M6 15v2a2 2 0 0 0 2 2h1v-6H8a2 2 0 0 0-2 2Z" />
+          <path d="M18 15v2a2 2 0 0 1-2 2h-1v-6h1a2 2 0 0 1 2 2Z" />
+          <path d="M12 19v1a2 2 0 0 1-2 2h2" />
+        </svg>
+      ),
+    },
+    {
+      key: 'saved',
+      label: 'Enregistrements',
+      icon: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7 4.5h10a1 1 0 0 1 1 1V21l-6-3.8L6 21V5.5a1 1 0 0 1 1-1Z" />
+        </svg>
+      ),
+    },
+  ];
+
   return (
     <nav className={`navbar ${isMobileMenuOpen ? 'nav-open' : ''}`} style={{ zIndex: 110, position: 'relative' }}>
       <div className="nav-left">
@@ -281,10 +325,12 @@ const Navbar = ({ onNavigate, isAuthenticated, onLogout, activeTab }) => {
                       <span className="text-small" style={{ color: '#a1a1aa', fontSize: '13px' }}>{userEmail}</span>
                     </div>
                     <div className="dropdown-divider"></div>
-                    <div className="dropdown-item" onClick={() => handleMenuNavigate('profile')}>Profil</div>
-                    <div className="dropdown-item" onClick={() => handleMenuNavigate('settings')}>Parametres</div>
-                    <div className="dropdown-item" onClick={() => handleMenuNavigate('support')}>Support</div>
-                    <div className="dropdown-item" onClick={() => handleMenuNavigate('saved')}>Enregistrements</div>
+                    {profileMenuItems.map((item) => (
+                      <div key={item.key} className="dropdown-item" onClick={() => handleMenuNavigate(item.key)}>
+                        <span className="dropdown-item-icon">{item.icon}</span>
+                        <span>{item.label}</span>
+                      </div>
+                    ))}
                     <div className="dropdown-divider"></div>
                     <div
                       className="dropdown-item text-danger"
@@ -294,7 +340,14 @@ const Navbar = ({ onNavigate, isAuthenticated, onLogout, activeTab }) => {
                         if (onLogout) onLogout();
                       }}
                     >
-                      Deconnexion
+                      <span className="dropdown-item-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                          <path d="M16 17l5-5-5-5" />
+                          <path d="M21 12H9" />
+                        </svg>
+                      </span>
+                      <span>Deconnexion</span>
                     </div>
                   </div>
                 )}

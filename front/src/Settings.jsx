@@ -4,6 +4,43 @@ import Navbar from './Navbar';
 
 const API_URL = 'http://localhost:5000';
 
+const PasswordField = ({ value, onChange, placeholder }) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  return (
+    <div className="settings-password-field">
+      <input
+        type={isVisible ? 'text' : 'password'}
+        className="settings-input settings-input-password"
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+      />
+      <button
+        type="button"
+        className="settings-password-toggle"
+        onClick={() => setIsVisible((visible) => !visible)}
+        aria-label={isVisible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+        aria-pressed={isVisible}
+      >
+        {isVisible ? (
+          <svg viewBox="0 0 24 24" aria-hidden="true" className="settings-password-icon">
+            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        ) : (
+          <svg viewBox="0 0 24 24" aria-hidden="true" className="settings-password-icon">
+            <path d="M3 3l18 18" />
+            <path d="M10.6 10.7a3 3 0 0 0 4.1 4.1" />
+            <path d="M9.9 5.2A11.4 11.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.1 3.8" />
+            <path d="M6.2 6.3A17.3 17.3 0 0 0 2 12s3.5 7 10 7a10.7 10.7 0 0 0 4-.7" />
+          </svg>
+        )}
+      </button>
+    </div>
+  );
+};
+
 const Settings = ({ onNavigate, isAuthenticated, onLogout }) => {
   const [activeTab, setActiveTab] = useState('account');
   const [saved, setSaved] = useState('');
@@ -169,15 +206,27 @@ const Settings = ({ onNavigate, isAuthenticated, onLogout }) => {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' }}>
                     {!isGoogleOnlyUser && (
-                      <input type="password" className="settings-input" placeholder="Mot de passe actuel" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+                      <PasswordField
+                        placeholder="Mot de passe actuel"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                      />
                     )}
                     {isGoogleOnlyUser && (
                       <div className="settings-help-text" style={{ marginTop: 0 }}>
                         Votre compte a ete cree avec Google. Vous pouvez definir un mot de passe local pour vous connecter aussi par email.
                       </div>
                     )}
-                    <input type="password" className="settings-input" placeholder="Nouveau mot de passe" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-                    <input type="password" className="settings-input" placeholder="Confirmer le nouveau mot de passe" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                    <PasswordField
+                      placeholder="Nouveau mot de passe"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                    <PasswordField
+                      placeholder="Confirmer le nouveau mot de passe"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
                     <div style={{ display: 'flex', gap: '12px' }}>
                       <button className="nav-btn-solid" style={{ padding: '8px 16px', fontSize: '13px' }} onClick={handleChangePassword} disabled={saving}>
                         {saving ? 'En cours...' : 'Valider'}
