@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 
 const API_URL = 'http://localhost:5000';
 const MAX_COMMENT_LENGTH = 1000;
@@ -90,7 +90,7 @@ const ProjectCommentsSection = ({ campaignId, isAuthenticated, onNavigate, onCou
     }
 
     if (!trimmedComment) {
-      setSubmitError('Le commentaire ne peut pas etre vide.');
+      setSubmitError('Le commentaire ne peut pas être vide.');
       return;
     }
 
@@ -125,10 +125,10 @@ const ProjectCommentsSection = ({ campaignId, isAuthenticated, onNavigate, onCou
       setComments(nextComments);
       onCountChange?.(nextComments.length);
       setDraftComment('');
-      setSubmitSuccess('Votre commentaire a ete publie.');
+      setSubmitSuccess('Votre commentaire a été publié.');
     } catch (submitFailure) {
       console.error('Comment submit error:', submitFailure);
-      setSubmitError('Erreur reseau lors de la publication du commentaire.');
+      setSubmitError('Erreur réseau lors de la publication du commentaire.');
     } finally {
       setSubmitting(false);
     }
@@ -140,7 +140,7 @@ const ProjectCommentsSection = ({ campaignId, isAuthenticated, onNavigate, onCou
         <div>
           <h2>Commentaires</h2>
           <p className="pd-comments-subtitle">
-            Echangez publiquement autour du projet et encouragez son createur.
+            Échangez publiquement autour du projet et encouragez son créateur.
           </p>
         </div>
         <div className="pd-comments-count">{comments.length}</div>
@@ -203,7 +203,7 @@ const ProjectCommentsSection = ({ campaignId, isAuthenticated, onNavigate, onCou
       ) : comments.length === 0 ? (
         <div className="pd-comments-empty">
           <strong>Aucun commentaire pour le moment.</strong>
-          <span>Soyez la premiere personne a lancer la conversation autour de cette campagne.</span>
+          <span>Soyez la première personne à lancer la conversation autour de cette campagne.</span>
         </div>
       ) : (
         <div className="pd-comments-list">

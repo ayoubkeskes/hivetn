@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 const formatMoney = (amount) =>
   `${Number(amount || 0).toLocaleString("fr-FR", {
@@ -30,7 +30,7 @@ const DonationSummaryCard = ({
 
       <div className="dp-summary-card__campaign">
         <p className="dp-summary-card__campaign-title">{campaign.title}</p>
-        <p className="dp-summary-card__campaign-meta">{creator?.name || campaign.creator_name || "Createur Hive.tn"}</p>
+        <p className="dp-summary-card__campaign-meta">{creator?.name || campaign.creator_name || "Créateur Hive.tn"}</p>
       </div>
 
       <div className="dp-summary-card__rows">
@@ -75,7 +75,7 @@ const DonationSummaryCard = ({
       </button>
 
       <p className="dp-summary-card__legal">
-        Cette version MVP met a jour PostgreSQL en temps reel, sans integrer de
+        Cette version MVP met à jour PostgreSQL en temps réel, sans intégrer de
         passerelle bancaire. Les donnees sensibles de carte ne sont jamais
         stockees.
       </p>

@@ -230,8 +230,11 @@ export const getAllPledges = async () => {
  */
 export const approveCampaign = async (id) => {
   const { rows } = await pool.query(
-    `UPDATE campaigns SET status = 'ACTIVE' WHERE id = $1 AND status = 'PENDING'
-     RETURNING id, title, status`,
+    `UPDATE campaigns
+     SET status = 'ACTIVE',
+         launched_at = COALESCE(launched_at, NOW())
+     WHERE id = $1 AND status = 'PENDING'
+     RETURNING id, title, status, launched_at`,
     [id]
   );
   return rows[0] || null;

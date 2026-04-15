@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './CreateProject.css';
 
 const API_URL = 'http://localhost:5000';
@@ -103,7 +103,7 @@ const CreateProjectStep3 = ({ onNavigate, onSaveDraft, draftProject }) => {
 
     const token = localStorage.getItem('token');
     if (!token) {
-      setError('Vous devez etre connecte pour creer un projet.');
+      setError('Vous devez être connecté pour créer un projet.');
       setLoading(false);
       return;
     }
@@ -214,7 +214,7 @@ const CreateProjectStep3 = ({ onNavigate, onSaveDraft, draftProject }) => {
             <label className="cp-form-label">Sous-titre</label>
             <textarea
               className="cp-textarea"
-              placeholder="Une approche ecologique et locale pour produire des legumes frais toute l'annee..."
+              placeholder="Une approche écologique et locale pour produire des légumes frais toute l'année..."
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
             ></textarea>
@@ -235,7 +235,7 @@ const CreateProjectStep3 = ({ onNavigate, onSaveDraft, draftProject }) => {
                 onChange={handleFileChange}
               />
               <label htmlFor="project-photo" className="cp-file-label">
-                {photoName ? `Image selectionnee : ${photoName}` : "Cliquez ici pour uploader une image"}
+                {photoName ? `Image sélectionnée : ${photoName}` : "Cliquez ici pour uploader une image"}
               </label>
               {!photoName && <span className="cp-file-hint">Formats supportes: JPEG, PNG, GIF. Ratio conseille 16:9.</span>}
 

@@ -67,6 +67,8 @@ export const findSupportedCampaignsByDonor = async (donorId) => {
        c.video_url,
        c.created_at,
        c.updated_at,
+       c.duration_days,
+       c.launched_at,
        u.name AS creator_name,
        u.email AS creator_email,
        COUNT(s.campaign_id)::int AS pledge_count,

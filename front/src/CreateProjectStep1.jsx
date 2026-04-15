@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import './CreateProject.css';
 import { CAMPAIGN_CATEGORIES } from './shared/constants/campaignCategories.js';
 
@@ -85,7 +85,7 @@ const CreateProjectStep1 = ({ onNavigate, onSaveDraft, draftProject }) => {
       {/* Footer Navigation */}
       <footer className="cp-footer">
         <div className="cp-footer-text">
-          Un nouveau projet — bienvenu !
+          Un nouveau projet : bienvenu !
         </div>
         <button 
           className="cp-btn-next" 

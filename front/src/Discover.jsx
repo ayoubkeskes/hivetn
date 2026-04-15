@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 
 import "./Home.css";
 import "./Discover.css";
@@ -20,7 +20,7 @@ const resolveMediaUrl = (url) => {
 const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [filterCategory, setFilterCategory] = useState(ALL_CATEGORIES_LABEL);
-  const [filterSort, setFilterSort] = useState("Nouveautes");
+  const [filterSort, setFilterSort] = useState("Nouveautés");
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +85,7 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
   const handleToggleSaved = async (campaignId) => {
     const token = localStorage.getItem("token");
     if (!token) {
-      onNavigate("signIn", "Vous devez etre connecte pour enregistrer une campagne.");
+      onNavigate("signIn", "Vous devez être connecté pour enregistrer une campagne.");
       return;
     }
 
@@ -126,7 +126,7 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
   const displayProjects = campaigns.map((campaign) => ({
     id: campaign.id,
     title: campaign.title,
-    creatorName: campaign.creator_name || "Createur inconnu",
+    creatorName: campaign.creator_name || "Créateur inconnu",
     creatorId: campaign.porteur_id,
     creatorAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80",
     image: resolveMediaUrl(campaign.image_url),
@@ -142,7 +142,7 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
     : displayProjects.filter((project) => project.category === filterCategory);
 
   const projectsToShow = [...filteredProjects].sort((a, b) => {
-    if (filterSort === "Popularite") return a.title.localeCompare(b.title);
+    if (filterSort === "Popularité") return a.title.localeCompare(b.title);
     if (filterSort === "Fin de campagne") return a.title.localeCompare(b.title);
     return 0;
   });
@@ -184,7 +184,7 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
               </button>
               {showSortMenu && (
                 <div className="custom-dropdown-menu">
-                  {["Nouveautes", "Popularite", "Fin de campagne"].map((sortOption) => (
+                  {["Nouveautés", "Popularité", "Fin de campagne"].map((sortOption) => (
                     <div 
                       key={sortOption} 
                       className="custom-dropdown-item" 

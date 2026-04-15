@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import './Settings.css';
 import Navbar from './Navbar';
 
@@ -52,13 +52,13 @@ const Settings = ({ onNavigate, isAuthenticated, onLogout }) => {
   const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isGoogleOnlyUser = storedUser.auth_provider === 'google';
 
-  // ── Account tab state ────────────────────────
+  // Account tab state
   const [email, setEmail] = useState(storedUser.email || '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // ── Profile tab state ────────────────────────
+  // Profile tab state
   const [name, setName] = useState(storedUser.name || '');
   const [bio, setBio] = useState(storedUser.bio || '');
   const [avatar, setAvatar] = useState(storedUser.avatar || '');
@@ -69,7 +69,7 @@ const Settings = ({ onNavigate, isAuthenticated, onLogout }) => {
     'Authorization': `Bearer ${token}`,
   };
 
-  // ── Save account (email) — no password needed ─
+  // Save account (email): no password needed
   const handleSaveAccount = async () => {
     setError(''); setSaved('');
     if (!email.trim()) { setError('L\'email ne peut pas être vide.'); return; }
@@ -90,7 +90,7 @@ const Settings = ({ onNavigate, isAuthenticated, onLogout }) => {
     finally { setSaving(false); }
   };
 
-  // ── Change password (still requires current) ──
+  // Change password (still requires current)
   const handleChangePassword = async () => {
     setError(''); setSaved('');
     if (!isGoogleOnlyUser && !currentPassword) { setError('Veuillez entrer votre mot de passe actuel.'); return; }
@@ -115,7 +115,7 @@ const Settings = ({ onNavigate, isAuthenticated, onLogout }) => {
     finally { setSaving(false); }
   };
 
-  // ── Avatar Upload Handler ────────────────────
+  // Avatar upload handler
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -133,7 +133,7 @@ const Settings = ({ onNavigate, isAuthenticated, onLogout }) => {
     reader.readAsDataURL(file);
   };
 
-  // ── Save profile (name + bio) — no password ──
+  // Save profile (name + bio): no password
   const handleSaveProfile = async () => {
     setError(''); setSaved('');
     if (!name.trim()) { setError('Le nom ne peut pas être vide.'); return; }
@@ -188,7 +188,7 @@ const Settings = ({ onNavigate, isAuthenticated, onLogout }) => {
           </div>
         )}
 
-        {/* ── ONGLET: COMPTE ── */}
+        {/* ONGLET : COMPTE */}
         {activeTab === 'account' && (
           <div className="settings-grid">
             <div className="settings-form-left">
@@ -214,7 +214,7 @@ const Settings = ({ onNavigate, isAuthenticated, onLogout }) => {
                     )}
                     {isGoogleOnlyUser && (
                       <div className="settings-help-text" style={{ marginTop: 0 }}>
-                        Votre compte a ete cree avec Google. Vous pouvez definir un mot de passe local pour vous connecter aussi par email.
+                        Votre compte a été créé avec Google. Vous pouvez définir un mot de passe local pour vous connecter aussi par email.
                       </div>
                     )}
                     <PasswordField
@@ -270,7 +270,7 @@ const Settings = ({ onNavigate, isAuthenticated, onLogout }) => {
           </div>
         )}
 
-        {/* ── ONGLET: MODIFIER LE PROFIL ── */}
+        {/* ONGLET : MODIFIER LE PROFIL */}
         {activeTab === 'profile' && (
           <div className="settings-grid">
             <div className="settings-form-left">
@@ -290,7 +290,7 @@ const Settings = ({ onNavigate, isAuthenticated, onLogout }) => {
                   <input type="file" accept="image/jpeg, image/png, image/gif" style={{ display: 'none' }} onChange={handleAvatarChange} />
                 </label>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
-                  <div className="settings-help-text" style={{ marginTop: 0 }}>JPEG, PNG ou GIF • Limite de fichier 5MB</div>
+                  <div className="settings-help-text" style={{ marginTop: 0 }}>JPEG, PNG ou GIF • Limite de fichier 5 Mo</div>
                   {avatar && <span style={{ color: '#ef4444', fontSize: '13px', cursor: 'pointer' }} onClick={() => setAvatar('')}>Supprimer la photo</span>}
                 </div>
               </div>

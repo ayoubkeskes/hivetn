@@ -71,6 +71,8 @@ export const findPublicCreatedCampaignsByUserId = async (userId) => {
        c.video_url,
        c.created_at,
        c.updated_at,
+       c.duration_days,
+       c.launched_at,
        u.name AS creator_name,
        ${fundingStatsSelect}
      FROM campaigns c
@@ -138,6 +140,8 @@ export const findPublicSupportedCampaignsByUserId = async (userId) => {
        c.video_url,
        c.created_at,
        c.updated_at,
+       c.duration_days,
+       c.launched_at,
        u.name AS creator_name,
        COUNT(s.campaign_id)::int AS pledge_count,
        COALESCE(SUM(s.amount), 0)::int AS total_contributed,

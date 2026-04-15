@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 const PreviewModal = ({ show, onClose, project }) => {
   if (!show) return null;

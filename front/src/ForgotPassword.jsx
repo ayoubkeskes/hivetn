@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './SignIn.css';
 
@@ -22,7 +22,7 @@ const ForgotPassword = ({ onSwitch }) => {
           <p className="auth-subtitle">
             {isSubmitted 
               ? "Vérifiez votre boîte de réception pour les instructions de réinitialisation."
-              : "Entrez votre adresse email pour recevoir un lien de réinitialisation sécurisé."}
+              : "Entrez votre adresse e-mail pour recevoir un lien de réinitialisation sécurisé."}
           </p>
         </div>
 

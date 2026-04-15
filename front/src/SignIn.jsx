@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './SignIn.css';
 import GoogleAuthButton from './components/Auth/GoogleAuthButton';
@@ -20,13 +20,13 @@ const SignIn = ({ onSwitch, onForgotPassword, onHome, onLoginSuccess, message })
     e.preventDefault();
     setError('');
 
-    // ── Client-side validation ──────────────────
+    // Client-side validation
     if (!formData.email || !formData.password) {
       setError('Veuillez remplir tous les champs.');
       return;
     }
 
-    // ── API call ────────────────────────────────
+    // API call
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/auth/login`, {
@@ -45,7 +45,7 @@ const SignIn = ({ onSwitch, onForgotPassword, onHome, onLoginSuccess, message })
         return;
       }
 
-      // ── Success: store token & redirect ───────
+      // Success: store token and redirect
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 

@@ -46,7 +46,9 @@ export const ensureRuntimeSchema = async (pool) => {
     ADD COLUMN IF NOT EXISTS story TEXT NULL,
     ADD COLUMN IF NOT EXISTS current_amount INTEGER NOT NULL DEFAULT 0,
     ADD COLUMN IF NOT EXISTS collected_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS contribution_count INTEGER NOT NULL DEFAULT 0
+    ADD COLUMN IF NOT EXISTS contribution_count INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS duration_days INTEGER NOT NULL DEFAULT 30,
+    ADD COLUMN IF NOT EXISTS launched_at TIMESTAMPTZ NULL
   `);
 
   await pool.query(`

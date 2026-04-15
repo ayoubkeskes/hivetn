@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+﻿import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import Navbar from "./Navbar";
@@ -18,24 +18,24 @@ const DEFAULT_FREE_AMOUNT = "25";
 
 const DEFAULT_FAQ = [
   {
-    question: "Quand le paiement reel sera-t-il disponible ?",
+    question: "Quand le paiement réel sera-t-il disponible ?",
     answer:
-      "Cette version MVP enregistre pour l'instant un soutien confirme dans le systeme. Une vraie passerelle de paiement sera integree prochainement.",
+      "Cette version MVP enregistre pour l'instant un soutien confirmé dans le système. Une vraie passerelle de paiement sera intégrée prochainement.",
   },
   {
     question: "Mes donnees bancaires sont-elles stockees ?",
     answer:
-      "Non. Cette page MVP ne collecte ni numero de carte ni CVV. Seules les informations de contribution necessaires au produit sont enregistrees.",
+      "Non. Cette page MVP ne collecte ni numéro de carte ni CVV. Seules les informations de contribution nécessaires au produit sont enregistrées.",
   },
   {
-    question: "Puis-je contribuer sans recompense ?",
+    question: "Puis-je contribuer sans récompense ?",
     answer:
-      "Oui. Le soutien libre reste disponible meme si la campagne ne propose pas de recompense particuliere.",
+      "Oui. Le soutien libre reste disponible même si la campagne ne propose pas de récompense particulière.",
   },
   {
-    question: "Que voit le createur ?",
+    question: "Que voit le créateur ?",
     answer:
-      "Le createur voit qu'une contribution confirmee a ete enregistree pour sa campagne avec le montant et, si vous en laissez un, votre message.",
+      "Le créateur voit qu'une contribution confirmée a été enregistrée pour sa campagne avec le montant et, si vous en laissez un, votre message.",
   },
 ];
 
@@ -69,7 +69,7 @@ const StepIndicator = ({ currentStep }) => (
 );
 
 const CampaignHeader = ({ campaign, creator, totals }) => {
-  const creatorName = creator?.name || campaign?.creator_name || "Createur inconnu";
+  const creatorName = creator?.name || campaign?.creator_name || "Créateur inconnu";
   const initials = creatorName
     .split(" ")
     .filter(Boolean)
@@ -118,15 +118,15 @@ const DonationSidebar = ({ campaign, creator, faqItems, faqOpenIndex, onFaqToggl
   <aside className="dp-sidebar">
     <div className="dp-sidebar-card dp-sidebar-card--accent">
       <p className="dp-sidebar-card__eyebrow">A savoir</p>
-      <h3>Contribution MVP connectee a PostgreSQL</h3>
+      <h3>Contribution MVP connectée à PostgreSQL</h3>
       <p>
         Votre soutien est enregistre dans la base de donnees et les totaux de la
-        campagne sont mis a jour instantanement, sans integrer de paiement reel.
+        campagne sont mis à jour instantanément, sans intégrer de paiement réel.
       </p>
       <ul className="dp-trust-list">
         <li>Aucune donnee de carte n est stockee</li>
-        <li>Le createur voit les nouveaux soutiens en temps reel</li>
-        <li>Le systeme est pret pour une future passerelle</li>
+        <li>Le créateur voit les nouveaux soutiens en temps réel</li>
+        <li>Le système est prêt pour une future passerelle</li>
       </ul>
     </div>
 
@@ -135,7 +135,7 @@ const DonationSidebar = ({ campaign, creator, faqItems, faqOpenIndex, onFaqToggl
       <h3>{campaign?.title || "Campagne"}</h3>
       <div className="dp-compact-summary">
         <div>
-          <span>Createur</span>
+          <span>Créateur</span>
           <strong>{creator?.name || campaign?.creator_name || "Non renseigne"}</strong>
         </div>
         <div>
@@ -160,11 +160,11 @@ const FreeSupportCard = ({ amount, onChange, onProceed, error }) => (
         <p className="dp-free-card__eyebrow">Option flexible</p>
         <h2>Soutien libre</h2>
       </div>
-      <span className="dp-free-card__chip">Sans recompense</span>
+      <span className="dp-free-card__chip">Sans récompense</span>
     </div>
 
     <p className="dp-free-card__copy">
-      Contribuez au montant de votre choix et passez directement a la
+      Contribuez au montant de votre choix et passez directement à la
       confirmation de votre soutien.
     </p>
 
@@ -194,7 +194,7 @@ const EmptyRewards = () => (
     <p className="dp-empty-state__icon" aria-hidden="true">
       *
     </p>
-    <h3>Aucune recompense disponible</h3>
+    <h3>Aucune récompense disponible</h3>
     <p>Cette campagne accepte toujours les soutiens libres.</p>
   </div>
 );
@@ -205,7 +205,7 @@ const BlockedState = ({ onBack }) => (
     <h2>Les contributions sont fermees</h2>
     <p>Cette campagne n accepte pas de nouvelles contributions pour le moment.</p>
     <button type="button" className="dp-primary-btn" onClick={onBack}>
-      Retour a la campagne
+      Retour à la campagne
     </button>
   </div>
 );
@@ -250,7 +250,7 @@ const DonationPage = ({ onNavigate, isAuthenticated, onLogout }) => {
 
   const loadContext = useCallback(async () => {
     if (!campaignId) {
-      setLoadError("Aucune campagne n a ete selectionnee.");
+      setLoadError("Aucune campagne n'a été sélectionnée.");
       setLoading(false);
       return;
     }
@@ -330,7 +330,7 @@ const DonationPage = ({ onNavigate, isAuthenticated, onLogout }) => {
     const nextErrors = {};
 
     if (!parsedAmount || parsedAmount <= 0) {
-      nextErrors.amount = "Le montant doit etre superieur a 0 DT.";
+      nextErrors.amount = "Le montant doit être supérieur à 0 DT.";
     } else if (parsedAmount < minimumAmount) {
       nextErrors.amount = `Le montant minimum est de ${minimumAmount} DT.`;
     }
@@ -375,7 +375,7 @@ const DonationPage = ({ onNavigate, isAuthenticated, onLogout }) => {
         updatedTotals: data.updatedCampaignTotals,
       });
     } catch (error) {
-      setSubmitError(error.message || "La contribution n a pas pu etre enregistree.");
+      setSubmitError(error.message || "La contribution n'a pas pu être enregistrée.");
     } finally {
       setSubmitting(false);
     }
@@ -402,7 +402,7 @@ const DonationPage = ({ onNavigate, isAuthenticated, onLogout }) => {
             <h1>Contexte indisponible</h1>
             <p>{loadError || "Cette campagne n est pas accessible."}</p>
             <button type="button" className="dp-primary-btn" onClick={() => onNavigate("discover")}>
-              Retour a la decouverte
+              Retour à la découverte
             </button>
           </div>
         </div>
@@ -449,7 +449,7 @@ const DonationPage = ({ onNavigate, isAuthenticated, onLogout }) => {
                   <p className="dp-section-header__eyebrow">Etape 1</p>
                   <h2>Choisissez votre soutien</h2>
                   <p>
-                    Selectionnez une recompense issue de la base ou entrez un
+                    Sélectionnez une récompense issue de la base ou entrez un
                     soutien libre avant de confirmer votre contribution.
                   </p>
                 </div>
@@ -467,8 +467,8 @@ const DonationPage = ({ onNavigate, isAuthenticated, onLogout }) => {
                 {rewards.length > 0 ? (
                   <>
                     <div className="dp-section-header" style={{ marginTop: "36px" }}>
-                      <h2>Recompenses disponibles</h2>
-                      <p>Chaque recompense est chargee dynamiquement depuis la campagne.</p>
+                      <h2>Récompenses disponibles</h2>
+                      <p>Chaque récompense est chargée dynamiquement depuis la campagne.</p>
                     </div>
 
                     <div className="dp-reward-grid">
@@ -499,8 +499,8 @@ const DonationPage = ({ onNavigate, isAuthenticated, onLogout }) => {
                   <p className="dp-section-header__eyebrow">Etape 2</p>
                   <h2>Confirmez votre contribution</h2>
                   <p>
-                    Tout est connecte a la base de donnees. A la confirmation, le
-                    soutien est enregistre et les totaux de campagne sont mis a jour.
+                    Tout est connecté à la base de données. À la confirmation, le
+                    soutien est enregistré et les totaux de campagne sont mis à jour.
                   </p>
                 </div>
 

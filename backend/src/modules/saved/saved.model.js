@@ -44,7 +44,7 @@ export const getByUser = async (userId) => {
               )::int
               ELSE 0
             END AS funded_percent,
-            c.image_url, c.status, c.created_at,
+            c.image_url, c.status, c.created_at, c.duration_days, c.launched_at,
             u.name AS creator_name
      FROM saved_campaigns sc
      JOIN campaigns c ON sc.campaign_id = c.id

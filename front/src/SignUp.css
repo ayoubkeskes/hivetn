@@ -94,7 +94,7 @@
 
 .input-group input {
   width: 100%;
-  padding: 16px;
+  padding: 16px 48px 16px 16px;
   font-size: 15px;
   font-family: inherit;
   color: #ffffff;
@@ -133,6 +133,31 @@
   color: #05ce78;
   background-color: #202020;
   border-radius: 4px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #71717a;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.password-toggle-btn:hover {
+  color: #a1a1aa;
+}
+
+.password-toggle-btn svg {
+  width: 20px;
+  height: 20px;
 }
 
 .forgot-password {

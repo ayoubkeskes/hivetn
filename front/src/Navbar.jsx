@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell,
@@ -26,6 +26,28 @@ const PROFILE_MENU_ITEMS = [
   { key: 'saved', label: 'Projets sauvegardés', icon: Bookmark, view: 'saved' },
   { key: 'settings', label: 'Paramètres', icon: Settings, view: 'settings' },
 ];
+
+const normalizeNotificationText = (value = '') => String(value)
+  .replaceAll('prÃªt', 'prêt')
+  .replaceAll('DÃ©couvrez', 'Découvrez')
+  .replaceAll('crÃ©ateurs', 'créateurs')
+  .replaceAll(' a ete ', ' a été ')
+  .replaceAll(' bien ete ', ' bien été ')
+  .replaceAll('acceptee', 'acceptée')
+  .replaceAll('refusee', 'refusée')
+  .replaceAll("l'editeur", "l'éditeur")
+  .replaceAll('recu', 'reçu')
+  .replaceAll('commente', 'commenté')
+  .replaceAll('resolu', 'résolu')
+  .replaceAll('ferme', 'fermé')
+  .replaceAll(' cree', ' créé')
+  .replaceAll(' ete enregistree', ' été enregistrée')
+  .replaceAll('Notre equipe', 'Notre équipe')
+  .replaceAll('repondra', 'répondra')
+  .replaceAll('Nouvelle reponse', 'Nouvelle réponse')
+  .replaceAll("L'equipe support", "L'équipe support")
+  .replaceAll(' a repondu a ', ' a répondu à ')
+  .replaceAll('Statut mis a jour', 'Statut mis à jour');
 
 const NavItem = ({ label, active, onClick }) => (
   <button
@@ -240,6 +262,22 @@ const Navbar = ({ onNavigate, isAuthenticated, onLogout, activeTab }) => {
     });
   };
 
+  const getNotificationTitle = (notification) => {
+    if (notification?.type === 'WELCOME') {
+      return 'Bienvenue sur Hive.tn';
+    }
+
+    return normalizeNotificationText(notification?.title);
+  };
+
+  const getNotificationMessage = (notification) => {
+    if (notification?.type === 'WELCOME') {
+      return 'Votre compte est prêt. Découvrez des campagnes, soutenez des créateurs et lancez vos propres projets.';
+    }
+
+    return normalizeNotificationText(notification?.message);
+  };
+
   const handleMarkAllAsRead = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -390,10 +428,10 @@ const Navbar = ({ onNavigate, isAuthenticated, onLogout, activeTab }) => {
                           onClick={() => handleOpenNotificationLink(notification)}
                         >
                           <div className="notification-item-top">
-                            <span className="notification-item-title">{notification.title}</span>
+                            <span className="notification-item-title">{getNotificationTitle(notification)}</span>
                             <span className="notification-item-time">{formatNotificationTime(notification.created_at)}</span>
                           </div>
-                          <span className="notification-item-message">{notification.message}</span>
+                          <span className="notification-item-message">{getNotificationMessage(notification)}</span>
                         </button>
                       ))}
                     </div>

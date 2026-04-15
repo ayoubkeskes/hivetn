@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 const PaymentForm = ({
   errors,
@@ -15,19 +15,19 @@ const PaymentForm = ({
       <p className="dp-payment-panel__eyebrow">Confirmation</p>
       <h2>Confirmez votre contribution</h2>
       <p className="dp-payment-panel__intro">
-        Le paiement securise sera integre prochainement. Cette action enregistre
-        actuellement un soutien confirme dans le systeme Hive.tn.
+        Le paiement sécurisé sera intégré prochainement. Cette action enregistre
+        actuellement un soutien confirmé dans le système Hive.tn.
       </p>
     </div>
 
     <div className="dp-selection-recap">
       <div>
-        <p className="dp-selection-recap__label">Option selectionnee</p>
+        <p className="dp-selection-recap__label">Option sélectionnée</p>
         <h3>{selection?.type === "reward" ? selection.reward?.title : "Soutien libre"}</h3>
       </div>
       <p className="dp-selection-recap__meta">
         {selection?.type === "reward"
-          ? "Vous soutenez la campagne avec une recompense reelle issue de la base. Le montant peut etre augmente au-dessus du minimum."
+          ? "Vous soutenez la campagne avec une récompense réelle issue de la base. Le montant peut être augmenté au-dessus du minimum."
           : "Vous choisissez librement le montant qui vous semble juste pour soutenir cette campagne."}
       </p>
     </div>
@@ -45,7 +45,7 @@ const PaymentForm = ({
           disabled={false}
         />
         {isRewardLocked ? (
-          <small>Cette recompense impose un minimum de {minAmount} DT.</small>
+          <small>Cette récompense impose un minimum de {minAmount} DT.</small>
         ) : (
           <small>Minimum requis : {minAmount} DT</small>
         )}
@@ -53,7 +53,7 @@ const PaymentForm = ({
       </label>
 
       <label className="dp-field">
-        <span>Message au createur (optionnel)</span>
+        <span>Message au créateur (optionnel)</span>
         <textarea
           value={contributorNote}
           onChange={(e) => onNoteChange(e.target.value)}
@@ -75,8 +75,8 @@ const PaymentForm = ({
       <div className="dp-mvp-payment-note">
         <strong>MVP_MANUAL</strong>
         <p>
-          Aucun numero de carte, CVV ou autre donnee de paiement n est collecte
-          ici. Le systeme enregistre seulement une contribution confirmee, afin
+          Aucun numéro de carte, CVV ou autre donnée de paiement n'est collecté
+          ici. Le système enregistre seulement une contribution confirmée, afin
           de preparer l integration future d une vraie passerelle.
         </p>
       </div>

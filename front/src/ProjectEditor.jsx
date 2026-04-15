@@ -57,12 +57,13 @@ const normalizeCampaignToDraft = (campaign) => ({
   goal: campaign?.target_amount ? String(campaign.target_amount / 1000) : '',
   image_url: campaign?.image_url || '',
   video_url: campaign?.video_url || '',
+  duration_days: Number(campaign?.duration_days || 30),
   rewards: normalizeRewards(campaign?.rewards),
   story: normalizeStory(campaign?.story),
 });
 
 const hasPrimaryMedia = (project) => Boolean(project?.image_url || project?.video_url);
-const TABS = ['Bases', 'Recompenses', 'Histoire', 'Personnes'];
+const TABS = ['Bases', 'Récompenses', 'Histoire', 'Personnes'];
 
 const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
   const { id } = useParams();
@@ -129,8 +130,8 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
       openFeedbackModal({
         tone: 'warning',
         title: 'Connexion requise',
-        message: 'Connectez-vous pour enregistrer votre campagne en toute securite.',
-        details: 'Votre brouillon pourra ensuite etre sauvegarde et retrouve a tout moment.',
+        message: 'Connectez-vous pour enregistrer votre campagne en toute sécurité.',
+        details: 'Votre brouillon pourra ensuite être sauvegardé et retrouvé à tout moment.',
       });
       return false;
     }
@@ -140,8 +141,9 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
     const payload = {
         title: draftProject?.title || '',
         description: draftProject?.subtitle || '',
-        category: draftProject?.category || 'Non catÃ©gorisÃ©',
+        category: draftProject?.category || 'Non catégorisé',
         target_amount: Number.isFinite(goalValue) && goalValue > 0 ? Math.round(goalValue * 1000) : 0,
+        duration_days: Number(draftProject?.duration_days || 30),
         rewards: normalizeRewards(draftProject?.rewards),
         story: normalizeStory(draftProject?.story)
     };
@@ -171,9 +173,9 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
             if (showSuccessAlert) {
               openFeedbackModal({
                 tone: 'success',
-                title: 'Modifications enregistrees',
-                message: 'Votre campagne a bien ete mise a jour.',
-                details: 'Vous pouvez continuer votre edition en toute tranquillite.',
+                title: 'Modifications enregistrées',
+                message: 'Votre campagne a bien été mise à jour.',
+                details: 'Vous pouvez continuer votre édition en toute tranquillité.',
               });
             }
             if (!currentId && data.campaign_id) {
@@ -200,8 +202,8 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
             openFeedbackModal({
               tone: 'error',
               title: 'Enregistrement impossible',
-              message: data.message || 'Nous n avons pas pu enregistrer vos modifications.',
-              details: 'Verifiez les informations saisies puis reessayez.',
+              message: data.message || "Nous n'avons pas pu enregistrer vos modifications.",
+              details: 'Vérifiez les informations saisies puis réessayez.',
             });
             return false;
         }
@@ -209,8 +211,8 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
         openFeedbackModal({
           tone: 'error',
           title: 'Serveur indisponible',
-          message: 'La sauvegarde n a pas pu aboutir pour le moment.',
-          details: 'Verifiez votre connexion puis reessayez dans quelques instants.',
+          message: "La sauvegarde n'a pas pu aboutir pour le moment.",
+          details: 'Vérifiez votre connexion puis réessayez dans quelques instants.',
         });
         return false;
     } finally {
@@ -223,8 +225,8 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
        openFeedbackModal({
          tone: 'warning',
          title: 'Brouillon manquant',
-         message: 'Enregistrez d abord votre projet avant de demander la revision.',
-         details: 'Une premiere sauvegarde est necessaire pour creer votre campagne.',
+         message: "Enregistrez d'abord votre projet avant de demander la révision.",
+         details: 'Une première sauvegarde est nécessaire pour créer votre campagne.',
        });
        return;
     }
@@ -232,9 +234,9 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
     if (!hasPrimaryMedia(draftProject)) {
       openFeedbackModal({
         tone: 'warning',
-        title: 'Media principal requis',
-        message: 'Ajoutez une image ou une video avant de soumettre votre campagne.',
-        details: 'Un visuel fort aide votre projet a inspirer confiance des la premiere impression.',
+        title: 'Média principal requis',
+        message: 'Ajoutez une image ou une vidéo avant de soumettre votre campagne.',
+        details: 'Un visuel fort aide votre projet à inspirer confiance dès la première impression.',
       });
       setActiveTab('Bases');
       return;
@@ -262,25 +264,25 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
       if (data.success) {
         openFeedbackModal({
           tone: 'success',
-          title: 'Projet soumis avec succes',
-          message: 'Votre campagne a ete envoyee a l equipe Hive.tn pour verification.',
-          details: 'Nous vous informerons des qu une decision de moderation sera prise.',
+          title: 'Projet soumis avec succès',
+          message: "Votre campagne a été envoyée à l'équipe Hive.tn pour vérification.",
+          details: "Nous vous informerons dès qu'une décision de modération sera prise.",
           onClose: () => reactNavigate('/profile'),
         });
       } else {
         openFeedbackModal({
           tone: 'error',
           title: 'Soumission impossible',
-          message: data.message || 'Nous n avons pas pu envoyer votre projet en revision.',
-          details: 'Reessayez apres avoir verifie les informations obligatoires.',
+          message: data.message || "Nous n'avons pas pu envoyer votre projet en révision.",
+          details: 'Réessayez après avoir vérifié les informations obligatoires.',
         });
       }
     } catch (err) {
       openFeedbackModal({
         tone: 'error',
         title: 'Serveur indisponible',
-        message: 'La soumission n a pas pu aboutir pour le moment.',
-        details: 'Reessayez dans quelques instants.',
+        message: "La soumission n'a pas pu aboutir pour le moment.",
+        details: 'Réessayez dans quelques instants.',
       });
     } finally {
       setIsSaving(false);
@@ -318,9 +320,9 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
     if (!campaignId) {
       openFeedbackModal({
         tone: 'warning',
-        title: 'Aucun brouillon a supprimer',
-        message: 'Ce projet n a pas encore ete enregistre.',
-        details: 'Enregistrez d abord votre campagne si vous souhaitez ensuite la gerer ou la supprimer.',
+        title: 'Aucun brouillon à supprimer',
+        message: "Ce projet n'a pas encore été enregistré.",
+        details: "Enregistrez d'abord votre campagne si vous souhaitez ensuite la gérer ou la supprimer.",
       });
       return;
     }
@@ -329,7 +331,7 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
       openFeedbackModal({
         tone: 'warning',
         title: 'Connexion requise',
-        message: 'Reconnectez-vous pour supprimer ce brouillon en toute securite.',
+        message: 'Reconnectez-vous pour supprimer ce brouillon en toute sécurité.',
       });
       return;
     }
@@ -350,8 +352,8 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
         openFeedbackModal({
           tone: 'error',
           title: 'Suppression impossible',
-          message: data.message || 'Nous n avons pas pu supprimer ce brouillon.',
-          details: 'Verifiez que la campagne est encore en brouillon puis reessayez.',
+          message: data.message || "Nous n'avons pas pu supprimer ce brouillon.",
+          details: 'Vérifiez que la campagne est encore en brouillon puis réessayez.',
         });
         return;
       }
@@ -366,15 +368,16 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
           image_url: '',
           video_url: '',
           rewards: [],
-          story: { blocks: [], risks: '', faqs: [] },
-        });
+                  story: { blocks: [], risks: '', faqs: [] },
+                  duration_days: 30,
+                });
       }
 
       openFeedbackModal({
         tone: 'success',
-        title: 'Brouillon supprime',
-        message: 'Votre campagne a bien ete retiree.',
-        details: 'Vous pouvez maintenant revenir a l accueil ou commencer un nouveau projet.',
+        title: 'Brouillon supprimé',
+        message: 'Votre campagne a bien été retirée.',
+        details: "Vous pouvez maintenant revenir à l'accueil ou commencer un nouveau projet.",
         onClose: () => {
           if (onNavigate) {
             onNavigate('home');
@@ -387,8 +390,8 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
       openFeedbackModal({
         tone: 'error',
         title: 'Serveur indisponible',
-        message: 'La suppression n a pas pu aboutir pour le moment.',
-        details: 'Verifiez votre connexion puis reessayez dans quelques instants.',
+        message: "La suppression n'a pas pu aboutir pour le moment.",
+        details: 'Vérifiez votre connexion puis réessayez dans quelques instants.',
       });
     } finally {
       setIsSaving(false);
@@ -407,13 +410,13 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
                 className={`pe-mode-btn ${!showPreview ? 'pe-mode-btn--active' : ''}`}
                 onClick={() => setShowPreview(false)}
               >
-                <span className="pe-mode-icon">E</span> Editeur
+                <span className="pe-mode-icon">E</span> Éditeur
               </button>
               <button
                 className={`pe-mode-btn pe-mode-btn--preview ${showPreview ? 'pe-mode-btn--active pe-mode-btn--preview-active' : ''}`}
                 onClick={() => setShowPreview(true)}
               >
-                <span className="pe-mode-icon">V</span> Apercu
+                <span className="pe-mode-icon">V</span> Aperçu
               </button>
             </div>
           </div>
@@ -433,7 +436,7 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
         </div>
 
         {!showPreview && (
-          <nav className="pe-tabs" role="tablist" aria-label="Ã‰dition du projet">
+          <nav className="pe-tabs" role="tablist" aria-label="Édition du projet">
             {TABS.map(tab => (
               <span
                 key={tab}
@@ -451,11 +454,11 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
         )}
       </header>
 
-      {/* â”€â”€ MODE Ã‰DITEUR â”€â”€ */}
+      {/* MODE ÉDITEUR */}
       {!showPreview && (
         <main className="pe-main">
           {activeTab === 'Bases' && <BasicsTab draftProject={draftProject} onSaveDraft={onSaveDraft} onNavigate={onNavigate} />}
-          {activeTab === 'Recompenses' && <RewardsTab draftProject={draftProject} onSaveDraft={onSaveDraft} />}
+          {activeTab === 'Récompenses' && <RewardsTab draftProject={draftProject} onSaveDraft={onSaveDraft} />}
           {activeTab === 'Histoire' && <StoryTab draftProject={draftProject} onSaveDraft={onSaveDraft} />}
           {activeTab === 'Personnes' && <PeopleTab />}
           {/* Bottom Action Bar */}
@@ -524,7 +527,7 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
         </main>
       )}
 
-      {/* â”€â”€ MODE APERÃ‡U (pleine page, mÃªme layout que l'Ã©diteur) â”€â”€ */}
+      {/* MODE APERÇU (pleine page, même layout que l'éditeur) */}
       {showPreview && (
         <main className="pe-main pe-preview-page">
           <div className="pe-preview-content">
@@ -533,13 +536,13 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
             <div className="pe-preview-hero">
               <span className="pe-preview-badge">
                 <span className="pe-preview-dot"></span>
-                Mode PrÃ©visualisation
+                Mode Prévisualisation
               </span>
               <h1 className="pe-preview-title">
                 {draftProject?.title || 'Titre de votre projet'}
               </h1>
               <p className="pe-preview-subtitle">
-                {draftProject?.subtitle || 'Un sous-titre accrocheur pour prÃ©senter votre concept.'}
+                {draftProject?.subtitle || 'Un sous-titre accrocheur pour présenter votre concept.'}
               </p>
             </div>
 
@@ -565,7 +568,7 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
               <aside className="pe-preview-sidebar">
                 <div className="pe-preview-amount">0 DT</div>
                 <div className="pe-preview-goal">
-                  engagÃ©s sur un objectif de <strong>{draftProject?.goal || '0'} DT</strong>
+                  engagés sur un objectif de <strong>{draftProject?.goal || '0'} DT</strong>
                 </div>
 
                 <div className="pe-preview-progress-bg">
@@ -578,7 +581,7 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
                     <span className="pe-preview-stat-lbl">contributeurs</span>
                   </div>
                   <div className="pe-preview-stat">
-                    <span className="pe-preview-stat-val">{draftProject?.duration || '0'}</span>
+                    <span className="pe-preview-stat-val">{draftProject?.duration_days || 30}</span>
                     <span className="pe-preview-stat-lbl">jours restants</span>
                   </div>
                 </div>
@@ -588,7 +591,7 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
                 </button>
 
                 <p className="pe-preview-notice">
-                  âš ï¸ Ceci est un aperÃ§u â€” le projet n'est pas encore publiÃ©.
+                  ⚠️ Ceci est un aperçu : le projet n'est pas encore publié.
                 </p>
               </aside>
             </div>
@@ -645,10 +648,10 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
               Supprimer ce brouillon ?
             </h2>
             <p style={{ margin: '0 0 10px', color: '#d4d4d8', fontSize: '16px', lineHeight: '1.7' }}>
-              Votre projet quittera l editeur et ce brouillon ne sera plus conserve.
+              Votre projet quittera l'éditeur et ce brouillon ne sera plus conservé.
             </p>
             <p style={{ margin: '0 0 28px', color: '#fca5a5', fontSize: '14px', lineHeight: '1.6' }}>
-              Cette action est definitive et ne peut pas etre annulee.
+              Cette action est définitive et ne peut pas être annulée.
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <button
@@ -657,7 +660,7 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
                 onClick={() => setShowDeleteModal(false)}
                 style={{ minWidth: '160px', background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.12)' }}
               >
-                Continuer l edition
+                Continuer l'édition
               </button>
               <button
                 type="button"
@@ -721,24 +724,18 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
               ?
             </div>
             <h2 style={{ margin: '0 0 12px', color: '#fff', fontSize: '28px', fontWeight: 800 }}>
-              Ajoutez votre media principal
+              Ajoutez votre média principal
             </h2>
             <p style={{ margin: '0 0 10px', color: '#d4d4d8', fontSize: '16px', lineHeight: '1.7' }}>
-              Votre campagne a besoin d une image ou d une video principale avant de passer a l etape suivante.
+              Votre campagne a besoin d'une image ou d'une vidéo principale avant de passer à l'étape suivante.
             </p>
             <p style={{ margin: '0 0 28px', color: '#a1a1aa', fontSize: '14px', lineHeight: '1.6' }}>
-              Importez un visuel dans la section Bases pour donner une premiere impression plus forte a votre projet.
+              Importez un visuel dans la section Bases pour donner une première impression plus forte à votre projet.
             </p>
             <button
               type="button"
-              className="nav-btn-solid"
+              className="pe-modal-btn pe-modal-btn--success"
               onClick={() => setShowMissingMediaModal(false)}
-              style={{
-                minWidth: '180px',
-                background: 'linear-gradient(135deg, #0ce688, #09c774)',
-                color: '#111',
-                boxShadow: '0 12px 30px rgba(12, 230, 136, 0.25)',
-              }}
             >
               Compris
             </button>
@@ -792,36 +789,23 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
               Soumettre votre projet ?
             </h2>
             <p style={{ margin: '0 0 10px', color: '#d4d4d8', fontSize: '16px', lineHeight: '1.75' }}>
-              Votre campagne sera envoyee a l equipe Hive.tn pour verification avant publication.
+              Votre campagne sera envoyée à l'équipe Hive.tn pour vérification avant publication.
             </p>
             <p style={{ margin: '0 0 28px', color: '#a1a1aa', fontSize: '14px', lineHeight: '1.65' }}>
-              Une fois soumise, vous ne pourrez plus la modifier librement tant que la revision n est pas terminee.
+              Une fois soumise, vous ne pourrez plus la modifier librement tant que la révision n'est pas terminée.
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <button
                 type="button"
-                className="nav-btn-solid"
+                className="pe-modal-btn pe-modal-btn--muted"
                 onClick={() => setShowSubmitModal(false)}
-                style={{
-                  minWidth: '180px',
-                  background: 'rgba(255,255,255,0.04)',
-                  color: '#fff',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  boxShadow: 'none',
-                }}
               >
-                Continuer l edition
+                Continuer l'édition
               </button>
               <button
                 type="button"
-                className="nav-btn-solid"
+                className="pe-modal-btn pe-modal-btn--success"
                 onClick={confirmSubmitForReview}
-                style={{
-                  minWidth: '180px',
-                  background: 'linear-gradient(135deg, #0ce688, #09c774)',
-                  color: '#111',
-                  boxShadow: '0 12px 30px rgba(12, 230, 136, 0.25)',
-                }}
               >
                 Oui, soumettre
               </button>
@@ -901,24 +885,8 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
             ) : null}
             <button
               type="button"
-              className="nav-btn-solid"
+              className={`pe-modal-btn pe-modal-btn--${feedbackModal.tone === 'error' ? 'error' : feedbackModal.tone === 'warning' ? 'warning' : 'success'}`}
               onClick={closeFeedbackModal}
-              style={{
-                minWidth: '180px',
-                background:
-                  feedbackModal.tone === 'error'
-                    ? 'linear-gradient(135deg, #f87171, #ef4444)'
-                    : feedbackModal.tone === 'warning'
-                    ? 'linear-gradient(135deg, #fbbf24, #f59e0b)'
-                    : 'linear-gradient(135deg, #0ce688, #09c774)',
-                color: feedbackModal.tone === 'error' ? '#fff' : '#111',
-                boxShadow:
-                  feedbackModal.tone === 'error'
-                    ? '0 12px 30px rgba(239, 68, 68, 0.25)'
-                    : feedbackModal.tone === 'warning'
-                    ? '0 12px 30px rgba(245, 158, 11, 0.22)'
-                    : '0 12px 30px rgba(12, 230, 136, 0.25)',
-              }}
             >
               Compris
             </button>

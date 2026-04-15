@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import "./Home.css";
@@ -9,12 +9,13 @@ import Navbar from "./Navbar";
 import ProjectCard from "./components/ProjectCard";
 import { buildApiUrl } from "./shared/services/api.js";
 import { formatMillimesToTnd } from "./shared/utils/currency.js";
+import { getCampaignDaysLeft } from "./shared/utils/campaignDates.js";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1528157777178-0062a444aeb8?w=800&q=80";
 
 const getStatusBadge = (status) => {
   if (status === "ACTIVE") return { bg: "#05ce78", text: "Active" };
-  if (status === "CLOSED") return { bg: "#374151", text: "Fermee" };
+  if (status === "CLOSED") return { bg: "#374151", text: "Fermée" };
   return { bg: "rgba(0,0,0,0.6)", text: status || "Visible" };
 };
 
@@ -40,8 +41,8 @@ const toCreatedCardProject = (campaign, creatorName) => ({
   image: campaign.image_url ? buildApiUrl(campaign.image_url) : FALLBACK_IMAGE,
   funded: Number(campaign.funded_percent || 0),
   collected: formatMillimesToTnd(campaign.amount_raised || 0),
-  daysLeft: "--",
-  category: campaign.category || "Non categorise",
+  daysLeft: getCampaignDaysLeft(campaign),
+  category: campaign.category || "Non catégorisé",
   dbStatus: campaign.status,
   paidDonationCount: Number(campaign.paid_donation_count || 0),
 });
@@ -49,13 +50,13 @@ const toCreatedCardProject = (campaign, creatorName) => ({
 const toBackedCardProject = (campaign) => ({
   id: campaign.id,
   title: campaign.title || "Projet soutenu",
-  creator: campaign.creator_name ? `Par ${campaign.creator_name}` : "Createur inconnu",
+  creator: campaign.creator_name ? `Par ${campaign.creator_name}` : "Créateur inconnu",
   desc: campaign.description || "",
   image: campaign.image_url ? buildApiUrl(campaign.image_url) : FALLBACK_IMAGE,
   funded: Number(campaign.funded_percent || 0),
   collected: formatMillimesToTnd(campaign.total_contributed || 0),
-  daysLeft: "--",
-  category: campaign.category || "Non categorise",
+  daysLeft: getCampaignDaysLeft(campaign),
+  category: campaign.category || "Non catégorisé",
   dbStatus: campaign.status,
   pledgeCount: campaign.pledge_count || 0,
   lastSupportedAt: campaign.last_supported_at || "",
@@ -172,7 +173,7 @@ const PublicUserProfile = ({ onNavigate, isAuthenticated, onLogout }) => {
       <Navbar onNavigate={onNavigate} isAuthenticated={isAuthenticated} onLogout={onLogout} />
 
       <div className="profile-main">
-        {/* ── Premium Public Profile Header ── */}
+        {/* Premium Public Profile Header */}
         <header className="pub-header" id="public-profile-header">
           {/* Avatar */}
           <div className="pub-header__avatar-wrapper">
@@ -270,7 +271,7 @@ const PublicUserProfile = ({ onNavigate, isAuthenticated, onLogout }) => {
           </div>
         </header>
 
-        {/* ── Tab Navigation ── */}
+        {/* Tab Navigation */}
         <nav className="pub-tabs" id="public-profile-tabs">
           <div className="pub-tabs__track" role="tablist" aria-label="Navigation du profil public">
             <button
@@ -332,7 +333,7 @@ const PublicUserProfile = ({ onNavigate, isAuthenticated, onLogout }) => {
         {activeTab === "about" && (
           <section className="pub-about" id="panel-about" role="tabpanel" aria-labelledby="tab-about">
 
-            {/* ── Biographie ── */}
+            {/* Biographie */}
             <div className="pub-about__card">
               <h3 className="pub-about__card-title">Biographie</h3>
               {profile.bio ? (
@@ -348,7 +349,7 @@ const PublicUserProfile = ({ onNavigate, isAuthenticated, onLogout }) => {
               </p>
             </div>
 
-            {/* ── Informations ── */}
+            {/* Informations */}
             <div className="pub-about__card pub-about__card--info">
               <div className="pub-about__trust">
                 <span className="pub-about__trust-dot" aria-hidden="true" />
@@ -386,7 +387,7 @@ const PublicUserProfile = ({ onNavigate, isAuthenticated, onLogout }) => {
               </div>
             </div>
 
-            {/* ── Résumé d'activité ── */}
+            {/* Résumé d'activité */}
             <div className="pub-about__card pub-about__card--stats">
               <h3 className="pub-about__card-title">Résumé d'activité</h3>
               <div className="pub-about__stats-grid">

@@ -5,6 +5,7 @@ import "./SavedProjects.css";
 import Navbar from "./Navbar";
 import ProjectCard from "./components/ProjectCard";
 import { buildApiUrl } from "./shared/services/api.js";
+import { getCampaignDaysLeft } from "./shared/utils/campaignDates.js";
 
 const SavedProjects = ({ onNavigate, isAuthenticated, onLogout }) => {
   const [savedProjects, setSavedProjects] = useState([]);
@@ -34,7 +35,7 @@ const SavedProjects = ({ onNavigate, isAuthenticated, onLogout }) => {
               : "https://images.unsplash.com/photo-1592982537447-6f2e8f17ba81?w=800&q=80",
             funded: Number(campaign.funded_percent || 0),
             collected: `${(Number(campaign.amount_raised || 0) / 1000).toLocaleString("fr-FR")} DT`,
-            daysLeft: "--",
+            daysLeft: getCampaignDaysLeft(campaign),
             category: campaign.category || "Projet",
           })));
         }
@@ -73,8 +74,8 @@ const SavedProjects = ({ onNavigate, isAuthenticated, onLogout }) => {
       <div className="saved-main">
         <div className="saved-header">
           <div className="saved-icon-badge">🔖</div>
-          <h1 className="saved-title">Projets Enregistres</h1>
-          <p className="saved-subtitle">Retrouvez ici les perles rares que vous avez mises de cote pour les soutenir plus tard.</p>
+          <h1 className="saved-title">Campagnes sauvegardées</h1>
+          <p className="saved-subtitle">Retrouvez ici les campagnes que vous avez mises de côté pour les soutenir plus tard.</p>
         </div>
 
         {loading && (
@@ -86,16 +87,16 @@ const SavedProjects = ({ onNavigate, isAuthenticated, onLogout }) => {
         {!loading && savedProjects.length === 0 && (
           <div className="saved-empty-state">
             <div style={{ fontSize: "64px", marginBottom: "20px" }}>📭</div>
-            <h3 style={{ color: "#fff", fontSize: "24px", marginBottom: "12px" }}>Aucun projet enregistre</h3>
+            <h3 style={{ color: "#fff", fontSize: "24px", marginBottom: "12px" }}>Aucune campagne sauvegardée</h3>
             <p style={{ color: "#a1a1aa", fontSize: "16px", lineHeight: "1.6", maxWidth: "450px", margin: "0 auto 30px auto" }}>
-              Parcourez les projets et cliquez sur "Enregistrer" pour les retrouver ici plus tard.
+              Parcourez les campagnes et cliquez sur "Enregistrer" pour les retrouver ici plus tard.
             </p>
             <button
               className="nav-btn-solid"
               style={{ padding: "14px 32px", fontSize: "16px" }}
               onClick={() => onNavigate("discover")}
             >
-              Decouvrir des projets
+              Découvrir des campagnes
             </button>
           </div>
         )}
@@ -108,7 +109,7 @@ const SavedProjects = ({ onNavigate, isAuthenticated, onLogout }) => {
                   key={project.id}
                   project={project}
                   onNavigate={onNavigate}
-                  overlay={<>🔖 Enregistre</>}
+                  overlay={<>🔖 Enregistré</>}
                   actions={
                     <div style={{ display: "flex", gap: "10px", width: "100%" }}>
                       <button

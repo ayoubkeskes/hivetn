@@ -145,6 +145,8 @@ CREATE TABLE public.campaigns (
     video_url text,
     story text,
     current_amount integer DEFAULT 0 NOT NULL,
+    duration_days integer DEFAULT 30 NOT NULL,
+    launched_at timestamp with time zone,
     CONSTRAINT campaigns_target_amount_check CHECK ((target_amount > 0))
 );
 

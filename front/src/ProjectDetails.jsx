@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+﻿import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 
 import "./Home.css";
@@ -7,6 +7,7 @@ import Navbar from "./Navbar";
 import ProjectCommentsSection from "./components/ProjectCommentsSection";
 import { buildApiUrl } from "./shared/services/api.js";
 import { formatMillimesToTnd, parseTndInput } from "./shared/utils/currency.js";
+import { getCampaignEndDate } from "./shared/utils/campaignDates.js";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1528157777178-0062a444aeb8?w=1200&q=80";
 const resolveMediaUrl = (url) => {
@@ -93,8 +94,8 @@ const getStatusLabel = (status) => {
   if (status === "ACTIVE") return "Active";
   if (status === "PENDING") return "En attente";
   if (status === "DRAFT") return "Brouillon";
-  if (status === "REJECTED") return "Refusee";
-  if (status === "CLOSED") return "Cloturee";
+  if (status === "REJECTED") return "Refusée";
+  if (status === "CLOSED") return "Clôturée";
   return status || "Inconnue";
 };
 
@@ -136,7 +137,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
     const fetchCampaign = async () => {
       if (!campaignId) {
         setLoading(false);
-        setError("Aucune campagne n a ete selectionnee.");
+        setError("Aucune campagne n'a été sélectionnée.");
         return;
       }
 
@@ -228,14 +229,14 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
     if (!campaign) return;
 
     if (campaign.status !== "ACTIVE") {
-      setSupportError("Cette campagne n accepte pas de soutiens pour le moment.");
+      setSupportError("Cette campagne n'accepte pas de soutiens pour le moment.");
       return;
     }
 
     const rawAmount = amountOverride ?? supportAmount;
     const parsedAmount = parseTndInput(rawAmount);
     if (!parsedAmount || parsedAmount <= 0) {
-      setSupportError("Saisissez un montant valide superieur a 0 TND.");
+      setSupportError("Saisissez un montant valide supérieur à 0 TND.");
       return;
     }
 
@@ -273,7 +274,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
           return;
         }
 
-        setSupportError(data.message || "Impossible d enregistrer votre soutien pour le moment.");
+        setSupportError(data.message || "Impossible d'enregistrer votre soutien pour le moment.");
         return;
       }
 
@@ -281,11 +282,11 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
         setCampaign(normalizeCampaign(data.campaign));
       }
 
-      setSupportSuccess("Merci ! Votre soutien a bien ete enregistre sur cette campagne.");
+      setSupportSuccess("Merci ! Votre soutien a bien été enregistré sur cette campagne.");
       setSupportAmount("");
     } catch (requestError) {
       console.error("Create support error:", requestError);
-      setSupportError("Une erreur reseau est survenue pendant l enregistrement de votre soutien.");
+      setSupportError("Une erreur réseau est survenue pendant l'enregistrement de votre soutien.");
     } finally {
       setSupportSubmitting(false);
     }
@@ -332,7 +333,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
   const amountRaised = Number(campaign?.amount_raised ?? campaign?.current_amount ?? 0);
   const fundedPercent = Math.max(0, Math.min(Number(campaign?.funded_percent || 0), 100));
   const backerCount = Number(campaign?.backer_count || 0);
-  const creatorName = campaign?.creator_name || "Createur inconnu";
+  const creatorName = campaign?.creator_name || "Créateur inconnu";
   const creatorInitials = creatorName
     .split(" ")
     .filter(Boolean)
@@ -344,15 +345,16 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
   const storyBlocks = story.blocks || [];
   const storyFaqs = (story.faqs || []).filter((faq) => faq?.question || faq?.answer);
   const hasStoryContent = hasVisibleStoryContent(story);
+  const campaignEndDate = getCampaignEndDate(campaign);
 
   const loginModalCopy = postLoginAction?.type === "support"
     ? {
         title: "Connexion requise",
-        description: "Connectez-vous pour enregistrer votre soutien et le rattacher a votre compte Hive.tn.",
+        description: "Connectez-vous pour enregistrer votre soutien et le rattacher à votre compte Hive.tn.",
       }
     : {
         title: "Connexion requise",
-        description: "Vous devez etre connecte pour enregistrer cette campagne.",
+        description: "Vous devez être connecté pour enregistrer cette campagne.",
       };
 
   if (loading) {
@@ -372,9 +374,9 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
         <Navbar onNavigate={onNavigate} isAuthenticated={isAuthenticated} onLogout={onLogout} activeTab="projectDetails" />
         <div className="pd-main" style={{ textAlign: "center", paddingTop: "120px", maxWidth: "760px" }}>
           <h1 className="pd-title" style={{ fontSize: "32px" }}>Campagne indisponible</h1>
-          <p className="pd-subtitle">{error || "Cette campagne n existe pas ou n est plus accessible."}</p>
+          <p className="pd-subtitle">{error || "Cette campagne n'existe pas ou n'est plus accessible."}</p>
           <button className="pd-back-btn" style={{ maxWidth: "320px", margin: "30px auto 0" }} onClick={() => onNavigate("discover")}>
-            Retour a la decouverte
+            Retour à la découverte
           </button>
         </div>
       </div>
@@ -428,7 +430,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                 </div>
               </div>
               <div className="pd-badge-item">
-                <span className="pd-badge-icon">Categorie</span> {campaign.category || "Non categorisee"}
+                <span className="pd-badge-icon">Catégorie</span> {campaign.category || "Non catégorisée"}
               </div>
               <div className="pd-badge-item">
                 <span className="pd-badge-icon">Statut</span> {getStatusLabel(campaign.status)}
@@ -465,7 +467,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                             <div key={block.id || `story-video-${index}`} className="pd-story-media-card">
                               <iframe
                                 src={getVideoEmbedUrl(block.content)}
-                                title={`Video du projet ${index + 1}`}
+                                title={`Vidéo du projet ${index + 1}`}
                                 className="pd-story-video"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowFullScreen
@@ -488,7 +490,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                         if (block.type === "list") {
                           const items = content
                             .split("\n")
-                            .map((item) => item.replace(/^[â€¢*\-\s]+/, "").trim())
+                        .map((item) => item.replace(/^[•*\-\s]+/, "").trim())
                             .filter(Boolean);
 
                           if (items.length === 0) return null;
@@ -508,7 +510,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
 
                     {story.risks && story.risks.trim() && (
                       <section className="pd-story-section">
-                        <h2>Risques et defis</h2>
+                        <h2>Risques et défis</h2>
                         <p className="pd-story-paragraph">{story.risks}</p>
                       </section>
                     )}
@@ -520,7 +522,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                           {storyFaqs.map((faq, index) => (
                             <article key={`${faq.question || "faq"}-${index}`} className="pd-faq-card">
                               <h3 className="pd-faq-question">{faq.question || `Question ${index + 1}`}</h3>
-                              <p className="pd-faq-answer">{faq.answer || "Reponse a venir."}</p>
+                              <p className="pd-faq-answer">{faq.answer || "Réponse à venir."}</p>
                             </article>
                           ))}
                         </div>
@@ -535,8 +537,8 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                     )}
                     <p>
                       {campaign.description
-                        ? "Le createur n a pas encore publie d elements supplementaires pour approfondir cette campagne."
-                        : "Le createur n a pas encore publie l histoire detaillee de cette campagne."}
+                        ? "Le créateur n'a pas encore publié d'éléments supplémentaires pour approfondir cette campagne."
+                        : "Le créateur n'a pas encore publié l'histoire détaillée de cette campagne."}
                     </p>
                   </div>
                 )
@@ -545,7 +547,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
               {activeTab === "rewards" && (
                 rewardCount > 0 ? (
                   <div>
-                    <h2>Recompenses proposees</h2>
+                    <h2>Récompenses proposees</h2>
                     <div style={{ display: "grid", gap: "14px" }}>
                       {campaign.rewards.map((reward, index) => (
                         <div key={`${reward.title || "reward"}-${index}`} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "18px", background: "rgba(255,255,255,0.02)" }}>
@@ -560,15 +562,15 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                             <strong style={{ color: "#fff", fontSize: "18px" }}>{reward.title || `Recompense ${index + 1}`}</strong>
                             <span style={{ color: "#0ce688", fontWeight: 800 }}>{reward.price ? `${reward.price} DT` : "Montant libre"}</span>
                           </div>
-                          <p style={{ margin: 0, color: "#c9d1d9", lineHeight: "1.6" }}>{reward.desc || "Aucune description pour cette recompense."}</p>
+                          <p style={{ margin: 0, color: "#c9d1d9", lineHeight: "1.6" }}>{reward.desc || "Aucune description pour cette récompense."}</p>
                         </div>
                       ))}
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <h2>Recompenses</h2>
-                    <p>Cette campagne ne contient actuellement aucune recompense enregistree.</p>
+                    <h2>Récompenses</h2>
+                    <p>Cette campagne ne contient actuellement aucune récompense enregistrée.</p>
                   </div>
                 )
               )}
@@ -608,12 +610,17 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
 
               <div className="pd-stat-group">
                 <div className="pd-stat-big white">{backerCount}</div>
-                <div className="pd-stat-label">soutien{backerCount > 1 ? "s" : ""} confirme{backerCount > 1 ? "s" : ""}</div>
+                <div className="pd-stat-label">soutien{backerCount > 1 ? "s" : ""} confirmé{backerCount > 1 ? "s" : ""}</div>
               </div>
 
               <div className="pd-stat-group">
                 <div className="pd-stat-big white">{formatDate(campaign.created_at)}</div>
-                <div className="pd-stat-label">date de creation</div>
+                <div className="pd-stat-label">date de création</div>
+              </div>
+
+              <div className="pd-stat-group">
+                <div className="pd-stat-big white">{formatDate(campaignEndDate)}</div>
+                <div className="pd-stat-label">date de fin de campagne</div>
               </div>
 
               <div className="pd-actions-row" ref={supportCardRef}>
@@ -647,7 +654,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
             <aside className="pd-sidebar-nav">
               <div className="pd-sidebar-menu" role="tablist" aria-label="Navigation du projet">
                 <span className={`pd-tab-vertical ${activeTab === "story" ? "active" : ""}`} onClick={() => setActiveTab("story")} role="tab" aria-selected={activeTab === "story"} tabIndex={0}>Histoire</span>
-                <span className={`pd-tab-vertical ${activeTab === "rewards" ? "active" : ""}`} onClick={() => setActiveTab("rewards")} role="tab" aria-selected={activeTab === "rewards"} tabIndex={0}>Recompenses <span className="pd-tab-count">{rewardCount}</span></span>
+                <span className={`pd-tab-vertical ${activeTab === "rewards" ? "active" : ""}`} onClick={() => setActiveTab("rewards")} role="tab" aria-selected={activeTab === "rewards"} tabIndex={0}>Récompenses <span className="pd-tab-count">{rewardCount}</span></span>
                 <span className={`pd-tab-vertical ${activeTab === "comments" ? "active" : ""}`} onClick={() => setActiveTab("comments")} role="tab" aria-selected={activeTab === "comments"} tabIndex={0}>Commentaires <span className="pd-tab-count">{commentCount}</span></span>
               </div>
             </aside>
@@ -685,7 +692,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                           <div key={block.id || `story-video-${index}`} className="pd-story-media-card">
                             <iframe
                               src={getVideoEmbedUrl(block.content)}
-                              title={`Video du projet ${index + 1}`}
+                              title={`Vidéo du projet ${index + 1}`}
                               className="pd-story-video"
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                               allowFullScreen
@@ -708,7 +715,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                       if (block.type === "list") {
                         const items = content
                           .split("\n")
-                          .map((item) => item.replace(/^[Ã¢â‚¬Â¢*\-\s]+/, "").trim())
+                          .map((item) => item.replace(/^[•*\-\s]+/, "").trim())
                           .filter(Boolean);
 
                         if (items.length === 0) return null;
@@ -728,7 +735,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
 
                   {story.risks && story.risks.trim() && (
                     <section className="pd-story-section">
-                      <h2>Risques et defis</h2>
+                      <h2>Risques et défis</h2>
                       <p className="pd-story-paragraph">{story.risks}</p>
                     </section>
                   )}
@@ -740,7 +747,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                         {storyFaqs.map((faq, index) => (
                           <article key={`${faq.question || "faq"}-${index}`} className="pd-faq-card">
                             <h3 className="pd-faq-question">{faq.question || `Question ${index + 1}`}</h3>
-                            <p className="pd-faq-answer">{faq.answer || "Reponse a venir."}</p>
+                            <p className="pd-faq-answer">{faq.answer || "Réponse à venir."}</p>
                           </article>
                         ))}
                       </div>
@@ -755,8 +762,8 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                   )}
                   <p>
                     {campaign.description
-                      ? "Le createur n a pas encore publie d elements supplementaires pour approfondir cette campagne."
-                      : "Le createur n a pas encore publie l histoire detaillee de cette campagne."}
+                      ? "Le créateur n'a pas encore publié d'éléments supplémentaires pour approfondir cette campagne."
+                      : "Le créateur n'a pas encore publié l'histoire détaillée de cette campagne."}
                   </p>
                 </div>
               )
@@ -765,30 +772,30 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
             {activeTab === "rewards" && (
               rewardCount > 0 ? (
                 <div>
-                  <h2>Recompenses proposees</h2>
+                  <h2>Récompenses proposées</h2>
                   <div style={{ display: "grid", gap: "14px" }}>
                     {campaign.rewards.map((reward, index) => (
                       <div key={`${reward.title || "reward"}-${index}`} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "18px", background: "rgba(255,255,255,0.02)" }}>
                         {(reward.image || reward.image_url) && (
                           <img
                             src={resolveMediaUrl(reward.image || reward.image_url)}
-                            alt={reward.title || `Recompense ${index + 1}`}
+                            alt={reward.title || `Récompense ${index + 1}`}
                             style={{ width: "100%", maxHeight: "220px", objectFit: "cover", borderRadius: "10px", marginBottom: "14px" }}
                           />
                         )}
                         <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", alignItems: "center", marginBottom: "8px" }}>
-                          <strong style={{ color: "#fff", fontSize: "18px" }}>{reward.title || `Recompense ${index + 1}`}</strong>
+                          <strong style={{ color: "#fff", fontSize: "18px" }}>{reward.title || `Récompense ${index + 1}`}</strong>
                           <span style={{ color: "#0ce688", fontWeight: 800 }}>{reward.price ? `${reward.price} DT` : "Montant libre"}</span>
                         </div>
-                        <p style={{ margin: 0, color: "#c9d1d9", lineHeight: "1.6" }}>{reward.desc || "Aucune description pour cette recompense."}</p>
+                        <p style={{ margin: 0, color: "#c9d1d9", lineHeight: "1.6" }}>{reward.desc || "Aucune description pour cette récompense."}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               ) : (
                 <div>
-                  <h2>Recompenses</h2>
-                  <p>Cette campagne ne contient actuellement aucune recompense enregistree.</p>
+                  <h2>Récompenses</h2>
+                  <p>Cette campagne ne contient actuellement aucune récompense enregistrée.</p>
                 </div>
               )
             )}
@@ -806,7 +813,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
           <aside className="pd-sidebar-nav">
             <div className="pd-sidebar-menu" role="tablist" aria-label="Navigation du projet">
               <span className={`pd-tab-vertical ${activeTab === "story" ? "active" : ""}`} onClick={() => setActiveTab("story")} role="tab" aria-selected={activeTab === "story"} tabIndex={0}>Histoire</span>
-              <span className={`pd-tab-vertical ${activeTab === "rewards" ? "active" : ""}`} onClick={() => setActiveTab("rewards")} role="tab" aria-selected={activeTab === "rewards"} tabIndex={0}>Recompenses <span className="pd-tab-count">{rewardCount}</span></span>
+              <span className={`pd-tab-vertical ${activeTab === "rewards" ? "active" : ""}`} onClick={() => setActiveTab("rewards")} role="tab" aria-selected={activeTab === "rewards"} tabIndex={0}>Récompenses <span className="pd-tab-count">{rewardCount}</span></span>
               <span className={`pd-tab-vertical ${activeTab === "comments" ? "active" : ""}`} onClick={() => setActiveTab("comments")} role="tab" aria-selected={activeTab === "comments"} tabIndex={0}>Commentaires <span className="pd-tab-count">{commentCount}</span></span>
             </div>
           </aside>
@@ -848,7 +855,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                         <div key={block.id || `story-video-${index}`} className="pd-story-media-card">
                           <iframe
                             src={getVideoEmbedUrl(block.content)}
-                            title={`Video du projet ${index + 1}`}
+                            title={`Vidéo du projet ${index + 1}`}
                             className="pd-story-video"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
@@ -891,7 +898,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
 
                 {story.risks && story.risks.trim() && (
                   <section className="pd-story-section">
-                    <h2>Risques et defis</h2>
+                  <h2>Risques et défis</h2>
                     <p className="pd-story-paragraph">{story.risks}</p>
                   </section>
                 )}
@@ -903,7 +910,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                       {storyFaqs.map((faq, index) => (
                         <article key={`${faq.question || "faq"}-${index}`} className="pd-faq-card">
                           <h3 className="pd-faq-question">{faq.question || `Question ${index + 1}`}</h3>
-                          <p className="pd-faq-answer">{faq.answer || "Reponse a venir."}</p>
+                          <p className="pd-faq-answer">{faq.answer || "Réponse à venir."}</p>
                         </article>
                       ))}
                     </div>
@@ -913,7 +920,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
             ) : (
               <div>
                 <h2>Histoire</h2>
-                <p>Le createur n a pas encore publie l histoire detaillee de cette campagne.</p>
+                <p>Le créateur n'a pas encore publié l'histoire détaillée de cette campagne.</p>
               </div>
             )
           )}
@@ -921,30 +928,30 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
           {activeTab === "rewards" && (
             rewardCount > 0 ? (
               <div>
-                <h2>Recompenses proposees</h2>
+                <h2>Récompenses proposées</h2>
                 <div style={{ display: "grid", gap: "14px" }}>
                   {campaign.rewards.map((reward, index) => (
                     <div key={`${reward.title || "reward"}-${index}`} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "18px", background: "rgba(255,255,255,0.02)" }}>
                       {(reward.image || reward.image_url) && (
                         <img
                           src={resolveMediaUrl(reward.image || reward.image_url)}
-                          alt={reward.title || `Recompense ${index + 1}`}
+                          alt={reward.title || `Récompense ${index + 1}`}
                           style={{ width: "100%", maxHeight: "220px", objectFit: "cover", borderRadius: "10px", marginBottom: "14px" }}
                         />
                       )}
                       <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", alignItems: "center", marginBottom: "8px" }}>
-                        <strong style={{ color: "#fff", fontSize: "18px" }}>{reward.title || `Recompense ${index + 1}`}</strong>
+                        <strong style={{ color: "#fff", fontSize: "18px" }}>{reward.title || `Récompense ${index + 1}`}</strong>
                         <span style={{ color: "#0ce688", fontWeight: 800 }}>{reward.price ? `${reward.price} DT` : "Montant libre"}</span>
                       </div>
-                      <p style={{ margin: 0, color: "#c9d1d9", lineHeight: "1.6" }}>{reward.desc || "Aucune description pour cette recompense."}</p>
+                      <p style={{ margin: 0, color: "#c9d1d9", lineHeight: "1.6" }}>{reward.desc || "Aucune description pour cette récompense."}</p>
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
               <div>
-                <h2>Recompenses</h2>
-                <p>Cette campagne ne contient actuellement aucune recompense enregistree.</p>
+                <h2>Récompenses</h2>
+                <p>Cette campagne ne contient actuellement aucune récompense enregistrée.</p>
               </div>
             )
           )}

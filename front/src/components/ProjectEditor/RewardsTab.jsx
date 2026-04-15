@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 
 const API_URL = 'http://localhost:5000';
 
@@ -60,7 +60,7 @@ const RewardsTab = ({ draftProject, onSaveDraft }) => {
       }
     } catch {
       setSavingMsg('');
-      setSavingError('Erreur reseau');
+      setSavingError('Erreur réseau');
     }
   };
 
@@ -75,7 +75,7 @@ const RewardsTab = ({ draftProject, onSaveDraft }) => {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      setSavingError("L'image de la recompense est trop volumineuse (max 5 MB).");
+      setSavingError("L'image de la récompense est trop volumineuse (max 5 Mo).");
       event.target.value = '';
       return;
     }
@@ -113,8 +113,8 @@ const RewardsTab = ({ draftProject, onSaveDraft }) => {
   return (
     <>
       <div style={{ maxWidth: '1100px', margin: '0 auto 60px auto', textAlign: 'left', position: 'relative' }}>
-        <h1 style={{ fontSize: '32px', marginBottom: '10px' }}>Recompenses</h1>
-        <p style={{ color: '#a1a1aa' }}>Definissez ce que vous offrez a vos contributeurs en echange de leur soutien.</p>
+        <h1 style={{ fontSize: '32px', marginBottom: '10px' }}>Récompenses</h1>
+        <p style={{ color: '#a1a1aa' }}>Définissez ce que vous offrez à vos contributeurs en échange de leur soutien.</p>
 
         {savingMsg && (
           <div style={{ position: 'absolute', top: '10px', right: '0', background: 'rgba(5,206,120,0.1)', color: '#0ce688', padding: '6px 12px', borderRadius: '20px', fontSize: '13px', border: '1px solid rgba(5,206,120,0.3)' }}>
@@ -132,17 +132,17 @@ const RewardsTab = ({ draftProject, onSaveDraft }) => {
       {!isAddingItem && (
         <div className="pe-rewards-intro" style={{ maxWidth: '1100px', margin: '0 auto 40px auto', textAlign: 'center', background: 'rgba(255,255,255,0.02)', padding: '50px 30px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
           <p style={{ color: '#d1d1d6', lineHeight: '1.7', fontSize: '16px', maxWidth: '800px', margin: '0 auto 35px auto' }}>
-            L'ajout de recompenses aide les contributeurs a comparer facilement vos offres. Vous pouvez maintenant illustrer chaque recompense avec sa propre photo.
+            L'ajout de récompenses aide les contributeurs à comparer facilement vos offres. Vous pouvez maintenant illustrer chaque récompense avec sa propre photo.
           </p>
           <button className="pe-new-item-btn" onClick={() => setIsAddingItem(true)}>
-            <span style={{ fontSize: '22px', marginRight: '8px', fontWeight: 'bold' }}>+</span> Ajouter une recompense
+            <span style={{ fontSize: '22px', marginRight: '8px', fontWeight: 'bold' }}>+</span> Ajouter une récompense
           </button>
         </div>
       )}
 
       {items.length > 0 && !isAddingItem && (
         <div style={{ maxWidth: '1100px', margin: '0 auto 40px auto', textAlign: 'left' }}>
-          <h3 style={{ marginBottom: '20px', color: '#fff' }}>Vos recompenses sauvegardees ({items.length})</h3>
+          <h3 style={{ marginBottom: '20px', color: '#fff' }}>Vos récompenses sauvegardées ({items.length})</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
             {items.map((item, idx) => {
               const rewardImage = item?.image || item?.image_url || '';
@@ -152,7 +152,7 @@ const RewardsTab = ({ draftProject, onSaveDraft }) => {
                   <button
                     onClick={() => handleDeleteItem(idx)}
                     style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(12,14,20,0.85)', border: 'none', color: '#ff4d4f', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold', transition: 'color 0.2s', borderRadius: '999px', width: '32px', height: '32px' }}
-                    title="Supprimer cette recompense"
+                    title="Supprimer cette récompense"
                     onMouseOver={(e) => { e.target.style.color = '#ff7875'; }}
                     onMouseOut={(e) => { e.target.style.color = '#ff4d4f'; }}
                   >
@@ -182,11 +182,11 @@ const RewardsTab = ({ draftProject, onSaveDraft }) => {
 
       {isAddingItem && (
         <div className="pe-split-right" style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'left' }}>
-          <h2 style={{ marginBottom: '30px' }}>Creer une nouvelle recompense</h2>
+          <h2 style={{ marginBottom: '30px' }}>Créer une nouvelle récompense</h2>
 
           <div className="pe-form-row">
             <div className="pe-form-col">
-              <label className="pe-label">Titre de la recompense</label>
+              <label className="pe-label">Titre de la récompense</label>
               <input
                 type="text"
                 className="pe-input"
@@ -211,17 +211,17 @@ const RewardsTab = ({ draftProject, onSaveDraft }) => {
             <label className="pe-label">Description (optionnelle)</label>
             <textarea
               className="pe-textarea pe-input"
-              placeholder="Decrivez cette recompense en quelques mots..."
+              placeholder="Décrivez cette récompense en quelques mots..."
               value={itemDesc}
               onChange={(e) => setItemDesc(e.target.value)}
             />
           </div>
 
           <div style={{ marginBottom: '30px' }}>
-            <label className="pe-label">Photo de la recompense (optionnelle)</label>
+            <label className="pe-label">Photo de la récompense (optionnelle)</label>
             <div className="pe-upload-box" style={{ padding: '22px' }}>
               <button className="pe-upload-btn" type="button" onClick={() => imageInputRef.current?.click()}>
-                {itemImage ? "Remplacer la photo de la recompense" : 'Ajouter une photo'}
+                {itemImage ? "Remplacer la photo de la récompense" : 'Ajouter une photo'}
               </button>
               <input
                 ref={imageInputRef}
@@ -238,7 +238,7 @@ const RewardsTab = ({ draftProject, onSaveDraft }) => {
                 <div style={{ marginTop: '18px' }}>
                   <img
                     src={itemImage}
-                    alt="Apercu de la recompense"
+                    alt="Aperçu de la récompense"
                     style={{ width: '100%', maxWidth: '320px', height: '200px', objectFit: 'cover', borderRadius: '10px', display: 'block' }}
                   />
                   <button
@@ -261,7 +261,7 @@ const RewardsTab = ({ draftProject, onSaveDraft }) => {
               onClick={handleSaveItem}
               disabled={!itemTitle.trim()}
             >
-              Sauvegarder la recompense
+              Sauvegarder la récompense
             </button>
             <button
               className="pe-save-btn"

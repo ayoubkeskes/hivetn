@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 
 const BLOCK_TYPES = [
   { value: 'paragraph', label: 'Paragraphe' },
@@ -146,7 +146,7 @@ const StoryTab = ({ draftProject, onSaveDraft }) => {
   };
 
   const addVideoEmbed = (blockId) => {
-    const url = prompt("Collez l'URL de la video (YouTube, Vimeo, etc.) :");
+    const url = prompt("Collez l'URL de la vidéo (YouTube, Vimeo, etc.) :");
     if (url && url.trim()) {
       setBlocks((prev) => {
         const idx = prev.findIndex((block) => block.id === blockId);
@@ -194,7 +194,7 @@ const StoryTab = ({ draftProject, onSaveDraft }) => {
       <div style={{ maxWidth: '800px', margin: '0 auto 30px auto', textAlign: 'left' }}>
         <h1 style={{ fontSize: '32px', marginBottom: '10px' }}>Histoire du projet</h1>
         <p style={{ color: '#a1a1aa', lineHeight: '1.6' }}>
-          Decrivez pourquoi vous levez des fonds, ce qui vous tient a coeur, comment vous comptez realiser votre projet et qui vous etes.
+          Décrivez pourquoi vous levez des fonds, ce qui vous tient à cœur, comment vous comptez réaliser votre projet et qui vous êtes.
         </p>
       </div>
 
@@ -261,12 +261,12 @@ const StoryTab = ({ draftProject, onSaveDraft }) => {
                   <button className="story-toolbar-btn" title="Ajouter une image" onClick={(e) => { e.stopPropagation(); handleImageUpload(block.id); }}>
                     Img
                   </button>
-                  <button className="story-toolbar-btn" title="Integrer une video" onClick={(e) => { e.stopPropagation(); addVideoEmbed(block.id); }}>
+                  <button className="story-toolbar-btn" title="Intégrer une vidéo" onClick={(e) => { e.stopPropagation(); addVideoEmbed(block.id); }}>
                     Vid
                   </button>
                   <button
                     className={`story-toolbar-btn ${block.type === 'list' ? 'active' : ''}`}
-                    title="Liste a puces"
+                    title="Liste à puces"
                     onClick={(e) => { e.stopPropagation(); toggleList(block.id); }}
                   >
                     List
@@ -292,12 +292,12 @@ const StoryTab = ({ draftProject, onSaveDraft }) => {
               <div className="story-video-block">
                 <iframe
                   src={getVideoEmbedUrl(block.content)}
-                  title="Video integree"
+                  title="Vidéo intégrée"
                   className="story-video-iframe"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
-                <button className="story-image-delete" onClick={(e) => { e.stopPropagation(); deleteBlock(block.id); }} title="Supprimer la video">
+                <button className="story-image-delete" onClick={(e) => { e.stopPropagation(); deleteBlock(block.id); }} title="Supprimer la vidéo">
                   x
                 </button>
               </div>
@@ -315,7 +315,7 @@ const StoryTab = ({ draftProject, onSaveDraft }) => {
                       ? 'Sous-titre...'
                       : block.type === 'list'
                         ? '- Element de liste...'
-                        : "Commencez a ecrire l'histoire du projet..."
+                        : "Commencez à écrire l'histoire du projet..."
                 }
                 rows={1}
                 onInput={(e) => {
@@ -339,13 +339,13 @@ const StoryTab = ({ draftProject, onSaveDraft }) => {
 
       <div className="pe-split-row">
         <div className="pe-split-left">
-          <h2>Risques et defis</h2>
-          <p style={{ marginBottom: '15px' }}>Soyez honnete sur les risques et les defis potentiels de ce projet et sur la maniere dont vous prevoyez de les surmonter.</p>
+          <h2>Risques et défis</h2>
+          <p style={{ marginBottom: '15px' }}>Soyez honnête sur les risques et les défis potentiels de ce projet et sur la manière dont vous prévoyez de les surmonter.</p>
         </div>
         <div className="pe-split-right">
           <textarea
             className="pe-textarea pe-input"
-            placeholder="Decrivez les risques, dependances, delais ou contraintes a anticiper..."
+            placeholder="Décrivez les risques, dépendances, délais ou contraintes à anticiper..."
             value={risks}
             onChange={(e) => setRisks(e.target.value)}
           ></textarea>
@@ -375,7 +375,7 @@ const StoryTab = ({ draftProject, onSaveDraft }) => {
                   />
                 </div>
                 <div style={{ marginBottom: '20px' }}>
-                  <label className="pe-label">Reponse</label>
+                  <label className="pe-label">Réponse</label>
                   <textarea
                     className="pe-textarea pe-input"
                     style={{ minHeight: '100px', lineHeight: '1.5', padding: '12px 16px' }}

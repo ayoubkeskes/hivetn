@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+﻿import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const PeopleTab = () => {
@@ -66,7 +66,7 @@ const PeopleTab = () => {
         <span className="pe-people__eyebrow">Votre presence publique</span>
         <h1 className="pe-people__title">Presentez-vous</h1>
         <p className="pe-people__description">
-          Donnez a vos contributeurs une idee claire de qui vous etes et inspirez davantage confiance des la premiere visite.
+          Donnez à vos contributeurs une idée claire de qui vous êtes et inspirez davantage confiance dès la première visite.
         </p>
       </div>
 
@@ -80,7 +80,7 @@ const PeopleTab = () => {
         <div className="pe-split-right pe-people__panel pe-people__panel--plain">
           <div className="pe-people-card pe-people-card--profile">
             <div className={`pe-people-card__status ${profileReady ? 'is-ready' : 'is-pending'}`}>
-              {profileReady ? 'Profil complet' : 'Profil a completer'}
+              {profileReady ? 'Profil complet' : 'Profil à compléter'}
             </div>
 
             <div className="pe-people-card__identity">
@@ -92,14 +92,14 @@ const PeopleTab = () => {
 
               <div className="pe-people-card__meta">
                 <h3>{userName}</h3>
-                <p className="pe-people-card__role">Createur du projet</p>
+                <p className="pe-people-card__role">Créateur du projet</p>
                 <p className="pe-people-card__hint">
                   {profileReady
-                    ? 'Votre profil est pret et visible par les contributeurs.'
+                    ? 'Votre profil est prêt et visible par les contributeurs.'
                     : 'Completez votre profil pour inspirer confiance aux contributeurs.'}
                 </p>
                 <p className={`pe-people-card__state-copy ${profileReady ? 'is-ready' : 'is-pending'}`}>
-                  {profileReady ? 'Profil complet' : 'Profil a completer'}
+                  {profileReady ? 'Profil complet' : 'Profil à compléter'}
                 </p>
               </div>
             </div>
@@ -164,7 +164,7 @@ const PeopleTab = () => {
         <div className="pe-split-left pe-people__side">
           <h2>URL personnalisee</h2>
           <p>
-            Creez une URL simple et memorable pour votre profil. Elle servira aussi de base pour l identite publique de votre projet.
+            Créez une URL simple et mémorable pour votre profil. Elle servira aussi de base pour l'identité publique de votre projet.
           </p>
         </div>
         <div className="pe-split-right pe-people__panel">
@@ -183,7 +183,7 @@ const PeopleTab = () => {
             </div>
           ) : (
             <div className="pe-people-card pe-people-card--success">
-              <h3 className="pe-people-card__success-title">URL generee avec succes</h3>
+              <h3 className="pe-people-card__success-title">URL générée avec succès</h3>
               <p className="pe-people-card__success-text">
                 Votre profil public dispose maintenant d un lien propre et partageable.
               </p>

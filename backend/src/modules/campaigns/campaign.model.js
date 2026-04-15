@@ -50,15 +50,15 @@ const fundingStatsJoin = `
 /**
  * Create a new draft campaign for a given user.
  * @param {string} porteurId — UUID of the authenticated user
- * @param {object} data — { title, description, category, target_amount, rewards, story }
+ * @param {object} data — { title, description, category, target_amount, duration_days, rewards, story }
  * @returns {object} The newly created campaign row
  */
-export const create = async (porteurId, { title, description, category, target_amount, rewards, story }) => {
+export const create = async (porteurId, { title, description, category, target_amount, duration_days, rewards, story }) => {
   const { rows } = await pool.query(
-    `INSERT INTO campaigns (porteur_id, title, description, category, target_amount, rewards, story, status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, 'DRAFT')
-     RETURNING id, porteur_id, title, description, category, target_amount, current_amount, collected_amount, contribution_count, rewards, story, status, created_at`,
-    [porteurId, title, description, category, target_amount, rewards, story]
+    `INSERT INTO campaigns (porteur_id, title, description, category, target_amount, duration_days, rewards, story, status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'DRAFT')
+     RETURNING id, porteur_id, title, description, category, target_amount, duration_days, current_amount, collected_amount, contribution_count, rewards, story, status, created_at, launched_at`,
+    [porteurId, title, description, category, target_amount, duration_days, rewards, story]
   );
   return rows[0];
 };
@@ -119,12 +119,12 @@ export const findAllActive = async () => {
  * Update a campaign's editable fields.
  * Only updates the fields that are provided (partial update).
  * @param {string} id — Campaign UUID
- * @param {object} fields — Any subset of { title, description, category, target_amount, rewards, story }
+ * @param {object} fields — Any subset of { title, description, category, target_amount, duration_days, rewards, story }
  * @returns {object} The updated campaign row
  */
 export const update = async (id, fields) => {
   // Whitelist of columns that can be updated
-  const allowed = ["title", "description", "category", "target_amount", "rewards", "story", "image_url", "video_url"];
+  const allowed = ["title", "description", "category", "target_amount", "duration_days", "rewards", "story", "image_url", "video_url"];
   const setClauses = [];
   const values = [];
   let paramIndex = 1;
@@ -145,7 +145,7 @@ export const update = async (id, fields) => {
     `UPDATE campaigns
      SET ${setClauses.join(", ")}
      WHERE id = $${paramIndex}
-     RETURNING id, porteur_id, title, description, category, target_amount, current_amount, collected_amount, contribution_count, status, rewards, story, image_url, video_url, created_at, updated_at`,
+     RETURNING id, porteur_id, title, description, category, target_amount, duration_days, current_amount, collected_amount, contribution_count, status, rewards, story, image_url, video_url, created_at, updated_at, launched_at`,
     values
   );
   return rows[0] || null;
@@ -160,9 +160,13 @@ export const update = async (id, fields) => {
 export const updateStatus = async (id, newStatus) => {
   const { rows } = await pool.query(
     `UPDATE campaigns
-     SET status = $1
+     SET status = $1::campaign_status,
+         launched_at = CASE
+           WHEN $1::campaign_status = 'ACTIVE'::campaign_status THEN COALESCE(launched_at, NOW())
+           ELSE launched_at
+         END
      WHERE id = $2
-     RETURNING id, porteur_id, title, description, category, target_amount, current_amount, collected_amount, contribution_count, status, rewards, story, image_url, video_url, created_at, updated_at`,
+     RETURNING id, porteur_id, title, description, category, target_amount, duration_days, current_amount, collected_amount, contribution_count, status, rewards, story, image_url, video_url, created_at, updated_at, launched_at`,
     [newStatus, id]
   );
   return rows[0] || null;

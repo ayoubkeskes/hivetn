@@ -4,6 +4,13 @@ import { CAMPAIGN_CATEGORIES } from '../../shared/constants/campaignCategories.j
 
 const API_URL = 'http://localhost:5000';
 
+const DURATION_OPTIONS = [
+  { value: 15, label: '15 jours' },
+  { value: 30, label: '1 mois' },
+  { value: 60, label: '2 mois' },
+  { value: 180, label: '6 mois' },
+];
+
 const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
@@ -26,6 +33,7 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
   const launchDay = draftProject?.launchDay || '';
   const launchMonth = draftProject?.launchMonth || '';
   const launchYear = draftProject?.launchYear || '';
+  const durationDays = Number(draftProject?.duration_days || 30);
 
   const normalizeGoalValue = (value) => value.replace(/\D/g, '').slice(0, 9);
 
@@ -215,6 +223,7 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
       if (subtitle) body.description = subtitle;
       if (category) body.category = category;
       if (goal) body.target_amount = parseInt(goal, 10) * 1000; // TND → millimes
+      body.duration_days = durationDays;
 
       const res = await fetch(`${API_URL}/api/campaigns/${campaignId}`, {
         method: 'PUT',
@@ -384,14 +393,14 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
       {/* 3. Project Image */}
       <div className="pe-split-row">
         <div className="pe-split-left">
-          <h2>Image du projet ou video principale</h2>
+          <h2>Image du projet ou vidéo principale</h2>
           <p style={{ marginBottom: '15px' }}>Ajoutez une image qui représente clairement votre projet. Choisissez-en une qui rend bien à différentes tailles.</p>
           <p>Votre image doit faire au moins 1024x576 pixels. Évitez les images contenant des bannières, des badges ou du texte.</p>
         </div>
         <div className="pe-split-right">
           <div className="pe-upload-box">
             <button className="pe-upload-btn" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage}>
-              {uploadingImage ? 'Importation...' : (draftProject?.video_url ? 'Remplacer la video par une image' : 'Importer une image')}
+              {uploadingImage ? 'Importation...' : (draftProject?.video_url ? 'Remplacer la vidéo par une image' : 'Importer une image')}
             </button>
             <input 
               type="file" 
@@ -406,9 +415,9 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
             <div className="pe-upload-text">
               Formats acceptés : JPG, PNG, GIF, ou WEBP, ne dépassant pas 50 Mo.
               <br />
-              Une campagne doit contenir une image ou une video principale avant publication.
+              Une campagne doit contenir une image ou une vidéo principale avant publication.
               <br />
-              Un seul media principal est autorise a la fois : image ou video.
+              Un seul média principal est autorisé à la fois : image ou vidéo.
               <br /><br />
               {draftProject?.image_url && (
                 <div className="pe-media-preview-block">
@@ -433,14 +442,14 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
       {/* 4. Project Video */}
       <div className="pe-split-row">
         <div className="pe-split-left">
-          <h2>Video du projet</h2>
+          <h2>Vidéo du projet</h2>
           <p style={{ marginBottom: '15px' }}>Ajoutez une vidéo qui décrit votre projet.</p>
           <p>Expliquez aux internautes pourquoi vous levez des fonds, comment vous comptez réaliser ce projet, qui vous êtes, et pourquoi cela vous tient à cœur.</p>
         </div>
         <div className="pe-split-right">
           <div className="pe-upload-box">
             <button className="pe-upload-btn" onClick={() => videoInputRef.current?.click()} disabled={uploadingVideo}>
-              {uploadingVideo ? 'Importation en cours...' : (draftProject?.image_url ? "Remplacer l'image par une video" : 'Importer une vidéo')}
+              {uploadingVideo ? 'Importation en cours...' : (draftProject?.image_url ? "Remplacer l'image par une vidéo" : 'Importer une vidéo')}
             </button>
             <input 
               type="file" 
@@ -455,7 +464,7 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
             <div className="pe-upload-text">
               Formats acceptés : MOV, MPEG, AVI, MP4, 3GP, WMV ou FLV, ne dépassant pas 5120 Mo.
               <br />
-              Cette video peut remplacer l'image principale si vous preferez presenter le projet en mouvement.
+              Cette vidéo peut remplacer l'image principale si vous préférez présenter le projet en mouvement.
               <br /><br />
               {draftProject?.video_url && (
                 <div className="pe-media-preview-block">
@@ -556,7 +565,7 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
             </div>
           </div>
           <div className="pe-note">
-            Jour : 1-31, mois : 1-12, annee : {currentYear}-{currentYear + 10}.
+            Jour : 1-31, mois : 1-12, année : {currentYear}-{currentYear + 10}.
           </div>
           <p style={{ fontSize: '14px', marginBottom: '10px', marginTop: '15px' }}>Nous vous recommanderons quand vous devrez :</p>
           <ul style={{ fontSize: '14px', color: '#a1a1aa', paddingLeft: '20px', marginBottom: '20px' }}>
@@ -604,22 +613,19 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
         </div>
         <div className="pe-split-right">
           <div className="pe-radio-group">
-            <label className="pe-radio-item">
-              <input type="radio" name="duration" value="15 jours" className="pe-radio-input" defaultChecked />
-              <span style={{ fontSize: '15px' }}>15 jours</span>
-            </label>
-            <label className="pe-radio-item">
-              <input type="radio" name="duration" value="1 mois" className="pe-radio-input" />
-              <span style={{ fontSize: '15px' }}>1 mois</span>
-            </label>
-            <label className="pe-radio-item">
-              <input type="radio" name="duration" value="2 mois" className="pe-radio-input" />
-              <span style={{ fontSize: '15px' }}>2 mois</span>
-            </label>
-            <label className="pe-radio-item">
-              <input type="radio" name="duration" value="6 mois" className="pe-radio-input" />
-              <span style={{ fontSize: '15px' }}>6 mois</span>
-            </label>
+            {DURATION_OPTIONS.map((option) => (
+              <label className="pe-radio-item" key={option.value}>
+                <input
+                  type="radio"
+                  name="duration"
+                  value={option.value}
+                  className="pe-radio-input"
+                  checked={durationDays === option.value}
+                  onChange={() => onSaveDraft?.({ duration_days: option.value })}
+                />
+                <span style={{ fontSize: '15px' }}>{option.label}</span>
+              </label>
+            ))}
           </div>
           <div className="pe-note">
             ⚡ Les campagnes de 30 jours ou moins ont plus de chances d'aboutir.

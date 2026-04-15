@@ -1,4 +1,4 @@
-export const ALL_CATEGORIES_LABEL = "Toutes les categories";
+﻿export const ALL_CATEGORIES_LABEL = "Toutes les catégories";
 
 export const CAMPAIGN_CATEGORIES = [
   "Arts & BD",

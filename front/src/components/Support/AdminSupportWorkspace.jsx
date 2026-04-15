@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+﻿import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import {
@@ -158,10 +158,10 @@ const AdminSupportWorkspace = () => {
       setReplyDraft("");
       setReplyAttachment(null);
       setReplyNextStatus("");
-      setFeedback(data.message || "La reponse a ete envoyee.");
+      setFeedback(data.message || "La réponse a été envoyée.");
       loadTickets();
     } catch (replyError) {
-      setFeedback(replyError.message || "Impossible d envoyer la reponse.");
+      setFeedback(replyError.message || "Impossible d'envoyer la réponse.");
     } finally {
       setReplySubmitting(false);
     }
@@ -186,10 +186,10 @@ const AdminSupportWorkspace = () => {
 
       setDetail(data.ticket);
       setAdmins(data.admins || []);
-      setFeedback(data.message || "Le ticket a ete mis a jour.");
+      setFeedback(data.message || "Le ticket a été mis à jour.");
       loadTickets();
     } catch (updateError) {
-      setFeedback(updateError.message || "Impossible de mettre a jour ce ticket.");
+      setFeedback(updateError.message || "Impossible de mettre à jour ce ticket.");
     } finally {
       setWorkflowSubmitting(false);
     }
@@ -209,7 +209,7 @@ const AdminSupportWorkspace = () => {
         internal_notes: [data.internalNote, ...(prev?.internal_notes || [])],
       }));
       setNoteDraft("");
-      setFeedback(data.message || "La note interne a ete ajoutee.");
+      setFeedback(data.message || "La note interne a été ajoutée.");
     } catch (noteError) {
       setFeedback(noteError.message || "Impossible d ajouter cette note.");
     } finally {
@@ -257,7 +257,7 @@ const AdminSupportWorkspace = () => {
             ))}
           </select>
           <select value={filters.category} onChange={(event) => setFilters((prev) => ({ ...prev, category: event.target.value, page: 1 }))}>
-            <option value="">Toutes les categories</option>
+            <option value="">Toutes les catégories</option>
             {supportCategoryOptions.map((option) => (
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}
@@ -299,7 +299,7 @@ const AdminSupportWorkspace = () => {
         ) : tickets.length === 0 ? (
           <section className="support-empty-state">
             <div className="support-empty-state__badge">Admin support</div>
-            <h2>Aucun ticket ne correspond a ces filtres</h2>
+            <h2>Aucun ticket ne correspond à ces filtres</h2>
             <p>Ajustez les filtres pour retrouver un ticket ou attendez qu une nouvelle demande arrive.</p>
           </section>
         ) : (
@@ -423,10 +423,10 @@ const AdminSupportWorkspace = () => {
 
             <form className="support-reply-form" onSubmit={handleReply}>
               <label>
-                <span>Reponse publique</span>
+                <span>Réponse publique</span>
                 <textarea
                   rows="5"
-                  placeholder="Envoyez une reponse claire et rassurante au client."
+                  placeholder="Envoyez une réponse claire et rassurante au client."
                   value={replyDraft}
                   onChange={(event) => setReplyDraft(event.target.value)}
                 />

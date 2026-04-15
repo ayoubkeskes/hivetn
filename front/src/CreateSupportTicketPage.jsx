@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import "./CreateSupportTicketPage.css";
@@ -75,7 +75,7 @@ const CreateSupportTicketPage = ({ onNavigate, isAuthenticated, onLogout }) => {
     }
 
     if (!form.message.trim()) {
-      nextErrors.message = "Decrivez votre demande avec suffisamment de contexte.";
+      nextErrors.message = "Décrivez votre demande avec suffisamment de contexte.";
     } else if (form.message.trim().length < 12) {
       nextErrors.message = "Ajoutez quelques details supplementaires pour faciliter le traitement.";
     }
@@ -108,7 +108,7 @@ const CreateSupportTicketPage = ({ onNavigate, isAuthenticated, onLogout }) => {
         },
       });
     } catch (submitError) {
-      setFeedback(submitError.message || "Impossible de creer votre ticket pour le moment.");
+      setFeedback(submitError.message || "Impossible de créer votre ticket pour le moment.");
     } finally {
       setSubmitting(false);
     }
@@ -120,14 +120,14 @@ const CreateSupportTicketPage = ({ onNavigate, isAuthenticated, onLogout }) => {
       isAuthenticated={isAuthenticated}
       onLogout={onLogout}
       title="Ouvrir un nouveau ticket"
-      subtitle="Une seule page, les bons champs et un ton rassurant pour aider votre equipe support a agir vite."
+      subtitle="Une seule page, les bons champs et un ton rassurant pour aider votre équipe support à agir vite."
     >
       <div className="support-create-grid">
         <form className="support-form-card" onSubmit={handleSubmit}>
           <div className="support-form-card__header">
             <div>
               <h2>Parlez-nous de votre demande</h2>
-              <p>Plus votre contexte est clair, plus la reponse sera precise et rapide.</p>
+              <p>Plus votre contexte est clair, plus la réponse sera précise et rapide.</p>
             </div>
             <span className="support-form-card__step">Ticket</span>
           </div>
@@ -143,7 +143,7 @@ const CreateSupportTicketPage = ({ onNavigate, isAuthenticated, onLogout }) => {
               <span>Titre du ticket</span>
               <input
                 type="text"
-                placeholder="Ex : Je n arrive pas a modifier ma campagne"
+                placeholder="Ex : je n'arrive pas à modifier ma campagne"
                 value={form.title}
                 onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
               />
@@ -194,7 +194,7 @@ const CreateSupportTicketPage = ({ onNavigate, isAuthenticated, onLogout }) => {
               <span>Message</span>
               <textarea
                 rows="8"
-                placeholder="Expliquez le contexte, ce que vous avez deja essaye et le resultat attendu."
+                placeholder="Expliquez le contexte, ce que vous avez déjà essayé et le résultat attendu."
                 value={form.message}
                 onChange={(event) => setForm((prev) => ({ ...prev, message: event.target.value }))}
               />
@@ -232,7 +232,7 @@ const CreateSupportTicketPage = ({ onNavigate, isAuthenticated, onLogout }) => {
         </form>
 
         <aside className="support-create-sidecard">
-          <h3>Pour recevoir une meilleure reponse</h3>
+          <h3>Pour recevoir une meilleure réponse</h3>
           <ul>
             <li>Donnez un titre simple et specifique.</li>
             <li>Associez la campagne concernee si votre demande en depend.</li>

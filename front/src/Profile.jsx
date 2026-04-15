@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import "./Home.css";
@@ -9,6 +9,7 @@ import Navbar from "./Navbar";
 import ProjectCard from "./components/ProjectCard";
 import { buildApiUrl } from "./shared/services/api.js";
 import { formatMillimesToTnd } from "./shared/utils/currency.js";
+import { getCampaignDaysLeft } from "./shared/utils/campaignDates.js";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1528157777178-0062a444aeb8?w=800&q=80";
 
@@ -16,40 +17,40 @@ const getStatusBadge = (status) => {
   if (status === "DRAFT") return { bg: "#6b7280", text: "Brouillon" };
   if (status === "PENDING") return { bg: "#f59e0b", text: "En attente" };
   if (status === "ACTIVE") return { bg: "#05ce78", text: "Active" };
-  if (status === "REJECTED") return { bg: "#ef4444", text: "Refusee" };
-  if (status === "CLOSED") return { bg: "#374151", text: "Fermee" };
+  if (status === "REJECTED") return { bg: "#ef4444", text: "Refusée" };
+  if (status === "CLOSED") return { bg: "#374151", text: "Fermée" };
   return { bg: "rgba(0,0,0,0.6)", text: status || "Inconnu" };
 };
 
 const getCampaignLockNotice = (status) => {
   if (status === "PENDING") {
     return {
-      eyebrow: "Campagne en verification",
+      eyebrow: "Campagne en vérification",
       title: "Votre campagne est en cours d'examen.",
-      message: "Notre equipe la verifie avant publication. Vous recevrez une notification des qu'une nouvelle action sera possible.",
+      message: "Notre équipe la vérifie avant publication. Vous recevrez une notification dès qu'une nouvelle action sera possible.",
     };
   }
 
   if (status === "ACTIVE") {
     return {
-      eyebrow: "Campagne deja en ligne",
+      eyebrow: "Campagne déjà en ligne",
       title: "Votre campagne est actuellement active.",
-      message: "Pour garantir une experience claire aux contributeurs, cette version n'est plus modifiable depuis cet espace.",
+      message: "Pour garantir une expérience claire aux contributeurs, cette version n'est plus modifiable depuis cet espace.",
     };
   }
 
   if (status === "CLOSED") {
     return {
-      eyebrow: "Campagne terminee",
-      title: "Cette campagne est maintenant cloturee.",
-      message: "Elle reste visible dans votre espace, mais son contenu ne peut plus etre modifie.",
+      eyebrow: "Campagne terminée",
+      title: "Cette campagne est maintenant clôturée.",
+      message: "Elle reste visible dans votre espace, mais son contenu ne peut plus être modifié.",
     };
   }
 
   return {
     eyebrow: "Modification indisponible",
-    title: "Cette campagne ne peut pas etre modifiee pour le moment.",
-    message: "Consultez son statut pour savoir quand de nouvelles modifications seront a nouveau disponibles.",
+    title: "Cette campagne ne peut pas être modifiée pour le moment.",
+    message: "Consultez son statut pour savoir quand de nouvelles modifications seront à nouveau disponibles.",
   };
 };
 
@@ -115,8 +116,8 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
             image: campaign.image_url ? buildApiUrl(campaign.image_url) : FALLBACK_IMAGE,
             funded: Number(campaign.funded_percent || 0),
             collected: formatMillimesToTnd(campaign.amount_raised || 0),
-            daysLeft: "--",
-            category: campaign.category || "Non categorise",
+            daysLeft: getCampaignDaysLeft(campaign),
+            category: campaign.category || "Non catégorisé",
             dbStatus: campaign.status,
             paidDonationCount: Number(campaign.paid_donation_count || 0),
             createdAt: campaign.created_at || campaign.createdAt || campaign.updated_at || campaign.updatedAt || "",
@@ -124,7 +125,7 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
           setCreatedProjects(projects);
         }
       } catch (error) {
-        console.error("Erreur lors du chargement des campagnes creees:", error);
+        console.error("Erreur lors du chargement des campagnes créées:", error);
       } finally {
         setLoadingCreated(false);
       }
@@ -141,13 +142,13 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
           const projects = data.campaigns.map((campaign) => ({
             id: campaign.id,
             title: campaign.title || "Projet soutenu",
-            creator: campaign.creator_name ? `Par ${campaign.creator_name}` : "Createur inconnu",
+            creator: campaign.creator_name ? `Par ${campaign.creator_name}` : "Créateur inconnu",
             desc: campaign.description || "",
             image: campaign.image_url ? buildApiUrl(campaign.image_url) : FALLBACK_IMAGE,
             funded: Number(campaign.funded_percent || 0),
             collected: formatMillimesToTnd(campaign.total_contributed),
-            daysLeft: "--",
-            category: campaign.category || "Non categorise",
+            daysLeft: getCampaignDaysLeft(campaign),
+            category: campaign.category || "Non catégorisé",
             dbStatus: campaign.status,
             pledgeCount: campaign.pledge_count || 0,
             lastSupportedAt: campaign.last_supported_at || "",
@@ -191,9 +192,9 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
         activities.push({
           id: `created-${project.id}`,
           date: project.createdAt,
-          label: "Campagne creee",
+          label: "Campagne créée",
           title: project.title,
-          description: `Nouvelle campagne ajoutee dans ${project.category}.`,
+          description: `Nouvelle campagne ajoutée dans ${project.category}.`,
         });
       }
 
@@ -201,9 +202,9 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
         activities.push({
           id: `pending-${project.id}`,
           date: project.createdAt,
-          label: "Soumise a validation",
+          label: "Soumise à validation",
           title: project.title,
-          description: "Votre campagne est actuellement en cours de verification par l'equipe Hive.",
+          description: "Votre campagne est actuellement en cours de vérification par l'équipe Hive.",
         });
       }
 
@@ -271,7 +272,7 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
               tabIndex={0}
               onKeyDown={(event) => event.key === "Enter" && setActiveTab("about")}
             >
-              A propos
+              À propos
             </span>
             <span
               className={`profile-tab ${activeTab === "backed" ? "active" : ""}`}
@@ -291,7 +292,7 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
               tabIndex={0}
               onKeyDown={(event) => event.key === "Enter" && setActiveTab("created")}
             >
-              Crees <span>{loadingCreated ? "..." : createdProjects.length}</span>
+              Créés <span>{loadingCreated ? "..." : createdProjects.length}</span>
             </span>
           </div>
         </div>
@@ -316,7 +317,7 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
 
         {activeTab === "about" && (
           <section className="pub-about" id="panel-about" role="tabpanel" aria-labelledby="tab-about">
-            {/* ── Biographie ── */}
+            {/* Biographie */}
             <div className="pub-about__card">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                 <h3 className="pub-about__card-title" style={{ margin: 0 }}>Biographie</h3>
@@ -335,7 +336,7 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
               </p>
             </div>
 
-            {/* ── Informations ── */}
+            {/* Informations */}
             <div className="pub-about__card pub-about__card--info">
               <div className="pub-about__trust">
                 <span className="pub-about__trust-dot" aria-hidden="true" />
@@ -373,7 +374,7 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
               </div>
             </div>
 
-            {/* ── Résumé d'activité ── */}
+            {/* Résumé d'activité */}
             <div className="pub-about__card pub-about__card--stats">
               <h3 className="pub-about__card-title">Résumé d'activité</h3>
               <div className="pub-about__stats-grid">
@@ -398,7 +399,7 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
               </div>
             </div>
             <div className="profile-about-activity-card">
-              <h3>Activite recente</h3>
+              <h3>Activité récente</h3>
               {recentActivities.length > 0 ? (
                 <div className="profile-about-activity-list">
                   {recentActivities.map((activity) => (
@@ -416,7 +417,7 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
                   ))}
                 </div>
               ) : (
-                <p className="profile-about-activity-empty">Aucune activite recente</p>
+                <p className="profile-about-activity-empty">Aucune activité récente</p>
               )}
             </div>
           </section>
@@ -429,9 +430,9 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
             ) : backedProjects.length === 0 ? (
               <div className="profile-content-empty">
                 <h3>Vous n'avez soutenu aucun projet.</h3>
-                <p>Il est temps de changer ca ! Decouvrez des idees innovantes.</p>
+                <p>Il est temps de changer ça ! Découvrez des idées innovantes.</p>
                 <button className="settings-btn-outline" onClick={() => onNavigate("discover")} style={{ color: "#05ce78", borderColor: "#05ce78" }}>
-                  Decouvrir des projets
+                  Découvrir des projets
                 </button>
               </div>
             ) : (
@@ -477,7 +478,7 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
             ) : createdProjects.length === 0 ? (
               <div className="profile-content-empty">
                 <h3>Vous n'avez cree aucun projet.</h3>
-                <p>Commencez a donner vie a vos idees des maintenant !</p>
+                <p>Commencez à donner vie à vos idées dès maintenant !</p>
                 <button className="settings-btn-outline" onClick={() => onNavigate("startProject")} style={{ color: "#0ce688", borderColor: "#0ce688" }}>
                   Demarrer un projet
                 </button>

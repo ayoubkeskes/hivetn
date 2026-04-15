@@ -4,6 +4,13 @@
 
 import * as CampaignModel from "./campaign.model.js";
 
+const ALLOWED_DURATION_DAYS = new Set([15, 30, 60, 180]);
+
+const normalizeDurationDays = (value, fallback = 30) => {
+  const duration = parseInt(value, 10);
+  return ALLOWED_DURATION_DAYS.has(duration) ? duration : fallback;
+};
+
 /**
  * POST /api/campaigns  (Protected)
  * Creates a new draft campaign linked to the authenticated user.
@@ -11,7 +18,7 @@ import * as CampaignModel from "./campaign.model.js";
  */
 export const createCampaign = async (req, res) => {
   try {
-    const { title, description, category, target_amount, rewards, story } = req.body;
+    const { title, description, category, target_amount, duration_days, rewards, story } = req.body;
 
     // ── 1. Validate required fields ────────────────
     if (!title || !description || !category || !target_amount) {
@@ -36,6 +43,7 @@ export const createCampaign = async (req, res) => {
       description,
       category,
       target_amount: amount,
+      duration_days: normalizeDurationDays(duration_days),
       rewards: rewards !== undefined ? JSON.stringify(rewards) : null,
       story: story !== undefined ? JSON.stringify(story) : null,
     });
@@ -92,7 +100,7 @@ export const updateCampaign = async (req, res) => {
 
     // ── 4. Validate target_amount if provided ─────
     const fields = {};
-    const { title, description, category, target_amount, image_url, video_url } = req.body;
+    const { title, description, category, target_amount, duration_days, image_url, video_url } = req.body;
 
     if (title !== undefined) fields.title = title;
     if (description !== undefined) fields.description = description;
@@ -107,6 +115,10 @@ export const updateCampaign = async (req, res) => {
         });
       }
       fields.target_amount = amount;
+    }
+
+    if (duration_days !== undefined) {
+      fields.duration_days = normalizeDurationDays(duration_days, campaign.duration_days || 30);
     }
 
     if (req.body.rewards !== undefined) {

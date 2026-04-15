@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import './Home.css';
 import './StartProject.css';
 import Navbar from './Navbar';
@@ -159,7 +159,7 @@ const StartProject = ({ onNavigate, isAuthenticated, onLogout }) => {
             
             <div className="sp-faq-item">
               <div className="sp-faq-q">La création d'une campagne est-elle gratuite ?</div>
-              <div className="sp-faq-a">Oui, créer et soumettre un projet sur Hive.tn est entièrement gratuit. Aucun frais n’est appliqué pour le moment durant la phase actuelle de la plateforme.</div>
+              <div className="sp-faq-a">Oui, créer et soumettre un projet sur Hive.tn est entièrement gratuit. Aucun frais n'est appliqué pour le moment durant la phase actuelle de la plateforme.</div>
             </div>
             
             <div className="sp-faq-item">
@@ -168,7 +168,7 @@ const StartProject = ({ onNavigate, isAuthenticated, onLogout }) => {
             </div>
 
             <div className="sp-faq-item">
-              <div className="sp-faq-q">Puis-je modifier ma campagne après l’avoir soumise ?</div>
+              <div className="sp-faq-q">Puis-je modifier ma campagne après l'avoir soumise ?</div>
               <div className="sp-faq-a">Oui, tant que votre campagne est en brouillon ou refusée, vous pouvez la modifier et la resoumettre. Une fois approuvée et publiée, certaines modifications peuvent être limitées.</div>
             </div>
 
@@ -179,7 +179,7 @@ const StartProject = ({ onNavigate, isAuthenticated, onLogout }) => {
 
             <div className="sp-faq-item">
               <div className="sp-faq-q">Puis-je recevoir des contributions financières ?</div>
-              <div className="sp-faq-a">La plateforme Hive.tn est en cours d’évolution. Les fonctionnalités de contribution financière seront ajoutées prochainement.</div>
+              <div className="sp-faq-a">La plateforme Hive.tn est en cours d'évolution. Les fonctionnalités de contribution financière seront ajoutées prochainement.</div>
             </div>
           </div>
 

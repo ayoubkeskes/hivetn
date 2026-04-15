@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 const formatMoney = (amount) =>
   `${Number(amount || 0).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} DT`;
@@ -32,13 +32,13 @@ const RewardOptionCard = ({ reward, selected, onSelect }) => {
       <div className="dp-reward-card__body">
         <h4 className="dp-reward-card__title">{reward.title}</h4>
         <p className="dp-reward-card__description">
-          {reward.description || 'Une recompense pensee pour remercier les contributeurs de cette campagne.'}
+          {reward.description || 'Une récompense pensée pour remercier les contributeurs de cette campagne.'}
         </p>
 
         <dl className="dp-reward-card__meta">
           <div>
             <dt>Livraison estimee</dt>
-            <dd>{reward.estimatedDelivery || 'A confirmer par le createur'}</dd>
+            <dd>{reward.estimatedDelivery || 'À confirmer par le créateur'}</dd>
           </div>
           <div>
             <dt>Disponibilite</dt>
@@ -58,7 +58,7 @@ const RewardOptionCard = ({ reward, selected, onSelect }) => {
           disabled={reward.disabled}
           onClick={onSelect}
         >
-          {selected ? 'Selectionnee' : 'Choisir cette recompense'}
+          {selected ? 'Sélectionnée' : 'Choisir cette récompense'}
         </button>
       </div>
     </article>

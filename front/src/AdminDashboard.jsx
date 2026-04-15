@@ -183,7 +183,7 @@ const AdminDashboard = ({ onNavigate }) => {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        openFeedbackModal('Suppression impossible', data.message || 'Le commentaire n a pas pu etre supprime.', 'error');
+        openFeedbackModal('Suppression impossible', data.message || "Le commentaire n'a pas pu être supprimé.", 'error');
         return;
       }
 
@@ -196,7 +196,7 @@ const AdminDashboard = ({ onNavigate }) => {
         )),
       }));
     } catch {
-      openFeedbackModal('Erreur reseau', 'Impossible de supprimer ce commentaire pour le moment.', 'error');
+      openFeedbackModal('Erreur réseau', 'Impossible de supprimer ce commentaire pour le moment.', 'error');
     } finally {
       setDeleteCommentModal({ isOpen: false, comment: null });
     }
@@ -251,10 +251,10 @@ const AdminDashboard = ({ onNavigate }) => {
           variant: 'success',
         });
       } else {
-        openFeedbackModal('Approbation impossible', data.message || 'La campagne n a pas pu etre approuvee.', 'error');
+        openFeedbackModal('Approbation impossible', data.message || "La campagne n'a pas pu être approuvée.", 'error');
       }
     } catch {
-      openFeedbackModal('Erreur reseau', 'Impossible de contacter le serveur pour approuver la campagne.', 'error');
+      openFeedbackModal('Erreur réseau', 'Impossible de contacter le serveur pour approuver la campagne.', 'error');
     }
   };
 
@@ -308,7 +308,7 @@ const AdminDashboard = ({ onNavigate }) => {
     if (!file) return;
 
     if (file.size > 200 * 1024 * 1024) {
-      openFeedbackModal('Video trop volumineuse', 'Choisissez une video de 200 Mo maximum.', 'warning');
+      openFeedbackModal('Vidéo trop volumineuse', 'Choisissez une vidéo de 200 Mo maximum.', 'warning');
       return;
     }
 
@@ -326,13 +326,13 @@ const AdminDashboard = ({ onNavigate }) => {
 
   const handleSaveEditedCampaign = async () => {
     if (!editCampaignModal.title.trim() || !editCampaignModal.category.trim() || !editCampaignModal.targetAmount) {
-      openFeedbackModal('Champs obligatoires', 'Titre, categorie et objectif sont obligatoires.', 'warning');
+      openFeedbackModal('Champs obligatoires', 'Titre, catégorie et objectif sont obligatoires.', 'warning');
       return;
     }
 
     const targetAmount = Number(editCampaignModal.targetAmount);
     if (!Number.isFinite(targetAmount) || targetAmount <= 0) {
-      openFeedbackModal('Objectif invalide', "L'objectif doit etre un montant positif.", 'warning');
+      openFeedbackModal('Objectif invalide', "L'objectif doit être un montant positif.", 'warning');
       return;
     }
 
@@ -377,7 +377,7 @@ const AdminDashboard = ({ onNavigate }) => {
         const uploadData = await uploadRes.json();
 
         if (!uploadData.success) {
-          openFeedbackModal('Upload video impossible', uploadData.message || "Erreur lors de l'upload de la video.", 'error');
+          openFeedbackModal('Importation de la vidéo impossible', uploadData.message || "Erreur lors de l'importation de la vidéo.", 'error');
           return;
         }
 
@@ -403,15 +403,15 @@ const AdminDashboard = ({ onNavigate }) => {
         fetchAllCampaigns();
         setFeedbackModal({
           isOpen: true,
-          title: 'Campagne mise a jour',
-          message: data.message || 'Les informations de la campagne ont ete enregistrees avec succes.',
+          title: 'Campagne mise à jour',
+          message: data.message || 'Les informations de la campagne ont été enregistrées avec succès.',
           variant: 'success',
         });
       } else {
-        openFeedbackModal('Mise a jour impossible', data.message || 'Erreur de mise a jour.', 'error');
+        openFeedbackModal('Mise à jour impossible', data.message || 'Erreur de mise à jour.', 'error');
       }
     } catch {
-      openFeedbackModal('Erreur reseau', 'Impossible d enregistrer les modifications pour le moment.', 'error');
+      openFeedbackModal('Erreur réseau', 'Impossible d enregistrer les modifications pour le moment.', 'error');
     }
   };
 
@@ -432,12 +432,12 @@ const AdminDashboard = ({ onNavigate }) => {
         fetchAllCampaigns();
       }
       openFeedbackModal(
-        data.success ? 'Campagne refusee' : 'Refus impossible',
+        data.success ? 'Campagne refusée' : 'Refus impossible',
         data.message || 'Campagne refusee.',
         data.success ? 'success' : 'error'
       );
     } catch {
-      openFeedbackModal('Erreur reseau', 'Impossible de finaliser le refus de la campagne.', 'error');
+      openFeedbackModal('Erreur réseau', 'Impossible de finaliser le refus de la campagne.', 'error');
     }
     setRejectModal({ isOpen: false, campaignId: null, reason: '' });
   };
@@ -463,12 +463,12 @@ const AdminDashboard = ({ onNavigate }) => {
         fetchAllCampaigns();
       }
       openFeedbackModal(
-        data.success ? 'Campagne supprimee' : 'Suppression impossible',
-        data.message || 'Campagne supprimee.',
+        data.success ? 'Campagne supprimée' : 'Suppression impossible',
+        data.message || 'Campagne supprimée.',
         data.success ? 'success' : 'error'
       );
     } catch {
-      openFeedbackModal('Erreur reseau', 'Impossible de supprimer cette campagne pour le moment.', 'error');
+      openFeedbackModal('Erreur réseau', 'Impossible de supprimer cette campagne pour le moment.', 'error');
     } finally {
       setDeleteCampaignModal({ isOpen: false, campaign: null });
     }
@@ -492,12 +492,12 @@ const AdminDashboard = ({ onNavigate }) => {
         fetchAllCampaigns();
       }
       openFeedbackModal(
-        data.success ? 'Utilisateur supprime' : 'Suppression impossible',
-        data.message || 'Utilisateur supprime.',
+        data.success ? 'Utilisateur supprimé' : 'Suppression impossible',
+        data.message || 'Utilisateur supprimé.',
         data.success ? 'success' : 'error'
       );
     } catch {
-      openFeedbackModal('Erreur reseau', 'Impossible de supprimer cet utilisateur pour le moment.', 'error');
+      openFeedbackModal('Erreur réseau', 'Impossible de supprimer cet utilisateur pour le moment.', 'error');
     } finally {
       setDeleteUserModal({ isOpen: false, user: null });
     }
@@ -524,12 +524,12 @@ const AdminDashboard = ({ onNavigate }) => {
         setUsers(prev => prev.map(u => u.id === user.id ? { ...u, role: newRole } : u));
       }
       openFeedbackModal(
-        data.success ? 'Role mis a jour' : 'Modification impossible',
-        data.message || 'Le role a ete mis a jour.',
+        data.success ? 'Rôle mis à jour' : 'Modification impossible',
+        data.message || 'Le rôle a été mis à jour.',
         data.success ? 'success' : 'error'
       );
     } catch {
-      openFeedbackModal('Erreur reseau', 'Impossible de modifier le role pour le moment.', 'error');
+      openFeedbackModal('Erreur réseau', 'Impossible de modifier le role pour le moment.', 'error');
     }
     setRoleConfirmModal({ isOpen: false, user: null, newRole: 'USER' });
   };
@@ -601,12 +601,12 @@ const AdminDashboard = ({ onNavigate }) => {
           bio: '',
           avatar: '',
         });
-        openFeedbackModal('Utilisateur mis a jour', data.message || 'Les informations utilisateur ont ete enregistrees.', 'success');
+        openFeedbackModal('Utilisateur mis à jour', data.message || 'Les informations utilisateur ont été enregistrées.', 'success');
       } else {
-        openFeedbackModal('Mise a jour impossible', data.message || "Erreur lors de la mise a jour de l'utilisateur.", 'error');
+        openFeedbackModal('Mise à jour impossible', data.message || "Erreur lors de la mise à jour de l'utilisateur.", 'error');
       }
     } catch {
-      openFeedbackModal('Erreur reseau', "Impossible de mettre a jour cet utilisateur pour le moment.", 'error');
+      openFeedbackModal('Erreur réseau', "Impossible de mettre à jour cet utilisateur pour le moment.", 'error');
     }
   };
 
@@ -651,8 +651,8 @@ const AdminDashboard = ({ onNavigate }) => {
     if (status === 'ACTIVE') return 'Active';
     if (status === 'PENDING') return 'En attente';
     if (status === 'DRAFT') return 'Brouillon';
-    if (status === 'REJECTED') return 'RefusÃ©e';
-    if (status === 'CLOSED') return 'ClÃ´turÃ©e';
+    if (status === 'REJECTED') return 'Refusée';
+    if (status === 'CLOSED') return 'Clôturée';
     return status;
   };
 
@@ -660,8 +660,8 @@ const AdminDashboard = ({ onNavigate }) => {
     if (status === 'ACTIVE') return 'Active';
     if (status === 'PENDING') return 'En attente';
     if (status === 'DRAFT') return 'Brouillon';
-    if (status === 'REJECTED') return 'Refusee';
-    if (status === 'CLOSED') return 'Cloturee';
+    if (status === 'REJECTED') return 'Refusée';
+    if (status === 'CLOSED') return 'Clôturée';
     return status;
   };
 
@@ -763,7 +763,7 @@ const AdminDashboard = ({ onNavigate }) => {
                 <div className="admin-card">
                   <p className="widget-title">Revenus Plateforme (5%)</p>
                   <p className="widget-value">{platformRevenue.toLocaleString()} <span>DT</span></p>
-                  <div className="widget-trend">Base sur les paiements verifies</div>
+                  <div className="widget-trend">Basé sur les paiements vérifiés</div>
                 </div>
                 <div className="admin-card">
                   <p className="widget-title">Campagnes Actives</p>
@@ -847,7 +847,7 @@ const AdminDashboard = ({ onNavigate }) => {
                   <h4>Derniers soutiens archives</h4>
                 </div>
                 {latestPaidDonations.length === 0 ? (
-                  <p style={{ color: '#a1a1aa', padding: '24px 0' }}>Aucun soutien archive confirme pour le moment.</p>
+                  <p style={{ color: '#a1a1aa', padding: '24px 0' }}>Aucun soutien archivé confirmé pour le moment.</p>
                 ) : (
                   <table className="admin-table">
                     <thead>
@@ -1014,7 +1014,7 @@ const AdminDashboard = ({ onNavigate }) => {
                       <th>Statut</th>
                       <th>Utilisateur</th>
                       <th>Campagne</th>
-                      <th>Createur</th>
+                      <th>Créateur</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1047,10 +1047,10 @@ const AdminDashboard = ({ onNavigate }) => {
                         </td>
                         <td>
                           <div className="cell-primary">{pledge.campaign_title || 'Campagne inconnue'}</div>
-                          <div className="cell-secondary">{pledge.campaign_category || 'Sans categorie'} • {formatCampaignStatus(pledge.campaign_status)}</div>
+                          <div className="cell-secondary">{pledge.campaign_category || 'Sans catégorie'} • {formatCampaignStatus(pledge.campaign_status)}</div>
                         </td>
                         <td>
-                          <div className="cell-primary">{pledge.creator_name || 'Createur inconnu'}</div>
+                          <div className="cell-primary">{pledge.creator_name || 'Créateur inconnu'}</div>
                           <div className="cell-secondary">{pledge.creator_email || '-'}</div>
                         </td>
                       </tr>
@@ -1376,7 +1376,7 @@ const AdminDashboard = ({ onNavigate }) => {
                   </label>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                     <span style={{ color: '#8b949e', fontSize: '12px' }}>
-                      {editCampaignModal.imageFile ? 'Nouvelle image prete a etre enregistree. La video sera retiree.' : "Une campagne ne peut garder qu'un seul media principal a la fois."}
+                      {editCampaignModal.imageFile ? 'Nouvelle image prête à être enregistrée. La vidéo sera retirée.' : "Une campagne ne peut garder qu'un seul média principal à la fois."}
                     </span>
                     {editCampaignModal.imagePreview && (
                       <button
@@ -1398,7 +1398,7 @@ const AdminDashboard = ({ onNavigate }) => {
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '6px', color: '#d1d5db', fontSize: '14px' }}>Video de campagne</label>
+                <label style={{ display: 'block', marginBottom: '6px', color: '#d1d5db', fontSize: '14px' }}>Vidéo de campagne</label>
                 <div className="admin-avatar-editor">
                   <label className="admin-avatar-upload admin-video-upload">
                     {editCampaignModal.videoPreview ? (
@@ -1408,7 +1408,7 @@ const AdminDashboard = ({ onNavigate }) => {
                         className="admin-campaign-video-preview"
                       />
                     ) : (
-                      'Choisir une video'
+                      'Choisir une vidéo'
                     )}
                     <input
                       type="file"
@@ -1419,7 +1419,7 @@ const AdminDashboard = ({ onNavigate }) => {
                   </label>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                     <span style={{ color: '#8b949e', fontSize: '12px' }}>
-                      {editCampaignModal.videoFile ? 'Nouvelle video prete a etre enregistree. L image sera retiree.' : "Une campagne ne peut garder qu'un seul media principal a la fois."}
+                      {editCampaignModal.videoFile ? "Nouvelle vidéo prête à être enregistrée. L'image sera retirée." : "Une campagne ne peut garder qu'un seul média principal à la fois."}
                     </span>
                     {editCampaignModal.videoPreview && (
                       <button
@@ -1433,7 +1433,7 @@ const AdminDashboard = ({ onNavigate }) => {
                           videoFile: null,
                         }))}
                       >
-                        Supprimer la video
+                        Supprimer la vidéo
                       </button>
                     )}
                   </div>
@@ -1501,7 +1501,7 @@ const AdminDashboard = ({ onNavigate }) => {
           <div className="modal-content" style={{ maxWidth: '760px', width: '90%', textAlign: 'left' }}>
             <h3 className="modal-title">Modifier un utilisateur</h3>
             <p className="modal-desc">
-              L'administrateur peut mettre a jour les informations du compte et le role.
+              L'administrateur peut mettre à jour les informations du compte et le rôle.
             </p>
 
             <div style={{ display: 'grid', gap: '14px' }}>

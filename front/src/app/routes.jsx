@@ -56,6 +56,7 @@ function AppRoutes() {
     goal: "",
     image_url: "",
     video_url: "",
+    duration_days: 30,
     rewards: [],
     story: {
       blocks: [],

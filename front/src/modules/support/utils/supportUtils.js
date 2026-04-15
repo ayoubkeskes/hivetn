@@ -1,4 +1,4 @@
-import { API_URL } from "../../../shared/services/api.js";
+﻿import { API_URL } from "../../../shared/services/api.js";
 
 export { API_URL };
 
@@ -82,7 +82,7 @@ export const adminSupportSortOptions = [
   { value: "created_at:DESC", label: "Plus recents" },
   { value: "priority:ASC", label: "Priorite la plus haute" },
   { value: "status:ASC", label: "Par statut" },
-  { value: "updated_at:DESC", label: "Derniere mise a jour" },
+  { value: "updated_at:DESC", label: "Dernière mise à jour" },
 ];
 
 export const formatSupportDate = (value, withTime = true) => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SignIn.css';
 
@@ -33,7 +33,7 @@ const GoogleAuthCallback = ({ onAuthSuccess }) => {
       }
 
       if (!token) {
-        setError('La reponse Google est incomplete. Merci de reessayer.');
+        setError('La réponse Google est incomplète. Merci de réessayer.');
         setMessage('');
         return;
       }
@@ -47,11 +47,11 @@ const GoogleAuthCallback = ({ onAuthSuccess }) => {
           });
           const data = await response.json();
           if (!response.ok || !data.success) {
-            throw new Error(data.message || 'Impossible de recuperer votre session.');
+            throw new Error(data.message || 'Impossible de récupérer votre session.');
           }
           user = data.user;
         } catch (fetchError) {
-          setError(fetchError.message || 'Connexion Google reussie, mais la session n a pas pu etre finalisee.');
+          setError(fetchError.message || "Connexion Google réussie, mais la session n'a pas pu être finalisée.");
           setMessage('');
           return;
         }
@@ -77,7 +77,7 @@ const GoogleAuthCallback = ({ onAuthSuccess }) => {
           <h1 className="auth-logo">Hive.tn</h1>
           <h2 className="auth-title">Connexion Google</h2>
           <p className="auth-subtitle">
-            {message || 'La connexion Google n a pas pu etre finalisee.'}
+            {message || "La connexion Google n'a pas pu être finalisée."}
           </p>
         </div>
 
@@ -85,7 +85,7 @@ const GoogleAuthCallback = ({ onAuthSuccess }) => {
           <>
             <div className="auth-message auth-error">{error}</div>
             <button className="auth-button" type="button" onClick={() => navigate('/login')}>
-              Retour a la connexion
+              Retour à la connexion
             </button>
           </>
         ) : (

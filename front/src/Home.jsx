@@ -6,6 +6,7 @@ import FeaturedCampaignCard from './components/FeaturedCampaignCard';
 import TrustSocialProofSection from './components/TrustSocialProofSection';
 import { buildApiUrl } from './shared/services/api.js';
 import { formatMillimesToTnd } from './shared/utils/currency.js';
+import { getCampaignDaysLeft } from './shared/utils/campaignDates.js';
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1528157777178-0062a444aeb8?w=800&q=80';
 
@@ -69,7 +70,7 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
     if (isAuthenticated) {
       onNavigate('startProject');
     } else {
-      onNavigate('signIn', 'Vous devez etre connecte pour creer un projet.');
+      onNavigate('signIn', 'Vous devez être connecté pour créer un projet.');
     }
   };
 
@@ -82,7 +83,7 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
           setProjects(data.campaigns.map((campaign) => ({
             id: campaign.id,
             title: campaign.title,
-            creator: `Par ${campaign.creator_name || 'Createur inconnu'}`,
+            creator: `Par ${campaign.creator_name || 'Créateur inconnu'}`,
             creatorId: campaign.porteur_id,
             desc: campaign.description || '',
             image: resolveMediaUrl(campaign.image_url),
@@ -90,7 +91,7 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
             collected: formatMillimesToTnd(campaign.amount_raised || 0),
             amountRaised: Number(campaign.amount_raised || 0),
             backerCount: Number(campaign.backer_count || 0),
-            daysLeft: '--',
+            daysLeft: getCampaignDaysLeft(campaign),
             category: campaign.category || 'Projet',
           })));
         }
@@ -144,16 +145,16 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
                 <span>Construisez l&apos;avenir, aujourd&apos;hui.</span>
               </h1>
               <p className="hero-subtitle">
-                Decouvrez des projets innovants, soutenez des createurs locaux et suivez l&apos;impact reel.
+                Découvrez des projets innovants, soutenez des créateurs locaux et suivez l&apos;impact réel.
               </p>
               <div className="hero-actions">
                 <button className="hero-btn-primary" onClick={() => onNavigate('discover')}>Soutenir un projet</button>
                 <button className="hero-btn-secondary" onClick={handleCreateProject}>Lancer mon projet</button>
               </div>
               <div className="hero-trust-row" aria-label="Signaux de confiance">
-                <div className="hero-trust-item"><span className="hero-trust-icon" aria-hidden="true" />Projets verifies</div>
+                <div className="hero-trust-item"><span className="hero-trust-icon" aria-hidden="true" />Projets vérifiés</div>
                 <div className="hero-trust-item"><span className="hero-trust-icon" aria-hidden="true" />Plateforme locale</div>
-                <div className="hero-trust-item"><span className="hero-trust-icon" aria-hidden="true" />Securise (bientot)</div>
+                <div className="hero-trust-item"><span className="hero-trust-icon" aria-hidden="true" />Sécurisé (bientôt)</div>
               </div>
             </div>
 
@@ -169,8 +170,8 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
 
         <section className="projects-section" id="projets-recents">
           <div className="projects-header">
-            <h2 className="section-title">Campagnes publiees</h2>
-            <div className="category-filter-row" aria-label="Filtrer les campagnes par categorie">
+            <h2 className="section-title">Campagnes publiées</h2>
+            <div className="category-filter-row" aria-label="Filtrer les campagnes par catégorie">
               {CATEGORY_FILTERS.map((filter) => {
                 const isActive = activeCategoryFilter?.id === filter.id;
 
@@ -192,9 +193,9 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
           {loadingProjects ? (
             <div style={{ textAlign: 'center', color: '#a1a1aa', padding: '40px 0' }}>Chargement des campagnes...</div>
           ) : projects.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#a1a1aa', padding: '40px 0' }}>Aucune campagne active a afficher pour le moment.</div>
+            <div style={{ textAlign: 'center', color: '#a1a1aa', padding: '40px 0' }}>Aucune campagne active à afficher pour le moment.</div>
           ) : filteredProjects.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#a1a1aa', padding: '40px 0' }}>Aucune campagne dans cette categorie pour le moment.</div>
+            <div style={{ textAlign: 'center', color: '#a1a1aa', padding: '40px 0' }}>Aucune campagne dans cette catégorie pour le moment.</div>
           ) : (
             <div className="projects-grid">
               {filteredProjects.map((project) => (
@@ -212,12 +213,12 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
 
         <section className="how-it-works-section" id="comment-ca-marche">
           <div className="hiw-container">
-            <h2 className="section-title text-center">Comment ca marche ?</h2>
+            <h2 className="section-title text-center">Comment ça marche ?</h2>
             <div className="hiw-grid">
               <div className="hiw-step">
                 <div className="hiw-icon"><CompassIcon /></div>
-                <h3>Decouvrez</h3>
-                <p>Explorez des projets verifies en Tunisie</p>
+                <h3>Découvrez</h3>
+                <p>Explorez des projets vérifiés en Tunisie</p>
               </div>
               <div className="hiw-step">
                 <div className="hiw-icon"><HeartIcon /></div>
@@ -227,7 +228,7 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
               <div className="hiw-step">
                 <div className="hiw-icon"><BarChartIcon /></div>
                 <h3>Suivez</h3>
-                <p>Suivez l&apos;evolution du projet en temps reel</p>
+                <p>Suivez l&apos;évolution du projet en temps réel</p>
               </div>
             </div>
           </div>

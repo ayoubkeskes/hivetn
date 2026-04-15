@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import Navbar from "./Navbar";
 import "./InfoPage.css";
 
@@ -15,9 +15,9 @@ const PAGE_CONTENT = {
           "Aider les créateurs et porteuses de projets à présenter leurs idées de manière claire, crédible et structurée, tout en facilitant la découverte de nouvelles initiatives locales.",
       },
       {
-        title: "Ce que propose la plateforme aujourd’hui",
+        title: "Ce que propose la plateforme aujourd'hui",
         body:
-          "La version actuelle permet de publier des campagnes, de les modérer, de les explorer, de les enregistrer et d’accompagner les créateurs dans la préparation de leur lancement.",
+          "La version actuelle permet de publier des campagnes, de les modérer, de les explorer, de les enregistrer et d'accompagner les créateurs dans la préparation de leur lancement.",
       },
       {
         title: "Notre ambition",
@@ -30,12 +30,12 @@ const PAGE_CONTENT = {
     title: "Conditions générales",
     eyebrow: "Juridique",
     intro:
-      "Ces conditions résument le cadre d’utilisation actuel de Hive.tn dans sa phase produit présente.",
+      "Ces conditions résument le cadre d'utilisation actuel de Hive.tn dans sa phase produit présente.",
     sections: [
       {
         title: "Utilisation de la plateforme",
         body:
-          "Les utilisateurs s’engagent à fournir des informations exactes, à respecter les règles de publication et à ne pas utiliser la plateforme à des fins trompeuses, illégales ou nuisibles.",
+          "Les utilisateurs s'engagent à fournir des informations exactes, à respecter les règles de publication et à ne pas utiliser la plateforme à des fins trompeuses, illégales ou nuisibles.",
       },
       {
         title: "Soumission et modération",
@@ -53,17 +53,17 @@ const PAGE_CONTENT = {
     title: "Confidentialité",
     eyebrow: "Données",
     intro:
-      "Hive.tn s’engage à traiter les données nécessaires au fonctionnement de la plateforme avec sobriété et clarté.",
+      "Hive.tn s'engage à traiter les données nécessaires au fonctionnement de la plateforme avec sobriété et clarté.",
     sections: [
       {
         title: "Données utilisées",
         body:
-          "Les données renseignées lors de l’inscription, de la création d’un projet ou de l’utilisation des fonctionnalités principales servent au bon fonctionnement de votre compte et de la plateforme.",
+          "Les données renseignées lors de l'inscription, de la création d'un projet ou de l'utilisation des fonctionnalités principales servent au bon fonctionnement de votre compte et de la plateforme.",
       },
       {
         title: "Accès et sécurité",
         body:
-          "Les informations de compte et les contenus associés sont protégés dans la mesure de l’état actuel du produit, avec un objectif constant d’amélioration de la sécurité et des contrôles d’accès.",
+          "Les informations de compte et les contenus associés sont protégés dans la mesure de l'état actuel du produit, avec un objectif constant d'amélioration de la sécurité et des contrôles d'accès.",
       },
       {
         title: "Évolution de la politique",
@@ -76,17 +76,17 @@ const PAGE_CONTENT = {
     title: "Cookies",
     eyebrow: "Préférences",
     intro:
-      "Hive.tn peut utiliser des cookies ou mécanismes équivalents pour assurer l’authentification, la continuité de session et certaines préférences d’usage.",
+      "Hive.tn peut utiliser des cookies ou mécanismes équivalents pour assurer l'authentification, la continuité de session et certaines préférences d'usage.",
     sections: [
       {
         title: "Cookies essentiels",
         body:
-          "Ils peuvent être utilisés pour maintenir la connexion, sécuriser l’accès à certaines zones du produit et améliorer la stabilité du parcours utilisateur.",
+          "Ils peuvent être utilisés pour maintenir la connexion, sécuriser l'accès à certaines zones du produit et améliorer la stabilité du parcours utilisateur.",
       },
       {
         title: "Mesure et amélioration",
         body:
-          "Des outils techniques peuvent être ajoutés progressivement pour mieux comprendre les usages et améliorer l’ergonomie, toujours dans une logique proportionnée au produit.",
+          "Des outils techniques peuvent être ajoutés progressivement pour mieux comprendre les usages et améliorer l'ergonomie, toujours dans une logique proportionnée au produit.",
       },
       {
         title: "Contrôle utilisateur",

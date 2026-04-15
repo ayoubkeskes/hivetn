@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './SignUp.css';
 import GoogleAuthButton from './components/Auth/GoogleAuthButton';
@@ -6,6 +6,8 @@ import GoogleAuthButton from './components/Auth/GoogleAuthButton';
 const API_URL = 'http://localhost:5000';
 
 const SignUp = ({ onSwitch, onHome }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     fullname: '',
     email: '',
@@ -27,7 +29,7 @@ const SignUp = ({ onSwitch, onHome }) => {
     setError('');
     setSuccess('');
 
-    // ── Client-side validation ──────────────────
+    // Client-side validation
     if (!formData.fullname || !formData.email || !formData.password || !formData.confirmPassword) {
       setError('Tous les champs sont obligatoires.');
       return;
@@ -43,7 +45,7 @@ const SignUp = ({ onSwitch, onHome }) => {
       return;
     }
 
-    // ── API call ────────────────────────────────
+    // API call
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/auth/register`, {
@@ -102,12 +104,38 @@ const SignUp = ({ onSwitch, onHome }) => {
             <label htmlFor="email">Adresse Email</label>
           </div>
           <div className="input-group">
-            <input type="password" id="password" required placeholder=" " value={formData.password} onChange={handleChange} />
+            <input type={showPassword ? "text" : "password"} id="password" required placeholder=" " value={formData.password} onChange={handleChange} />
             <label htmlFor="password">Mot de passe</label>
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowPassword((current) => !current)}
+              aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+              title={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+            >
+              {showPassword ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"></path></svg>
+              )}
+            </button>
           </div>
           <div className="input-group">
-            <input type="password" id="confirmPassword" required placeholder=" " value={formData.confirmPassword} onChange={handleChange} />
+            <input type={showConfirmPassword ? "text" : "password"} id="confirmPassword" required placeholder=" " value={formData.confirmPassword} onChange={handleChange} />
             <label htmlFor="confirmPassword">Confirmez le mot de passe</label>
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowConfirmPassword((current) => !current)}
+              aria-label={showConfirmPassword ? 'Masquer la confirmation du mot de passe' : 'Afficher la confirmation du mot de passe'}
+              title={showConfirmPassword ? 'Masquer la confirmation du mot de passe' : 'Afficher la confirmation du mot de passe'}
+            >
+              {showConfirmPassword ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"></path></svg>
+              )}
+            </button>
           </div>
           
           <button type="submit" className="auth-button" disabled={loading}>

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import Navbar from "../../Navbar";
@@ -13,7 +13,7 @@ const navigationItems = [
   {
     to: "/support/new",
     label: "Ouvrir un ticket",
-    description: "Contacter rapidement l'equipe Hive.tn.",
+    description: "Contacter rapidement l'équipe Hive.tn.",
   },
 ];
 
@@ -41,9 +41,9 @@ const SupportCenterLayout = ({
       <div className="support-shell">
         <aside className="support-sidebar">
           <div className="support-sidebar__eyebrow">Support centre</div>
-          <h2 className="support-sidebar__title">Nous restons disponibles a chaque etape.</h2>
+          <h2 className="support-sidebar__title">Nous restons disponibles à chaque étape.</h2>
           <p className="support-sidebar__copy">
-            Ouvrez un ticket clair, suivez les reponses de l equipe et gardez un historique propre de vos demandes.
+            Ouvrez un ticket clair, suivez les réponses de l'équipe et gardez un historique propre de vos demandes.
           </p>
 
           <nav className="support-sidebar__nav" aria-label="Navigation support">

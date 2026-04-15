@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+﻿import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import "./SupportTicketDetailsPage.css";
@@ -87,7 +87,7 @@ const SupportTicketDetailsPage = ({ onNavigate, isAuthenticated, onLogout }) => 
     setFlash("");
 
     if (!replyMessage.trim()) {
-      setReplyError("Votre message ne peut pas etre vide.");
+      setReplyError("Votre message ne peut pas être vide.");
       return;
     }
 
@@ -107,9 +107,9 @@ const SupportTicketDetailsPage = ({ onNavigate, isAuthenticated, onLogout }) => 
       setTicket(data.ticket);
       setReplyMessage("");
       setReplyAttachment(null);
-      setFlash(data.message || "Votre reponse a ete envoyee.");
+      setFlash(data.message || "Votre réponse a été envoyée.");
     } catch (replyFailure) {
-      setReplyError(replyFailure.message || "Impossible d envoyer votre reponse.");
+      setReplyError(replyFailure.message || "Impossible d'envoyer votre réponse.");
     } finally {
       setSending(false);
     }
@@ -125,7 +125,7 @@ const SupportTicketDetailsPage = ({ onNavigate, isAuthenticated, onLogout }) => 
     try {
       const data = await closeSupportTicket(ticket.id);
       setTicket(data.ticket);
-      setFlash(data.message || "Le ticket a ete ferme.");
+      setFlash(data.message || "Le ticket a été fermé.");
     } catch (closeFailure) {
       setReplyError(closeFailure.message || "Impossible de fermer le ticket.");
     } finally {
@@ -146,7 +146,7 @@ const SupportTicketDetailsPage = ({ onNavigate, isAuthenticated, onLogout }) => 
             Rafraichir
           </button>
           <button type="button" className="nav-btn-outline" onClick={() => navigate("/support")}>
-            Retour a la liste
+            Retour à la liste
           </button>
           {ticket && ticket.status !== "CLOSED" && (
             <button type="button" className="nav-btn-solid" onClick={handleCloseTicket} disabled={closing}>
@@ -213,7 +213,7 @@ const SupportTicketDetailsPage = ({ onNavigate, isAuthenticated, onLogout }) => 
             ) : (
               <form className="support-reply-form" onSubmit={handleReply}>
                 <label>
-                  <span>Votre reponse</span>
+                  <span>Votre réponse</span>
                   <textarea
                     rows="5"
                     placeholder="Ajoutez un message clair pour continuer la conversation."
@@ -261,7 +261,7 @@ const SupportTicketDetailsPage = ({ onNavigate, isAuthenticated, onLogout }) => 
                 <strong>{formatSupportDate(ticket.created_at)}</strong>
               </div>
               <div className="support-ticket-sidebar__row">
-                <span>Derniere mise a jour</span>
+                <span>Dernière mise à jour</span>
                 <strong>{formatSupportDate(ticket.updated_at)}</strong>
               </div>
               <div className="support-ticket-sidebar__row">

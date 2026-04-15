@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import "./SupportTicketsPage.css";
@@ -213,7 +213,7 @@ const SupportTicketsPage = ({ onNavigate, isAuthenticated, onLogout }) => {
           <div className="support-empty-state__badge">Support</div>
           <h2>Aucun ticket pour le moment</h2>
           <p>
-            Vous n avez encore ouvert aucune demande. Si vous avez une question sur votre compte, vos paiements ou une campagne, notre equipe est prete a vous aider.
+            Vous n'avez encore ouvert aucune demande. Si vous avez une question sur votre compte, vos paiements ou une campagne, notre équipe est prête à vous aider.
           </p>
           <button className="nav-btn-solid" onClick={() => navigate("/support/new")}>
             Creer mon premier ticket
@@ -225,7 +225,7 @@ const SupportTicketsPage = ({ onNavigate, isAuthenticated, onLogout }) => {
             <div className="support-table-header">
               <div>
                 <h2>Vos conversations support</h2>
-                <p>Chaque ticket reste lisible, traceable et facile a reprendre.</p>
+                <p>Chaque ticket reste lisible, traçable et facile à reprendre.</p>
               </div>
               <span>{pagination.total || tickets.length} ticket(s)</span>
             </div>

@@ -1,4 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
+
+import { getCampaignDaysLeft } from '../shared/utils/campaignDates.js';
 
 const ProjectCard = ({ project, onNavigate, actions, overlay }) => (
   <article
@@ -58,7 +60,9 @@ const ProjectCard = ({ project, onNavigate, actions, overlay }) => (
             <span className="stat-label">récolté</span>
           </div>
           <div className="stat-item stat-item--right">
-            <span className="stat-value stat-value--white">{project.daysLeft}</span>
+            <span className="stat-value stat-value--white">
+              {project.daysLeft && project.daysLeft !== '--' ? project.daysLeft : getCampaignDaysLeft(project)}
+            </span>
             <span className="stat-label">jours restants</span>
           </div>
         </div>
