@@ -37,7 +37,10 @@ const emptySummary = {
 
 const AdminSupportWorkspace = () => {
   const navigate = useNavigate();
-  const { ticketId } = useParams();
+  const params = useParams();
+  const wildcardPath = params["*"] || "";
+  const wildcardParts = wildcardPath.split("/").filter(Boolean);
+  const ticketId = params.ticketId || (wildcardParts[0] === "support" && wildcardParts[1] !== "reports" ? wildcardParts[1] : null);
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
   const endOfMessagesRef = useRef(null);
   const [tickets, setTickets] = useState([]);
@@ -321,6 +324,7 @@ const AdminSupportWorkspace = () => {
                     <th>Cree le</th>
                     <th>MAJ</th>
                     <th>Campagne</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -339,6 +343,18 @@ const AdminSupportWorkspace = () => {
                       <td>{formatSupportDate(ticket.created_at, false)}</td>
                       <td>{formatSupportDate(ticket.updated_at)}</td>
                       <td>{ticket.related_campaign_title || "Aucune"}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="action-btn"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleOpenTicket(ticket.id);
+                          }}
+                        >
+                          Ouvrir
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

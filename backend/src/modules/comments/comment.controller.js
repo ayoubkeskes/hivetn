@@ -1,6 +1,7 @@
 import * as CampaignModel from "../campaigns/campaign.model.js";
 import * as CommentModel from "./comment.model.js";
 import * as UserModel from "../auth/auth.model.js";
+import { getRequestContext, logAdminAction } from "../../services/adminLogService.js";
 import { sendNewCommentNotification } from "../notifications/notification.service.js";
 
 const normalizeCommentContent = (value) => String(value || "").trim();
@@ -160,6 +161,22 @@ export const deleteAdminComment = async (req, res) => {
         message: "Impossible de supprimer ce commentaire.",
       });
     }
+
+    await logAdminAction({
+      adminUserId: req.user?.id,
+      ...getRequestContext(req),
+      actionType: "COMMENT_DELETED",
+      entityType: "comment",
+      entityId: comment.id,
+      targetUserId: comment.user_id || null,
+      targetCampaignId: comment.campaign_id || null,
+      description: "Commentaire supprime depuis l'administration.",
+      metadata: {
+        campaignId: comment.campaign_id || null,
+        authorName: comment.author_name || null,
+        preview: String(comment.content || "").slice(0, 160),
+      },
+    });
 
     return res.status(200).json({
       success: true,

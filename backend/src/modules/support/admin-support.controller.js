@@ -1,5 +1,6 @@
 import * as SupportModel from "./support.model.js";
 import * as UserModel from "../auth/auth.model.js";
+import { getRequestContext, logAdminAction } from "../../services/adminLogService.js";
 import {
   sendSupportReplyNotification,
   sendSupportStatusNotification,
@@ -58,6 +59,11 @@ const loadAdminTicketPayload = async (ticketId) => {
     admins,
   };
 };
+
+const adminLogContext = (req) => ({
+  adminUserId: req.user?.id,
+  ...getRequestContext(req),
+});
 
 export const getAdminSupportTickets = async (req, res) => {
   try {
@@ -180,6 +186,23 @@ export const addAdminSupportTicketMessage = async (req, res) => {
       });
     }
 
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "SUPPORT_TICKET_REPLIED",
+      entityType: "support_ticket",
+      entityId: ticket.id,
+      targetUserId: ticket.user_id || null,
+      targetCampaignId: ticket.related_campaign_id || null,
+      description: `Reponse admin ajoutee au ticket ${ticket.code || ticket.id}.`,
+      metadata: {
+        reference: ticket.code || null,
+        title: ticket.title || null,
+        oldStatus: ticket.status,
+        newStatus: updatedPayload.ticket?.status || nextStatus || ticket.status,
+        hasAttachment: Boolean(attachmentUrl),
+      },
+    });
+
     return res.status(201).json({
       success: true,
       message: "La reponse support a ete envoyee.",
@@ -252,6 +275,30 @@ export const updateAdminSupportTicket = async (req, res) => {
       });
     }
 
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "SUPPORT_TICKET_UPDATED",
+      entityType: "support_ticket",
+      entityId: ticket.id,
+      targetUserId: ticket.user_id || null,
+      targetCampaignId: ticket.related_campaign_id || null,
+      description: `Ticket support ${ticket.code || ticket.id} mis a jour.`,
+      metadata: {
+        reference: ticket.code || null,
+        title: ticket.title || null,
+        before: {
+          status: ticket.status,
+          priority: ticket.priority,
+          category: ticket.category,
+        },
+        after: {
+          status: updatedPayload.ticket?.status || ticket.status,
+          priority: updatedPayload.ticket?.priority || ticket.priority,
+          category: updatedPayload.ticket?.category || ticket.category,
+        },
+      },
+    });
+
     return res.status(200).json({
       success: true,
       message: "Le ticket a ete mis a jour.",
@@ -290,6 +337,24 @@ export const assignAdminSupportTicket = async (req, res) => {
 
     await SupportModel.assignTicketToAdmin(ticket.id, assignedAdminId);
     const updatedPayload = await loadAdminTicketPayload(ticket.id);
+
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "SUPPORT_TICKET_ASSIGNED",
+      entityType: "support_ticket",
+      entityId: ticket.id,
+      targetUserId: ticket.user_id || null,
+      targetCampaignId: ticket.related_campaign_id || null,
+      description: assignedAdminId
+        ? `Ticket support ${ticket.code || ticket.id} assigne a un administrateur.`
+        : `Assignation retiree du ticket support ${ticket.code || ticket.id}.`,
+      metadata: {
+        reference: ticket.code || null,
+        title: ticket.title || null,
+        oldAssignedAdminId: ticket.assigned_admin_id || null,
+        newAssignedAdminId: assignedAdminId,
+      },
+    });
 
     return res.status(200).json({
       success: true,
@@ -344,6 +409,21 @@ export const addAdminSupportTicketNote = async (req, res) => {
       adminId: req.user.id,
       adminName: admin.name || "Support Hive.tn",
       note,
+    });
+
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "SUPPORT_TICKET_NOTE_ADDED",
+      entityType: "support_ticket",
+      entityId: ticket.id,
+      targetUserId: ticket.user_id || null,
+      targetCampaignId: ticket.related_campaign_id || null,
+      description: `Note interne ajoutee au ticket support ${ticket.code || ticket.id}.`,
+      metadata: {
+        reference: ticket.code || null,
+        title: ticket.title || null,
+        notePreview: note.slice(0, 160),
+      },
     });
 
     return res.status(201).json({

@@ -3,12 +3,27 @@
 // ──────────────────────────────────────────────
 
 import * as AdminModel from "./admin.model.js";
+import * as SettingsModel from "./settings.model.js";
 import * as CampaignModel from "../campaigns/campaign.model.js";
 import * as UserModel from "../auth/auth.model.js";
+import { validateSettingPayload } from "./settings.validation.js";
+import {
+  getAdminLogById,
+  getRequestContext,
+  listAdminLogs,
+  logAdminAction,
+} from "../../services/adminLogService.js";
 import {
   sendCampaignApprovedNotification,
   sendCampaignRejectedNotification,
 } from "../notifications/notification.service.js";
+
+const adminLogContext = (req) => ({
+  adminUserId: req.user?.id,
+  ...getRequestContext(req),
+});
+
+const changedFields = (before = {}, after = {}, fields = []) => fields.filter((field) => before?.[field] !== after?.[field]);
 
 /**
  * GET /api/admin/stats
@@ -20,6 +35,113 @@ export const getStats = async (_req, res) => {
     return res.status(200).json({ success: true, stats });
   } catch (error) {
     console.error("Admin stats error:", error);
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
+  }
+};
+
+/**
+ * GET /api/admin/settings
+ * Returns all admin-managed platform settings.
+ */
+export const getSettings = async (_req, res) => {
+  try {
+    const settings = await SettingsModel.getAllSettings();
+    return res.status(200).json({ success: true, settings });
+  } catch (error) {
+    console.error("Admin settings error:", error);
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
+  }
+};
+
+/**
+ * PUT /api/admin/settings/:key
+ * Updates one settings group.
+ */
+export const updateSetting = async (req, res) => {
+  try {
+    const { key } = req.params;
+    const current = await SettingsModel.getSettingByKey(key);
+
+    if (!current) {
+      return res.status(404).json({ success: false, message: "Parametre introuvable." });
+    }
+
+    const nextValue = validateSettingPayload(key, req.body, current.value);
+    const updated = await SettingsModel.updateSetting(key, nextValue);
+
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "SETTINGS_UPDATED",
+      entityType: "settings",
+      entityId: key,
+      description: `Parametres "${key}" mis a jour.`,
+      metadata: {
+        key,
+        before: current.value,
+        after: updated.value,
+        changedFields: changedFields(current.value, updated.value, Object.keys(updated.value || {})),
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Parametres mis a jour.",
+      setting: {
+        key: updated.key,
+        value: updated.value,
+        updated_at: updated.updated_at,
+      },
+    });
+  } catch (error) {
+    const status = error.message?.includes("Parametre introuvable") || error.message?.includes("inconnu") ? 404 : 400;
+    console.error("Update admin setting error:", error);
+    return res.status(status).json({ success: false, message: error.message || "Parametres invalides." });
+  }
+};
+
+/**
+ * GET /api/admin/logs
+ * Returns paginated admin audit logs.
+ */
+export const getAdminLogs = async (req, res) => {
+  try {
+    const result = await listAdminLogs({
+      page: req.query?.page,
+      limit: req.query?.limit,
+      search: String(req.query?.search || "").trim(),
+      actionType: String(req.query?.actionType || "").trim(),
+      entityType: String(req.query?.entityType || "").trim(),
+      adminUserId: String(req.query?.adminUserId || "").trim(),
+      dateFrom: String(req.query?.dateFrom || "").trim(),
+      dateTo: String(req.query?.dateTo || "").trim(),
+    });
+
+    return res.status(200).json({ success: true, ...result });
+  } catch (error) {
+    console.error("Admin logs list error:", error);
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
+  }
+};
+
+/**
+ * GET /api/admin/logs/:id
+ * Returns one admin audit log entry.
+ */
+export const getAdminLog = async (req, res) => {
+  try {
+    const id = Number.parseInt(req.params.id, 10);
+    if (!Number.isFinite(id) || id <= 0) {
+      return res.status(400).json({ success: false, message: "Identifiant de log invalide." });
+    }
+
+    const log = await getAdminLogById(id);
+    if (!log) {
+      return res.status(404).json({ success: false, message: "Log introuvable." });
+    }
+
+    return res.status(200).json({ success: true, log });
+  } catch (error) {
+    console.error("Admin log detail error:", error);
     return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
@@ -101,6 +223,21 @@ export const approveCampaign = async (req, res) => {
       await sendCampaignApprovedNotification(existingCampaign);
     }
 
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "CAMPAIGN_APPROVED",
+      entityType: "campaign",
+      entityId: campaign.id,
+      targetUserId: existingCampaign?.porteur_id || null,
+      targetCampaignId: campaign.id,
+      description: `Campagne "${campaign.title}" approuvee par l'administration.`,
+      metadata: {
+        oldStatus: existingCampaign?.status || "PENDING",
+        newStatus: campaign.status,
+        campaignTitle: campaign.title,
+      },
+    });
+
     return res.status(200).json({
       success: true,
       message: `Campagne "${campaign.title}" approuvée et maintenant ACTIVE.`,
@@ -132,6 +269,22 @@ export const rejectCampaign = async (req, res) => {
     if (existingCampaign) {
       await sendCampaignRejectedNotification(existingCampaign);
     }
+
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "CAMPAIGN_REJECTED",
+      entityType: "campaign",
+      entityId: campaign.id,
+      targetUserId: existingCampaign?.porteur_id || null,
+      targetCampaignId: campaign.id,
+      description: `Campagne "${campaign.title}" refusee par l'administration.`,
+      metadata: {
+        oldStatus: existingCampaign?.status || "PENDING",
+        newStatus: campaign.status,
+        campaignTitle: campaign.title,
+        reason: req.body?.reason || null,
+      },
+    });
 
     return res.status(200).json({
       success: true,
@@ -165,6 +318,18 @@ export const deleteUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ success: false, message: "Utilisateur introuvable." });
     }
+
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "USER_DELETED",
+      entityType: "user",
+      entityId: user.id,
+      description: `Utilisateur "${user.name}" supprime par l'administration.`,
+      metadata: {
+        userName: user.name,
+        userEmail: user.email,
+      },
+    });
 
     return res.status(200).json({
       success: true,
@@ -206,10 +371,26 @@ export const changeUserRole = async (req, res) => {
       });
     }
 
+    const previousUser = await UserModel.findById(id);
     const user = await AdminModel.updateUserRole(id, role);
     if (!user) {
       return res.status(404).json({ success: false, message: "Utilisateur introuvable." });
     }
+
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "USER_ROLE_CHANGED",
+      entityType: "user",
+      entityId: user.id,
+      targetUserId: user.id,
+      description: `Role de "${user.name}" modifie en ${role}.`,
+      metadata: {
+        oldRole: previousUser?.role || null,
+        newRole: user.role,
+        userName: user.name,
+        userEmail: user.email,
+      },
+    });
 
     return res.status(200).json({
       success: true,
@@ -238,10 +419,25 @@ export const updateUserName = async (req, res) => {
       });
     }
 
+    const previousUser = await UserModel.findById(id);
     const user = await AdminModel.updateUserName(id, name.trim());
     if (!user) {
       return res.status(404).json({ success: false, message: "Utilisateur introuvable." });
     }
+
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "USER_UPDATED",
+      entityType: "user",
+      entityId: user.id,
+      targetUserId: user.id,
+      description: `Nom de l'utilisateur "${user.name}" mis a jour.`,
+      metadata: {
+        changedFields: ["name"],
+        before: { name: previousUser?.name || null },
+        after: { name: user.name },
+      },
+    });
 
     return res.status(200).json({
       success: true,
@@ -317,6 +513,32 @@ export const updateUser = async (req, res) => {
       return res.status(404).json({ success: false, message: "Utilisateur introuvable." });
     }
 
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "USER_UPDATED",
+      entityType: "user",
+      entityId: updated.id,
+      targetUserId: updated.id,
+      description: `Informations de "${updated.name}" mises a jour par l'administration.`,
+      metadata: {
+        changedFields: changedFields(user, updated, ["name", "email", "role", "bio", "avatar"]),
+        before: {
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          bio: user.bio || "",
+          avatar: user.avatar || "",
+        },
+        after: {
+          name: updated.name,
+          email: updated.email,
+          role: updated.role,
+          bio: updated.bio || "",
+          avatar: updated.avatar || "",
+        },
+      },
+    });
+
     return res.status(200).json({
       success: true,
       message: `Informations de "${updated.name}" mises a jour avec succes.`,
@@ -383,6 +605,27 @@ export const updateAcceptedCampaign = async (req, res) => {
 
     const updated = await CampaignModel.update(id, fields);
 
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "CAMPAIGN_UPDATED",
+      entityType: "campaign",
+      entityId: updated.id,
+      targetUserId: campaign.porteur_id || null,
+      targetCampaignId: updated.id,
+      description: `Campagne "${updated.title}" mise a jour par l'administration.`,
+      metadata: {
+        changedFields: Object.keys(fields),
+        before: Object.keys(fields).reduce((acc, field) => {
+          acc[field] = campaign[field] ?? null;
+          return acc;
+        }, {}),
+        after: Object.keys(fields).reduce((acc, field) => {
+          acc[field] = updated[field] ?? null;
+          return acc;
+        }, {}),
+      },
+    });
+
     return res.status(200).json({
       success: true,
       message: "Campagne active mise Ã  jour avec succÃ¨s.",
@@ -427,6 +670,22 @@ export const updateAcceptedCampaignImage = async (req, res) => {
 
     const fileUrl = `/uploads/campaigns/${req.file.filename}`;
     const updated = await CampaignModel.update(id, { image_url: fileUrl, video_url: null });
+
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "CAMPAIGN_MEDIA_UPDATED",
+      entityType: "campaign",
+      entityId: updated.id,
+      targetUserId: campaign.porteur_id || null,
+      targetCampaignId: updated.id,
+      description: `Image de la campagne "${updated.title}" mise a jour.`,
+      metadata: {
+        changedFields: ["image_url", "video_url"],
+        before: { image_url: campaign.image_url || null, video_url: campaign.video_url || null },
+        after: { image_url: updated.image_url || null, video_url: updated.video_url || null },
+        fileName: req.file.filename,
+      },
+    });
 
     return res.status(200).json({
       success: true,
@@ -474,6 +733,22 @@ export const updateAcceptedCampaignVideo = async (req, res) => {
     const fileUrl = `/uploads/campaigns/${req.file.filename}`;
     const updated = await CampaignModel.update(id, { video_url: fileUrl, image_url: null });
 
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "CAMPAIGN_MEDIA_UPDATED",
+      entityType: "campaign",
+      entityId: updated.id,
+      targetUserId: campaign.porteur_id || null,
+      targetCampaignId: updated.id,
+      description: `Video de la campagne "${updated.title}" mise a jour.`,
+      metadata: {
+        changedFields: ["video_url", "image_url"],
+        before: { image_url: campaign.image_url || null, video_url: campaign.video_url || null },
+        after: { image_url: updated.image_url || null, video_url: updated.video_url || null },
+        fileName: req.file.filename,
+      },
+    });
+
     return res.status(200).json({
       success: true,
       message: "Video de la campagne mise a jour avec succes.",
@@ -517,6 +792,20 @@ export const deleteCampaign = async (req, res) => {
         message: "Campagne introuvable ou deja supprimee.",
       });
     }
+
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "CAMPAIGN_DELETED",
+      entityType: "campaign",
+      entityId: deleted.id,
+      targetUserId: campaign.porteur_id || null,
+      description: `Campagne "${deleted.title}" supprimee par l'administration.`,
+      metadata: {
+        campaignTitle: deleted.title,
+        oldStatus: deleted.status,
+        creatorEmail: campaign.creator_email || null,
+      },
+    });
 
     return res.status(200).json({
       success: true,

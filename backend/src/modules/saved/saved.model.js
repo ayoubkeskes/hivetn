@@ -38,10 +38,7 @@ export const getByUser = async (userId) => {
             c.id, c.title, c.description, c.category, c.target_amount,
             c.current_amount AS amount_raised,
             CASE
-              WHEN c.target_amount > 0 THEN LEAST(
-                ROUND((c.current_amount::numeric / c.target_amount::numeric) * 100),
-                100
-              )::int
+              WHEN c.target_amount > 0 THEN ROUND((c.current_amount::numeric / c.target_amount::numeric) * 100)::int
               ELSE 0
             END AS funded_percent,
             c.image_url, c.status, c.created_at, c.duration_days, c.launched_at,

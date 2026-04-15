@@ -8,10 +8,7 @@ const fundingStatsSelect = `
   COALESCE(fs.backer_count, 0)::int AS backer_count,
   COALESCE(fs.paid_donation_count, 0)::int AS paid_donation_count,
   CASE
-    WHEN c.target_amount > 0 THEN LEAST(
-      ROUND((c.current_amount::numeric / c.target_amount::numeric) * 100),
-      100
-    )::int
+    WHEN c.target_amount > 0 THEN ROUND((c.current_amount::numeric / c.target_amount::numeric) * 100)::int
     ELSE 0
   END AS funded_percent
 `;
@@ -149,10 +146,7 @@ export const findPublicSupportedCampaignsByUserId = async (userId) => {
        c.current_amount::int AS amount_raised,
        COALESCE(cs.backer_count, 0)::int AS backer_count,
        CASE
-         WHEN c.target_amount > 0 THEN LEAST(
-           ROUND((c.current_amount::numeric / c.target_amount::numeric) * 100),
-           100
-         )::int
+         WHEN c.target_amount > 0 THEN ROUND((c.current_amount::numeric / c.target_amount::numeric) * 100)::int
          ELSE 0
        END AS funded_percent
      FROM combined_supports s
