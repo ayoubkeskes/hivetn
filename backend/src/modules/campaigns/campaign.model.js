@@ -7,6 +7,8 @@ import pool from "../../config/db.js";
 const fundingStatsSelect = `
   c.current_amount::int AS current_amount,
   c.current_amount::int AS amount_raised,
+  c.collected_amount::numeric(12, 2) AS collected_amount,
+  c.contribution_count::int AS contribution_count,
   COALESCE(fs.backer_count, 0)::int AS backer_count,
   COALESCE(fs.paid_donation_count, 0)::int AS paid_donation_count,
   CASE
@@ -34,6 +36,12 @@ const fundingStatsJoin = `
       SELECT campaign_id, 'DONATION'::text AS source
       FROM donations
       WHERE status = 'PAID'
+
+      UNION ALL
+
+      SELECT campaign_id, 'CONTRIBUTION'::text AS source
+      FROM contributions
+      WHERE status = 'CONFIRMED'
     ) combined
     GROUP BY combined.campaign_id
   ) fs ON fs.campaign_id = c.id
@@ -49,7 +57,7 @@ export const create = async (porteurId, { title, description, category, target_a
   const { rows } = await pool.query(
     `INSERT INTO campaigns (porteur_id, title, description, category, target_amount, rewards, story, status)
      VALUES ($1, $2, $3, $4, $5, $6, $7, 'DRAFT')
-     RETURNING id, porteur_id, title, description, category, target_amount, current_amount, rewards, story, status, created_at`,
+     RETURNING id, porteur_id, title, description, category, target_amount, current_amount, collected_amount, contribution_count, rewards, story, status, created_at`,
     [porteurId, title, description, category, target_amount, rewards, story]
   );
   return rows[0];
@@ -137,7 +145,7 @@ export const update = async (id, fields) => {
     `UPDATE campaigns
      SET ${setClauses.join(", ")}
      WHERE id = $${paramIndex}
-     RETURNING id, porteur_id, title, description, category, target_amount, current_amount, status, rewards, story, image_url, video_url, created_at, updated_at`,
+     RETURNING id, porteur_id, title, description, category, target_amount, current_amount, collected_amount, contribution_count, status, rewards, story, image_url, video_url, created_at, updated_at`,
     values
   );
   return rows[0] || null;
@@ -154,7 +162,7 @@ export const updateStatus = async (id, newStatus) => {
     `UPDATE campaigns
      SET status = $1
      WHERE id = $2
-     RETURNING id, porteur_id, title, description, category, target_amount, current_amount, status, rewards, story, image_url, video_url, created_at, updated_at`,
+     RETURNING id, porteur_id, title, description, category, target_amount, current_amount, collected_amount, contribution_count, status, rewards, story, image_url, video_url, created_at, updated_at`,
     [newStatus, id]
   );
   return rows[0] || null;

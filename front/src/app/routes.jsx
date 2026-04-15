@@ -45,7 +45,8 @@ function AppRoutes() {
 
   const shouldShowFooter =
     !hideFooterRoutes.some((path) => location.pathname.startsWith(path)) &&
-    !location.pathname.endsWith("/soutenir");
+    !location.pathname.endsWith("/soutenir") &&
+    !location.pathname.endsWith("/contribute");
 
   const [draftProject, setDraftProject] = useState({
     category: "",
@@ -78,7 +79,9 @@ function AppRoutes() {
 
     if (view === "donationPage") {
       const campaignId = typeof payload === "object" ? payload?.id : payload;
-      navigate(campaignId ? `/project/${campaignId}?support=1` : "/discover");
+      const rewardId = typeof payload === "object" ? payload?.rewardId : null;
+      const suffix = rewardId ? `?rewardId=${encodeURIComponent(rewardId)}` : "";
+      navigate(campaignId ? `/campaigns/${campaignId}/contribute${suffix}` : "/discover");
       return;
     }
 
@@ -198,6 +201,17 @@ function AppRoutes() {
           path="/project/:id"
           element={
             <ProjectDetails
+              isAuthenticated={isAuthenticated}
+              onNavigate={handleNavigate}
+              onLogout={handleLogout}
+              onLoginSuccess={() => setIsAuthenticated(true)}
+            />
+          }
+        />
+        <Route
+          path="/campaigns/:campaignId/contribute"
+          element={
+            <DonationPage
               isAuthenticated={isAuthenticated}
               onNavigate={handleNavigate}
               onLogout={handleLogout}

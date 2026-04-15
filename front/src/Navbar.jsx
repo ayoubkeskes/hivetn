@@ -205,7 +205,7 @@ const Navbar = ({ onNavigate, isAuthenticated, onLogout, activeTab }) => {
   ];
 
   return (
-    <nav className={`navbar ${isMobileMenuOpen ? 'nav-open' : ''}`} style={{ zIndex: 110, position: 'relative' }}>
+    <nav className={`navbar ${isMobileMenuOpen ? 'nav-open' : ''}`} style={{ zIndex: 110 }}>
       <div className="nav-left">
         <h1 className="nav-logo" onClick={() => handleMenuNavigate('home')}>Hive.tn</h1>
       </div>

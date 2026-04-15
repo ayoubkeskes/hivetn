@@ -575,7 +575,8 @@
 }
 
 .dp-field input,
-.dp-field select {
+.dp-field select,
+.dp-field textarea {
   width: 100%;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -591,13 +592,19 @@
   color: #77827d;
 }
 
+.dp-field textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
 .dp-field select option {
   color: #f4f8f5;
   background: #11161f;
 }
 
 .dp-field input:focus,
-.dp-field select:focus {
+.dp-field select:focus,
+.dp-field textarea:focus {
   outline: none;
   border-color: rgba(12, 230, 136, 0.55);
   box-shadow: 0 0 0 4px rgba(12, 230, 136, 0.14);
@@ -605,7 +612,8 @@
 }
 
 .dp-field input.has-error,
-.dp-field select.has-error {
+.dp-field select.has-error,
+.dp-field textarea.has-error {
   border-color: rgba(214, 76, 76, 0.6);
   box-shadow: 0 0 0 4px rgba(214, 76, 76, 0.08);
 }
@@ -726,6 +734,32 @@
   font-size: 13px;
 }
 
+.dp-mvp-payment-note {
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dp-mvp-payment-note strong {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0ce688;
+  background: rgba(12, 230, 136, 0.12);
+}
+
+.dp-mvp-payment-note p {
+  margin: 12px 0 0;
+  color: #98a49e;
+  line-height: 1.7;
+}
+
 .dp-primary-btn,
 .dp-secondary-btn {
   border-radius: 16px;
@@ -785,6 +819,46 @@
 .dp-blocked-state {
   padding: 30px;
   text-align: center;
+}
+
+.dp-loading-wrap {
+  display: grid;
+  gap: 28px;
+}
+
+.dp-skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.dp-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  animation: dp-skeleton-shimmer 1.6s infinite;
+}
+
+.dp-skeleton--hero {
+  height: 320px;
+}
+
+.dp-skeleton--panel {
+  height: 240px;
+}
+
+.dp-skeleton--sidebar {
+  height: 220px;
+}
+
+@keyframes dp-skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .dp-loading-state h1,
@@ -941,4 +1015,190 @@
     flex-direction: column;
     align-items: stretch;
   }
+}
+
+/* ══════════════════════════════════════════════════
+   ADDED — Missing classes for the new DonationPage
+   ══════════════════════════════════════════════════ */
+
+/* ── Campaign hero title (rendered as h1 inside .dp-hero__content) ── */
+.dp-hero__title {
+  margin: 10px 0 6px;
+  font-size: clamp(26px, 3.5vw, 44px);
+  font-weight: 800;
+  line-height: 1.06;
+  color: #ffffff;
+  letter-spacing: -0.025em;
+}
+
+/* ── Hero meta — active badge variant ── */
+.dp-hero__meta--active {
+  color: #0ce688 !important;
+  background: rgba(12, 230, 136, 0.1) !important;
+  border-color: rgba(12, 230, 136, 0.22) !important;
+}
+
+/* ── Step indicator number chip ── */
+.dp-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.06);
+  color: currentColor;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.dp-progress .is-active .dp-step-number {
+  background: rgba(12, 230, 136, 0.18);
+  color: #0ce688;
+}
+
+/* ── Section header eyebrow label ── */
+.dp-section-header__eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0ce688;
+}
+
+.dp-section-header h2 {
+  margin: 0 0 8px;
+  font-size: clamp(22px, 2.6vw, 32px);
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.dp-section-header p {
+  margin: 0;
+  color: #98a49e;
+  line-height: 1.65;
+}
+
+/* ── Sidebar section header ── */
+.dp-sidebar-section__eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7e8b87;
+}
+
+.dp-sidebar-section__header {
+  margin-bottom: 16px;
+}
+
+.dp-sidebar-section__header h3 {
+  margin: 0;
+  color: #ffffff;
+}
+
+/* ── Summary card sticky on desktop ── */
+@media (min-width: 1081px) {
+  .dp-layout--payment .dp-sidebar > * {
+    position: sticky;
+    top: 100px;
+  }
+}
+
+/* ── Empty state success badge icon ── */
+.dp-empty-state__icon {
+  font-size: 40px;
+  margin: 0 0 12px;
+}
+
+/* ── Blocked / inactive state eyebrow ── */
+.dp-blocked-state__eyebrow {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #f87171;
+}
+
+/* ── Inline trust indicators in sidebar accent card ── */
+.dp-trust-list li {
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* ── dp-compact-summary uses dl/dt/dd — fix layout ── */
+.dp-compact-summary dl {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+/* ── Payment panel section eyebrow ── */
+.dp-payment-panel__eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7e8b87;
+}
+
+.dp-payment-panel h2 {
+  font-size: clamp(22px, 2.4vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.dp-payment-panel__intro {
+  margin: 10px 0 0;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+/* ── Summary card eyebrow ── */
+.dp-summary-card__eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7e8b87;
+}
+
+.dp-summary-card h3 {
+  margin: 0;
+  color: #ffffff;
+}
+
+/* ── FAQ section wrapper ── */
+.dp-faq {
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(18, 22, 31, 0.82);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* ── Auth notice eyebrow and title ── */
+.dp-auth-notice__eyebrow {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7e8b87;
+}
+
+.dp-auth-notice h3 {
+  margin: 0;
+  color: #f6faf7;
+  font-size: 18px;
 }

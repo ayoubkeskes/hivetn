@@ -620,10 +620,10 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                 <button
                   type="button"
                   className="pd-support-btn"
-                  disabled={campaign.status !== "ACTIVE" || supportSubmitting}
-                  onClick={() => handleStartSupport()}
+                  disabled={campaign.status !== "ACTIVE"}
+                  onClick={() => onNavigate("donationPage", campaign.id)}
                 >
-                  {supportSubmitting ? "Enregistrement..." : "Soutenir"}
+                  Soutenir
                 </button>
                 <button
                   type="button"

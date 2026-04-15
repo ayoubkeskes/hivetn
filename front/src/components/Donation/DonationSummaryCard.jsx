@@ -1,17 +1,25 @@
-import React from 'react';
+import React from "react";
 
 const formatMoney = (amount) =>
-  `${Number(amount || 0).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} DT`;
+  `${Number(amount || 0).toLocaleString("fr-FR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })} DT`;
 
 const DonationSummaryCard = ({
   campaign,
+  creator,
   selection,
   amountTnd,
+  collectedAmount,
+  contributionCount,
+  projectedCollectedAmount,
   submitting,
+  disabled,
   onSubmit,
   onBack,
 }) => {
-  const rewardLabel = selection?.type === 'reward' ? selection.reward?.title : 'Sans recompense';
+  const rewardLabel = selection?.type === "reward" ? selection.reward?.title : "Soutien libre";
 
   return (
     <aside className="dp-summary-card">
@@ -22,7 +30,7 @@ const DonationSummaryCard = ({
 
       <div className="dp-summary-card__campaign">
         <p className="dp-summary-card__campaign-title">{campaign.title}</p>
-        <p className="dp-summary-card__campaign-meta">{campaign.creator_name || 'Createur Hive.tn'}</p>
+        <p className="dp-summary-card__campaign-meta">{creator?.name || campaign.creator_name || "Createur Hive.tn"}</p>
       </div>
 
       <div className="dp-summary-card__rows">
@@ -35,13 +43,21 @@ const DonationSummaryCard = ({
           <strong>{formatMoney(amountTnd)}</strong>
         </div>
         <div className="dp-summary-card__row">
-          <span>Frais de service</span>
-          <strong>0 DT</strong>
+          <span>Total collecte</span>
+          <strong>{formatMoney(collectedAmount)}</strong>
+        </div>
+        <div className="dp-summary-card__row">
+          <span>Apres votre soutien</span>
+          <strong>{formatMoney(projectedCollectedAmount)}</strong>
+        </div>
+        <div className="dp-summary-card__row">
+          <span>Contributions confirmees</span>
+          <strong>{Number(contributionCount || 0)}</strong>
         </div>
       </div>
 
       <div className="dp-summary-card__total">
-        <span>Total</span>
+        <span>Total de votre action</span>
         <strong>{formatMoney(amountTnd)}</strong>
       </div>
 
@@ -49,9 +65,9 @@ const DonationSummaryCard = ({
         type="button"
         className="dp-primary-btn dp-primary-btn--full"
         onClick={onSubmit}
-        disabled={submitting}
+        disabled={submitting || disabled}
       >
-        {submitting ? 'Traitement en cours...' : 'Confirmer la contribution'}
+        {submitting ? "Confirmation en cours..." : "Confirmer la contribution"}
       </button>
 
       <button type="button" className="dp-secondary-btn dp-secondary-btn--full" onClick={onBack}>
@@ -59,7 +75,9 @@ const DonationSummaryCard = ({
       </button>
 
       <p className="dp-summary-card__legal">
-        Version pilote Hive.tn : aucune passerelle bancaire reelle n est encore connectee. La contribution est enregistree comme soutien MVP.
+        Cette version MVP met a jour PostgreSQL en temps reel, sans integrer de
+        passerelle bancaire. Les donnees sensibles de carte ne sont jamais
+        stockees.
       </p>
     </aside>
   );

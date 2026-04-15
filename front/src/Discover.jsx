@@ -20,6 +20,7 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [filterCategory, setFilterCategory] = useState("Toutes les categories");
   const [filterSort, setFilterSort] = useState("Nouveautes");
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -75,11 +76,11 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
       <div className="discover-main">
         <div className="discover-filter-section">
           <div className="discover-filter-text">
-            <span>Afficher </span>
+            <span>Afficher</span>
 
             <div className="custom-dropdown-container">
               <button className="inline-dropdown-btn" onClick={() => setShowCategoryMenu(!showCategoryMenu)}>
-                {filterCategory} <span style={{ marginLeft: "8px", fontSize: "14px", color: "#0ce688" }}>{showCategoryMenu ? "?" : "?"}</span>
+                {filterCategory} <span className="dropdown-caret">{showCategoryMenu ? "▲" : "▼"}</span>
               </button>
               {showCategoryMenu && (
                 <div className="custom-dropdown-menu">
@@ -93,16 +94,25 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
               )}
             </div>
 
-            <span>tries par</span>
-            <select
-              className="discover-dropdown"
-              value={filterSort}
-              onChange={(event) => setFilterSort(event.target.value)}
-            >
-              <option>Nouveautes</option>
-              <option>Popularite</option>
-              <option>Fin de campagne</option>
-            </select>
+            <span>triés par</span>
+            <div className="custom-dropdown-container">
+              <button className="inline-dropdown-btn" onClick={() => setShowSortMenu(!showSortMenu)}>
+                {filterSort} <span className="dropdown-caret">{showSortMenu ? "▲" : "▼"}</span>
+              </button>
+              {showSortMenu && (
+                <div className="custom-dropdown-menu">
+                  {["Nouveautes", "Popularite", "Fin de campagne"].map((sortOption) => (
+                    <div 
+                      key={sortOption} 
+                      className="custom-dropdown-item" 
+                      onClick={() => { setFilterSort(sortOption); setShowSortMenu(false); }}
+                    >
+                      {sortOption}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -125,6 +135,15 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
                 <div key={project.id} className="ks-card" onClick={() => onNavigate("projectDetails", project.id)}>
                   <div className="ks-card-image-box">
                     <img src={project.image} alt={project.title} className="ks-card-image" loading="lazy" />
+                    <button
+                      className="ks-bookmark-btn ks-bookmark-floating"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onNavigate("projectDetails", project.id);
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16z"></path></svg>
+                    </button>
                     <div className="ks-progress-line" style={{ width: `${Math.min(project.fundedPercent, 100)}%` }}></div>
                   </div>
 
@@ -133,15 +152,6 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
                       <img src={project.creatorAvatar} alt={project.creatorName} className="ks-creator-avatar" loading="lazy" />
                       <div className="ks-card-title-col">
                         <h3 className="ks-card-title">{project.title}</h3>
-                        <button
-                          className="ks-bookmark-btn"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onNavigate("projectDetails", project.id);
-                          }}
-                        >
-                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16z"></path></svg>
-                        </button>
                       </div>
                     </div>
 

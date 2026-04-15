@@ -3,12 +3,22 @@ import React from 'react';
 const formatMoney = (amount) =>
   `${Number(amount || 0).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} DT`;
 
-const DonationSuccessState = ({ campaign, selection, amountTnd, pledgeId, onBackToCampaign, onDiscover }) => (
+const DonationSuccessState = ({
+  campaign,
+  creator,
+  selection,
+  amountTnd,
+  pledgeId,
+  confirmationMessage,
+  updatedTotals,
+  onBackToCampaign,
+  onDiscover,
+}) => (
   <section className="dp-success-state">
     <div className="dp-success-state__badge">Contribution enregistree</div>
     <h1>Merci pour votre soutien</h1>
     <p className="dp-success-state__intro">
-      Votre contribution a bien ete enregistree sur Hive.tn. Le createur pourra voir votre soutien dans le cadre de cette version MVP.
+      {confirmationMessage || "Votre contribution a bien ete enregistree sur Hive.tn."}
     </p>
 
     <div className="dp-success-state__grid">
@@ -21,12 +31,24 @@ const DonationSuccessState = ({ campaign, selection, amountTnd, pledgeId, onBack
         <strong>{selection?.type === 'reward' ? selection.reward?.title : 'Sans recompense'}</strong>
       </div>
       <div className="dp-success-state__card">
+        <p className="dp-success-state__label">Createur</p>
+        <strong>{creator?.name || campaign.creator_name || "Hive.tn"}</strong>
+      </div>
+      <div className="dp-success-state__card">
         <p className="dp-success-state__label">Montant</p>
         <strong>{formatMoney(amountTnd)}</strong>
       </div>
       <div className="dp-success-state__card">
         <p className="dp-success-state__label">Reference</p>
         <strong>{pledgeId || 'MVP-HIVE'}</strong>
+      </div>
+      <div className="dp-success-state__card">
+        <p className="dp-success-state__label">Collecte actuelle</p>
+        <strong>{formatMoney(updatedTotals?.collectedAmount || 0)}</strong>
+      </div>
+      <div className="dp-success-state__card">
+        <p className="dp-success-state__label">Contributions</p>
+        <strong>{Number(updatedTotals?.contributionCount || 0)}</strong>
       </div>
     </div>
 

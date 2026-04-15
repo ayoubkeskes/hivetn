@@ -3,6 +3,7 @@ import { Router } from "express";
 import authenticate from "../../middlewares/auth.middleware.js";
 import { uploadMedia } from "../../middlewares/upload.middleware.js";
 import { createCampaignComment, getCampaignComments } from "../comments/comment.controller.js";
+import { createContribution, getContributionContext } from "../contributions/contribution.controller.js";
 import {
   createCampaign,
   deleteCampaign,
@@ -19,8 +20,10 @@ const router = Router();
 router.get("/", getActiveCampaigns);
 router.get("/my", authenticate, getMyCampaigns);
 router.get("/:id/comments", getCampaignComments);
+router.get("/:id/contribution-context", getContributionContext);
 router.get("/:id", getCampaignById);
 router.post("/", authenticate, createCampaign);
+router.post("/:id/contributions", authenticate, createContribution);
 router.post("/:id/comments", authenticate, createCampaignComment);
 router.put("/:id", authenticate, updateCampaign);
 router.delete("/:id", authenticate, deleteCampaign);

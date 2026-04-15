@@ -3,6 +3,8 @@ import pool from "../../config/db.js";
 const fundingStatsSelect = `
   c.current_amount::int AS current_amount,
   c.current_amount::int AS amount_raised,
+  c.collected_amount::numeric(12, 2) AS collected_amount,
+  c.contribution_count::int AS contribution_count,
   COALESCE(fs.backer_count, 0)::int AS backer_count,
   COALESCE(fs.paid_donation_count, 0)::int AS paid_donation_count,
   CASE
@@ -30,6 +32,12 @@ const fundingStatsJoin = `
       SELECT campaign_id, 'DONATION'::text AS source
       FROM donations
       WHERE status = 'PAID'
+
+      UNION ALL
+
+      SELECT campaign_id, 'CONTRIBUTION'::text AS source
+      FROM contributions
+      WHERE status = 'CONFIRMED'
     ) combined
     GROUP BY combined.campaign_id
   ) fs ON fs.campaign_id = c.id
@@ -97,6 +105,16 @@ export const findPublicSupportedCampaignsByUserId = async (userId) => {
          COALESCE(d.paid_at, d.created_at) AS created_at
        FROM donations d
        WHERE d.status = 'PAID'
+
+       UNION ALL
+
+       SELECT
+         c.campaign_id,
+         c.user_id,
+         ROUND(c.amount * 1000)::int AS amount,
+         c.created_at
+       FROM contributions c
+       WHERE c.status = 'CONFIRMED'
      ),
      combined_campaign_support_counts AS (
        SELECT

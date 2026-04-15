@@ -44,7 +44,15 @@ export const ensureRuntimeSchema = async (pool) => {
   await pool.query(`
     ALTER TABLE campaigns
     ADD COLUMN IF NOT EXISTS story TEXT NULL,
-    ADD COLUMN IF NOT EXISTS current_amount INTEGER NOT NULL DEFAULT 0
+    ADD COLUMN IF NOT EXISTS current_amount INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS collected_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS contribution_count INTEGER NOT NULL DEFAULT 0
+  `);
+
+  await pool.query(`
+    ALTER TABLE campaigns
+    ALTER COLUMN collected_amount SET DEFAULT 0,
+    ALTER COLUMN contribution_count SET DEFAULT 0
   `);
 
   await pool.query(`
@@ -111,6 +119,36 @@ export const ensureRuntimeSchema = async (pool) => {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       paid_at TIMESTAMPTZ NULL
     )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS contributions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      campaign_id UUID NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE ON UPDATE CASCADE,
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+      reward_id TEXT NULL,
+      amount NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
+      status VARCHAR(30) NOT NULL DEFAULT 'CONFIRMED',
+      payment_method VARCHAR(50) NOT NULL DEFAULT 'MVP_MANUAL',
+      contributor_note TEXT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_contributions_campaign_id
+    ON contributions (campaign_id, created_at DESC)
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_contributions_user_id
+    ON contributions (user_id, created_at DESC)
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_contributions_status
+    ON contributions (status)
   `);
 
   await pool.query(`
@@ -215,6 +253,43 @@ export const ensureRuntimeSchema = async (pool) => {
       FROM donations d
       WHERE d.campaign_id = c.id
         AND d.status = 'PAID'
+    ), 0) + COALESCE((
+      SELECT ROUND(SUM(ct.amount) * 1000)::int
+      FROM contributions ct
+      WHERE ct.campaign_id = c.id
+        AND ct.status = 'CONFIRMED'
+    ), 0),
+    collected_amount = COALESCE((
+      SELECT SUM(p.amount)::numeric / 1000
+      FROM pledges p
+      WHERE p.campaign_id = c.id
+        AND p.status = 'SUCCESS'
+    ), 0) + COALESCE((
+      SELECT SUM(d.amount_millimes)::numeric / 1000
+      FROM donations d
+      WHERE d.campaign_id = c.id
+        AND d.status = 'PAID'
+    ), 0) + COALESCE((
+      SELECT SUM(ct.amount)
+      FROM contributions ct
+      WHERE ct.campaign_id = c.id
+        AND ct.status = 'CONFIRMED'
+    ), 0),
+    contribution_count = COALESCE((
+      SELECT COUNT(*)
+      FROM pledges p
+      WHERE p.campaign_id = c.id
+        AND p.status = 'SUCCESS'
+    ), 0) + COALESCE((
+      SELECT COUNT(*)
+      FROM donations d
+      WHERE d.campaign_id = c.id
+        AND d.status = 'PAID'
+    ), 0) + COALESCE((
+      SELECT COUNT(*)
+      FROM contributions ct
+      WHERE ct.campaign_id = c.id
+        AND ct.status = 'CONFIRMED'
     ), 0)
   `);
 
@@ -414,6 +489,22 @@ export const ensureRuntimeSchema = async (pool) => {
       ) THEN
         CREATE TRIGGER set_updated_at_support_tickets
         BEFORE UPDATE ON support_tickets
+        FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+      END IF;
+    END
+    $$;
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_trigger
+        WHERE tgname = 'set_updated_at_contributions'
+      ) THEN
+        CREATE TRIGGER set_updated_at_contributions
+        BEFORE UPDATE ON contributions
         FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
       END IF;
     END
