@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import './SignIn.css';
 
 const ForgotPassword = ({ onSwitch }) => {
@@ -59,7 +60,7 @@ const ForgotPassword = ({ onSwitch }) => {
         )}
 
         <div className="auth-footer">
-          {isSubmitted ? "C'est bon ?" : "Je m'en souviens !"} <a href="#" onClick={(e) => { e.preventDefault(); onSwitch(); }} className="auth-link">Retour à la connexion</a>
+          {isSubmitted ? "C'est bon ?" : "Je m'en souviens !"} <Link to="/login" className="auth-link">Retour à la connexion</Link>
         </div>
       </div>
     </div>

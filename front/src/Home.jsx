@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import './Home.css';
 import Navbar from './Navbar';
 import ProjectCard from './components/ProjectCard';
@@ -40,14 +40,14 @@ const BarChartIcon = () => (
 );
 
 const TRUST_PROOF_FALLBACK_STATS = [
-  { id: 'projects', value: '+120', label: 'projets lances', sourceKey: 'projects_launched' },
-  { id: 'raised', value: '+35k DT', label: 'collectes', sourceKey: 'amount_collected' },
-  { id: 'users', value: '+800', label: 'utilisateurs', sourceKey: 'users_count' },
+  { id: 'projects', value: '+120', label: 'projets soumis' },
+  { id: 'users', value: '+800', label: 'utilisateurs inscrits' },
+  { id: 'moderated', value: '100%', label: 'campagnes modérées' },
 ];
 
 const TRUST_PROOF_FALLBACK_TESTIMONIALS = [
-  { id: 'simple', quote: 'Interface simple et efficace' },
-  { id: 'funded-fast', quote: 'Projet finance en 7 jours' },
+  { id: 'validation', quote: 'Validation manuelle des campagnes' },
+  { id: 'evolution', quote: 'Plateforme en constante évolution' },
 ];
 
 const CATEGORY_FILTERS = [
@@ -134,7 +134,7 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
           activeTab="home"
         />
 
-        <section className="hero-section">
+        <section className="hero-section" id="a-propos">
           <div className="hero-shell">
             <div className="hero-copy">
               <div className="hero-eyebrow">Plateforme de financement participatif en Tunisie</div>
@@ -167,7 +167,7 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
           </div>
         </section>
 
-        <section className="projects-section">
+        <section className="projects-section" id="projets-recents">
           <div className="projects-header">
             <h2 className="section-title">Campagnes publiees</h2>
             <div className="category-filter-row" aria-label="Filtrer les campagnes par categorie">
@@ -210,7 +210,7 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
           testimonials={trustProofTestimonials}
         />
 
-        <section className="how-it-works-section">
+        <section className="how-it-works-section" id="comment-ca-marche">
           <div className="hiw-container">
             <h2 className="section-title text-center">Comment ca marche ?</h2>
             <div className="hiw-grid">
@@ -239,3 +239,4 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
 };
 
 export default Home;
+

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import "./Home.css";
 import "./Profile.css";
@@ -67,7 +67,12 @@ const formatActivityDate = (value) => {
 
 const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("created");
+  const location = useLocation();
+  const getTabFromSearch = () => {
+    const tab = new URLSearchParams(location.search).get("tab");
+    return ["about", "backed", "created"].includes(tab) ? tab : "created";
+  };
+  const [activeTab, setActiveTab] = useState(getTabFromSearch);
   const [createdProjects, setCreatedProjects] = useState([]);
   const [backedProjects, setBackedProjects] = useState([]);
   const [loadingCreated, setLoadingCreated] = useState(true);
@@ -78,6 +83,13 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
   const userName = storedUser.name || "Utilisateur";
   const userEmail = storedUser.email || "";
   const userInitials = userName.split(" ").map((word) => word[0]).join("").toUpperCase().slice(0, 2);
+
+  useEffect(() => {
+    const requestedTab = new URLSearchParams(location.search).get("tab");
+    if (["about", "backed", "created"].includes(requestedTab) && requestedTab !== activeTab) {
+      setActiveTab(requestedTab);
+    }
+  }, [activeTab, location.search]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");

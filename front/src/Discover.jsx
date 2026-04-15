@@ -4,6 +4,7 @@ import "./Home.css";
 import "./Discover.css";
 import Navbar from "./Navbar";
 import { buildApiUrl } from "./shared/services/api.js";
+import { ALL_CATEGORIES_LABEL, getCampaignCategoryOptions } from "./shared/constants/campaignCategories.js";
 import { formatMillimesToTnd } from "./shared/utils/currency.js";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80";
@@ -18,11 +19,13 @@ const resolveMediaUrl = (url) => {
 
 const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
-  const [filterCategory, setFilterCategory] = useState("Toutes les categories");
+  const [filterCategory, setFilterCategory] = useState(ALL_CATEGORIES_LABEL);
   const [filterSort, setFilterSort] = useState("Nouveautes");
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [savedCampaignIds, setSavedCampaignIds] = useState(() => new Set());
+  const [savingCampaignIds, setSavingCampaignIds] = useState(() => new Set());
 
   useEffect(() => {
     const fetchCampaigns = async () => {
@@ -42,6 +45,84 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
     fetchCampaigns();
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token || !isAuthenticated || campaigns.length === 0) {
+      setSavedCampaignIds(new Set());
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchSavedStatuses = async () => {
+      try {
+        const responses = await Promise.all(
+          campaigns.map((campaign) =>
+            fetch(buildApiUrl(`/api/saved/check/${campaign.id}`), {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+              .then((response) => response.json())
+              .then((data) => ({ id: campaign.id, saved: Boolean(data?.success && data?.saved) }))
+              .catch(() => ({ id: campaign.id, saved: false }))
+          )
+        );
+
+        if (!isMounted) return;
+
+        setSavedCampaignIds(new Set(responses.filter((item) => item.saved).map((item) => item.id)));
+      } catch (error) {
+        console.error("Failed to fetch saved statuses:", error);
+      }
+    };
+
+    fetchSavedStatuses();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [campaigns, isAuthenticated]);
+
+  const handleToggleSaved = async (campaignId) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      onNavigate("signIn", "Vous devez etre connecte pour enregistrer une campagne.");
+      return;
+    }
+
+    if (savingCampaignIds.has(campaignId)) return;
+
+    const isSaved = savedCampaignIds.has(campaignId);
+
+    setSavingCampaignIds((prev) => new Set(prev).add(campaignId));
+
+    try {
+      const response = await fetch(buildApiUrl(`/api/saved/${campaignId}`), {
+        method: isSaved ? "DELETE" : "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        return;
+      }
+
+      setSavedCampaignIds((prev) => {
+        const next = new Set(prev);
+        if (isSaved) next.delete(campaignId);
+        else next.add(campaignId);
+        return next;
+      });
+    } catch (error) {
+      console.error("Failed to toggle saved campaign:", error);
+    } finally {
+      setSavingCampaignIds((prev) => {
+        const next = new Set(prev);
+        next.delete(campaignId);
+        return next;
+      });
+    }
+  };
+
   const displayProjects = campaigns.map((campaign) => ({
     id: campaign.id,
     title: campaign.title,
@@ -54,7 +135,9 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
     category: campaign.category || "Projet",
   }));
 
-  const filteredProjects = filterCategory === "Toutes les categories"
+  const categoryOptions = getCampaignCategoryOptions(displayProjects.map((project) => project.category));
+
+  const filteredProjects = filterCategory === ALL_CATEGORIES_LABEL
     ? displayProjects
     : displayProjects.filter((project) => project.category === filterCategory);
 
@@ -74,7 +157,7 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
       />
 
       <div className="discover-main">
-        <div className="discover-filter-section">
+        <div className="discover-filter-section" id="discover-filters">
           <div className="discover-filter-text">
             <span>Afficher</span>
 
@@ -84,8 +167,8 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
               </button>
               {showCategoryMenu && (
                 <div className="custom-dropdown-menu">
-                  <div className="custom-dropdown-item" onClick={() => { setFilterCategory("Toutes les categories"); setShowCategoryMenu(false); }}>Toutes les categories</div>
-                  {[...new Set(displayProjects.map((project) => project.category))].map((category) => (
+                  <div className="custom-dropdown-item" onClick={() => { setFilterCategory(ALL_CATEGORIES_LABEL); setShowCategoryMenu(false); }}>{ALL_CATEGORIES_LABEL}</div>
+                  {categoryOptions.map((category) => (
                     <div key={category} className="custom-dropdown-item" onClick={() => { setFilterCategory(category); setShowCategoryMenu(false); }}>
                       {category}
                     </div>
@@ -116,7 +199,7 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
           </div>
         </div>
 
-        <div className="explore-results-container">
+        <div className="explore-results-container" id="discover-results">
           <div className="explore-results-title">
             Explorer <span>{loading ? "..." : `${projectsToShow.length} projets`}</span>
           </div>
@@ -136,11 +219,14 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
                   <div className="ks-card-image-box">
                     <img src={project.image} alt={project.title} className="ks-card-image" loading="lazy" />
                     <button
-                      className="ks-bookmark-btn ks-bookmark-floating"
+                      className={`ks-bookmark-btn ks-bookmark-floating ${savedCampaignIds.has(project.id) ? "is-saved" : ""}`}
                       onClick={(event) => {
                         event.stopPropagation();
-                        onNavigate("projectDetails", project.id);
+                        handleToggleSaved(project.id);
                       }}
+                      aria-label={savedCampaignIds.has(project.id) ? "Retirer des enregistrements" : "Enregistrer la campagne"}
+                      aria-pressed={savedCampaignIds.has(project.id)}
+                      disabled={savingCampaignIds.has(project.id)}
                     >
                       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16z"></path></svg>
                     </button>

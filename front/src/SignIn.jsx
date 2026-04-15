@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import './SignIn.css';
 import GoogleAuthButton from './components/Auth/GoogleAuthButton';
 
@@ -106,7 +107,7 @@ const SignIn = ({ onSwitch, onForgotPassword, onHome, onLoginSuccess, message })
               <span className="checkbox-custom"></span>
               <span className="text-small">Rester connecté</span>
             </label>
-            <a href="#" onClick={(e) => { e.preventDefault(); onForgotPassword(); }} className="auth-link text-small">Mot de passe oublié ?</a>
+            <Link to="/forgot-password" className="auth-link text-small">Mot de passe oublié ?</Link>
           </div>
           <button type="submit" className="auth-button" disabled={loading}>
             <span>{loading ? 'Connexion en cours...' : 'Se connecter'}</span>
@@ -116,7 +117,7 @@ const SignIn = ({ onSwitch, onForgotPassword, onHome, onLoginSuccess, message })
           </button>
         </form>
         <div className="auth-footer">
-          Nouveau sur Hive.tn ? <a href="#" onClick={(e) => { e.preventDefault(); onSwitch(); }} className="auth-link">Inscrivez-vous</a>
+          Nouveau sur Hive.tn ? <Link to="/register" className="auth-link">Inscrivez-vous</Link>
         </div>
       </div>
     </div>

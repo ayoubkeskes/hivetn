@@ -82,7 +82,6 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
     .join('')
     .toUpperCase()
     .slice(0, 2);
-
   // Load existing campaign if ID is passed
   useEffect(() => {
     if (!id) {
@@ -398,15 +397,10 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
 
   return (
     <div className="pe-wrapper">
-
-      {/* â”€â”€ Header â”€â”€ */}
+      
       <header className="pe-header">
         <div className="pe-header-top">
-
-          {/* Colonne 1 - Logo (gauche) */}
           <span className="pe-logo" onClick={() => onNavigate('home')}>Hive.tn</span>
-
-          {/* Colonne 2 - Toggle centrÃ© */}
           <div className="pe-header-center">
             <div className="pe-mode-toggle">
               <button
@@ -423,8 +417,6 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
               </button>
             </div>
           </div>
-
-          {/* Colonne 3 - Avatar (droite) */}
           <div className="pe-header-right">
             {storedUser.avatar ? (
               <img
@@ -440,7 +432,6 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
           </div>
         </div>
 
-        {/* Onglets â€” masquÃ©s en mode AperÃ§u */}
         {!showPreview && (
           <nav className="pe-tabs" role="tablist" aria-label="Ã‰dition du projet">
             {TABS.map(tab => (

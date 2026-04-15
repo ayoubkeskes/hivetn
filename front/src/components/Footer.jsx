@@ -1,89 +1,189 @@
-import React from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  BadgeCheck,
+  FileText,
+  Globe,
+  LifeBuoy,
+  Mail,
+  MoveRight,
+  Camera,
+  BriefcaseBusiness,
+  Send,
+} from 'lucide-react';
 import './Footer.css';
 
+const trustItems = [
+  { icon: BadgeCheck, label: 'Campagnes modérées' },
+  { icon: Globe, label: 'Créateurs tunisiens' },
+  { icon: FileText, label: 'Soumission gratuite' },
+  { icon: LifeBuoy, label: 'Support de proximité' },
+];
+
+const footerColumns = [
+  {
+    title: 'Découverte',
+    links: [
+      { label: 'Explorer', to: '/discover#discover-results' },
+      { label: 'Catégories', to: '/discover#discover-filters' },
+      { label: 'Projets récents', to: '/#projets-recents' },
+    ],
+  },
+  {
+    title: 'Créateurs',
+    links: [
+      { label: 'Lancer un projet', to: '/start#start-hero' },
+      { label: 'Guide du créateur', to: '/start#guide-createur' },
+      { label: 'FAQ créateur', to: '/start#faq-createur' },
+    ],
+  },
+  {
+    title: 'Support',
+    links: [
+      { label: 'Centre d’aide', to: '/support' },
+      { label: 'Contact', to: '/support/new' },
+      { label: 'Sécurité & confiance', to: '/start#securite-confiance' },
+    ],
+  },
+  {
+    title: 'Plateforme',
+    links: [
+      { label: 'À propos', to: '/about' },
+      { label: 'Comment ça marche', to: '/#comment-ca-marche' },
+      { label: 'Conditions générales', to: '/terms' },
+    ],
+  },
+];
+
+const socialLinks = [
+  { label: 'Découvrir Hive.tn', to: '/discover#discover-results', icon: Send },
+  { label: 'Guide du créateur', to: '/start#guide-createur', icon: Camera },
+  { label: 'À propos de Hive.tn', to: '/about', icon: BriefcaseBusiness },
+];
+
+const legalLinks = [
+  { label: 'Conditions générales', to: '/terms' },
+  { label: 'Confidentialité', to: '/privacy' },
+  { label: 'Cookies', to: '/cookies' },
+];
+
 const Footer = () => {
+  const [email, setEmail] = useState('');
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
+  const handleNewsletterSubmit = (event) => {
+    event.preventDefault();
+    if (!email.trim()) return;
+
+    setIsSubscribed(true);
+    setEmail('');
+  };
+
   return (
     <div className="hive-footer-wrapper">
+      <div className="hive-footer-trustbar" aria-label="Éléments de confiance">
+        {trustItems.map((item) => {
+          const Icon = item.icon;
+
+          return (
+            <div key={item.label} className="hive-footer-trustitem">
+              <span className="hive-footer-trusticon">
+                <Icon size={16} strokeWidth={2} />
+              </span>
+              <span>{item.label}</span>
+            </div>
+          );
+        })}
+      </div>
+
       <footer className="hive-footer">
-        
-        <div className="hive-footer-top">
-          {/* Column 1: Brand */}
+        <div className="hive-footer-main">
           <div className="footer-brand">
             <Link to="/" className="footer-logo">Hive.tn</Link>
             <p className="footer-tagline">
-              Propulsez les projets communautaires et donnez vie aux idées innovantes en Tunisie.
+              La plateforme tunisienne pour découvrir, soutenir et lancer des projets créatifs,
+              culturels et entrepreneuriaux.
             </p>
             <div className="footer-socials">
-              <a href="#" className="social-link" aria-label="Twitter" rel="noopener noreferrer">
-                𝕏
-              </a>
-              <a href="#" className="social-link" aria-label="Instagram" rel="noopener noreferrer">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                </svg>
-              </a>
-              <a href="#" className="social-link" aria-label="LinkedIn" rel="noopener noreferrer">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-                  <rect x="2" y="9" width="4" height="12"></rect>
-                  <circle cx="4" cy="4" r="2"></circle>
-                </svg>
-              </a>
+              {socialLinks.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <Link key={item.label} to={item.to} className="social-link" aria-label={item.label} title={item.label}>
+                    <Icon size={16} strokeWidth={2} />
+                  </Link>
+                );
+              })}
             </div>
           </div>
 
-          {/* Column 2: Découverte */}
-          <nav className="footer-nav-col" aria-label="Découverte">
-            <h4 className="footer-col-title">Découverte</h4>
-            <ul className="footer-nav-list">
-              <li><Link to="/discover" className="footer-nav-link">Explorer les projets</Link></li>
-              <li><Link to="/discover?filter=popular" className="footer-nav-link">Projets populaires</Link></li>
-              <li><Link to="/discover?filter=categories" className="footer-nav-link">Catégories</Link></li>
-            </ul>
-          </nav>
-
-          {/* Column 3: Créateurs */}
-          <nav className="footer-nav-col" aria-label="Créateurs">
-            <h4 className="footer-col-title">Créateurs</h4>
-            <ul className="footer-nav-list">
-              <li><Link to="/start" className="footer-nav-link">Lancer un projet</Link></li>
-              <li><Link to="/guide" className="footer-nav-link">Guide du créateur</Link></li>
-              <li><Link to="/rules" className="footer-nav-link">Règles et éligibilité</Link></li>
-            </ul>
-          </nav>
-
-          {/* Column 4: Légal & Support */}
-          <nav className="footer-nav-col" aria-label="Légal et Support">
-            <h4 className="footer-col-title">Légal & Support</h4>
-            <ul className="footer-nav-list">
-              <li><Link to="/help" className="footer-nav-link">Centre d'aide</Link></li>
-              <li><Link to="/terms" className="footer-nav-link">Conditions générales</Link></li>
-              <li><Link to="/privacy" className="footer-nav-link">Confidentialité</Link></li>
-            </ul>
-          </nav>
+          {footerColumns.map((column) => (
+            <nav key={column.title} className="footer-nav-col" aria-label={column.title}>
+              <h4 className="footer-col-title">{column.title}</h4>
+              <ul className="footer-nav-list">
+                {column.links.map((link) => (
+                  <li key={link.label}>
+                    <Link to={link.to} className="footer-nav-link">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
         </div>
 
-        {/* Bottom Panel */}
-        <div className="hive-footer-bottom">
-          <div className="footer-copyright">
-            &copy; 2026 Hive.tn. Tous droits réservés.
+        <div className="footer-newsletter-panel">
+          <div className="footer-newsletter-copy">
+            <div className="footer-newsletter-kicker">Newsletter</div>
+            <h3 className="footer-newsletter-title">Recevez les nouveaux projets en avant-première</h3>
+            <p className="footer-newsletter-subtitle">
+              Pas de spam. Seulement les nouveautés importantes de Hive.tn.
+            </p>
           </div>
-          
-          <form className="footer-newsletter" onSubmit={(e) => e.preventDefault()}>
-            <input 
-              type="email" 
-              placeholder="Votre adresse email" 
-              className="newsletter-input" 
-              required 
-              aria-label="Email pour la newsletter"
-            />
-            <button type="submit" className="newsletter-submit">S'abonner</button>
+
+          <form className="footer-newsletter-form" onSubmit={handleNewsletterSubmit}>
+            <label className="footer-newsletter-inputwrap">
+              <Mail size={16} strokeWidth={2} />
+              <input
+                type="email"
+                placeholder="Votre adresse email"
+                className="newsletter-input"
+                required
+                aria-label="Email pour la newsletter"
+                value={email}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  if (isSubscribed) setIsSubscribed(false);
+                }}
+              />
+            </label>
+            <button type="submit" className="newsletter-submit">
+              <span>S'abonner</span>
+              <MoveRight size={15} strokeWidth={2.2} />
+            </button>
           </form>
+          {isSubscribed && (
+            <div className="footer-newsletter-success">
+              Merci, votre intérêt pour la newsletter Hive.tn a bien été pris en compte.
+            </div>
+          )}
         </div>
 
+        <div className="hive-footer-bottom">
+          <div className="footer-bottom-copy">
+            <div className="footer-copyright">© 2026 Hive.tn</div>
+            <div className="footer-bottom-note">Plateforme tunisienne de découverte et de lancement de projets</div>
+          </div>
+
+          <div className="footer-legal-links">
+            {legalLinks.map((link) => (
+              <Link key={link.label} to={link.to} className="footer-legal-link">
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
       </footer>
     </div>
   );

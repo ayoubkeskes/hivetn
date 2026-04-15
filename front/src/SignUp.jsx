@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import './SignUp.css';
 import GoogleAuthButton from './components/Auth/GoogleAuthButton';
 
@@ -117,7 +118,7 @@ const SignUp = ({ onSwitch, onHome }) => {
           </button>
         </form>
         <div className="auth-footer">
-          Déjà un compte ? <a href="#" onClick={(e) => { e.preventDefault(); onSwitch(); }} className="auth-link">Connectez-vous</a>
+          Déjà un compte ? <Link to="/login" className="auth-link">Connectez-vous</Link>
         </div>
       </div>
     </div>

@@ -1,5 +1,12 @@
 /* src/StartProject.css */
 .start-page-wrapper {
+  --space-1: 8px;
+  --space-2: 12px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 48px;
+  --container-padding: clamp(var(--space-3), 4vw, var(--space-5));
   display: flex;
   flex-direction: column;
   min-height: 100vh;

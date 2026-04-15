@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
 import './CreateProject.css';
-
-const categoriesList = [
-  'Arts & BD',
-  'Artisanat',
-  'Cinéma & Vidéo',
-  'Projets Solidaires',
-  'Tech & App'
-];
+import { CAMPAIGN_CATEGORIES } from './shared/constants/campaignCategories.js';
 
 const CreateProjectStep1 = ({ onNavigate, onSaveDraft, draftProject }) => {
   const [category, setCategory] = useState(draftProject?.category || '');
@@ -80,7 +73,7 @@ const CreateProjectStep1 = ({ onNavigate, onSaveDraft, draftProject }) => {
                 onChange={(e) => setCategory(e.target.value)}
               >
                 <option value="" disabled>Sélectionnez une catégorie</option>
-                {categoriesList.map(cat => (
+                {CAMPAIGN_CATEGORIES.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>

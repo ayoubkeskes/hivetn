@@ -1,8 +1,83 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  Bell,
+  Bookmark,
+  ChevronDown,
+  HelpCircle,
+  LogOut,
+  Menu,
+  Settings,
+  User,
+  X,
+} from 'lucide-react';
 import './Home.css';
 
 const API_URL = 'http://localhost:5000';
+
+const NAV_ITEMS = [
+  { key: 'discover', label: 'Découvrir', view: 'discover' },
+  { key: 'howItWorks', label: 'Comment ça marche', path: '/#comment-ca-marche' },
+];
+
+const PROFILE_MENU_ITEMS = [
+  { key: 'profile', label: 'Mon profil', icon: User, view: 'profile' },
+  { key: 'support', label: 'Support', icon: HelpCircle, path: '/support' },
+  { key: 'saved', label: 'Projets sauvegardés', icon: Bookmark, view: 'saved' },
+  { key: 'settings', label: 'Paramètres', icon: Settings, view: 'settings' },
+];
+
+const NavItem = ({ label, active, onClick }) => (
+  <button
+    type="button"
+    className={`nav-link ${active ? 'active' : ''}`}
+    onClick={onClick}
+  >
+    {label}
+  </button>
+);
+
+const NavbarButton = ({ children, variant = 'ghost', className = '', ...props }) => (
+  <button
+    type="button"
+    className={variant === 'primary' ? `nav-btn-solid ${className}` : `nav-btn-outline ${className}`}
+    {...props}
+  >
+    {children}
+  </button>
+);
+
+const NotificationButton = ({ unreadCount, onClick, className = '' }) => (
+  <button
+    type="button"
+    className={`notification-btn ${className}`.trim()}
+    aria-label="Notifications"
+    onClick={onClick}
+  >
+    <Bell size={18} strokeWidth={2} aria-hidden="true" />
+    {unreadCount > 0 && (
+      <span className="notification-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
+    )}
+  </button>
+);
+
+const AvatarButton = ({ avatar, initials, onClick, expanded = false }) => (
+  <button
+    type="button"
+    className={`user-avatar ${expanded ? 'is-open' : ''}`}
+    onClick={onClick}
+    aria-haspopup="menu"
+    aria-expanded={expanded}
+    aria-label="Ouvrir le menu du profil"
+  >
+    {avatar ? (
+      <img src={avatar} alt="Avatar" />
+    ) : (
+      <span>{initials}</span>
+    )}
+    <ChevronDown size={14} strokeWidth={2} aria-hidden="true" />
+  </button>
+);
 
 const Navbar = ({ onNavigate, isAuthenticated, onLogout, activeTab }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -19,7 +94,18 @@ const Navbar = ({ onNavigate, isAuthenticated, onLogout, activeTab }) => {
   const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
   const userName = storedUser.name || 'Utilisateur';
   const userEmail = storedUser.email || '';
-  const userInitials = userName.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
+  const userInitials = userName
+    .split(' ')
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  const closeAllMenus = () => {
+    setIsMobileMenuOpen(false);
+    setShowProfileMenu(false);
+    setShowNotifications(false);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -36,14 +122,12 @@ const Navbar = ({ onNavigate, isAuthenticated, onLogout, activeTab }) => {
   }, []);
 
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-    setShowProfileMenu(false);
-    setShowNotifications(false);
-  }, [location.pathname]);
+    closeAllMenus();
+  }, [location.pathname, location.hash]);
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth > 768) {
+      if (window.innerWidth > 1024) {
         setIsMobileMenuOpen(false);
       }
     };
@@ -90,24 +174,64 @@ const Navbar = ({ onNavigate, isAuthenticated, onLogout, activeTab }) => {
     };
   }, [isAuthenticated, location.pathname]);
 
-  const handleCreateProject = () => {
-    if (isAuthenticated) {
-      onNavigate('startProject');
-    } else {
-      onNavigate('signIn', 'Vous devez etre connecte pour creer un projet.');
+  const navigateToPath = (path) => {
+    const [pathnamePart, hashPart] = path.split('#');
+    const pathname = pathnamePart || '/';
+    const hash = hashPart ? `#${hashPart}` : '';
+
+    closeAllMenus();
+
+    if (location.pathname === pathname && location.hash === hash) {
+      if (hashPart) {
+        const element = document.getElementById(hashPart);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      return;
     }
-    setIsMobileMenuOpen(false);
+
+    navigate(path);
   };
 
-  const handleMenuNavigate = (view) => {
-    setIsMobileMenuOpen(false);
-    onNavigate(view);
+  const handleViewNavigation = (view, payload = '') => {
+    closeAllMenus();
+    onNavigate(view, payload);
+  };
+
+  const handleCreateProject = () => {
+    if (isAuthenticated) {
+      handleViewNavigation('startProject');
+    } else {
+      handleViewNavigation('signIn', 'Vous devez être connecté pour créer un projet.');
+    }
+  };
+
+  const handleNavItemClick = (item) => {
+    if (item.path) {
+      navigateToPath(item.path);
+      return;
+    }
+
+    handleViewNavigation(item.view);
+  };
+
+  const handleProfileItemClick = (item) => {
+    if (item.path) {
+      navigateToPath(item.path);
+      return;
+    }
+
+    handleViewNavigation(item.view);
   };
 
   const formatNotificationTime = (value) => {
     if (!value) return '';
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return '';
+
     return date.toLocaleString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
@@ -152,62 +276,210 @@ const Navbar = ({ onNavigate, isAuthenticated, onLogout, activeTab }) => {
       console.error('Notification read error:', error);
     }
 
-    setShowNotifications(false);
-    setIsMobileMenuOpen(false);
+    closeAllMenus();
 
     if (notification.link) {
       navigate(notification.link);
     }
   };
 
-  const profileMenuItems = [
-    {
-      key: 'profile',
-      label: 'Profil',
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" />
-          <path d="M4 20a8 8 0 0 1 16 0" />
-        </svg>
-      ),
-    },
-    {
-      key: 'settings',
-      label: 'Parametres',
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 15.5A3.5 3.5 0 1 0 8.5 12a3.5 3.5 0 0 0 3.5 3.5Z" />
-          <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 1-2 0 1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 1 0-2 1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 1 2 0 1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 1 0 2 1.7 1.7 0 0 0-.6 1Z" />
-        </svg>
-      ),
-    },
-    {
-      key: 'support',
-      label: 'Support',
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 12a8 8 0 0 1 16 0" />
-          <path d="M6 15v2a2 2 0 0 0 2 2h1v-6H8a2 2 0 0 0-2 2Z" />
-          <path d="M18 15v2a2 2 0 0 1-2 2h-1v-6h1a2 2 0 0 1 2 2Z" />
-          <path d="M12 19v1a2 2 0 0 1-2 2h2" />
-        </svg>
-      ),
-    },
-    {
-      key: 'saved',
-      label: 'Enregistrements',
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M7 4.5h10a1 1 0 0 1 1 1V21l-6-3.8L6 21V5.5a1 1 0 0 1 1-1Z" />
-        </svg>
-      ),
-    },
-  ];
+  const isNavItemActive = useMemo(() => {
+    return (item) => {
+      if (item.key === 'discover') {
+        return activeTab === 'discover' && location.hash !== '#discover-filters';
+      }
+
+      if (item.key === 'howItWorks') {
+        return location.pathname === '/' && location.hash === '#comment-ca-marche';
+      }
+
+      return false;
+    };
+  }, [activeTab, location.hash, location.pathname]);
+
+  const mobileProfileItems = PROFILE_MENU_ITEMS.map((item) => (
+    <button
+      key={item.key}
+      type="button"
+      className="nav-mobile-profile-link"
+      onClick={() => handleProfileItemClick(item)}
+    >
+      <item.icon size={16} strokeWidth={2} aria-hidden="true" />
+      <span>{item.label}</span>
+    </button>
+  ));
 
   return (
-    <nav className={`navbar ${isMobileMenuOpen ? 'nav-open' : ''}`} style={{ zIndex: 110 }}>
+    <nav
+      className={`navbar ${isMobileMenuOpen ? 'nav-open' : ''}`}
+      style={{
+        zIndex: 110,
+        '--space-1': '8px',
+        '--space-2': '12px',
+        '--space-3': '16px',
+        '--space-4': '24px',
+        '--space-5': '32px',
+        '--space-6': '48px',
+        '--container-padding': 'clamp(16px, 4vw, 32px)',
+      }}
+    >
       <div className="nav-left">
-        <h1 className="nav-logo" onClick={() => handleMenuNavigate('home')}>Hive.tn</h1>
+        <button type="button" className="nav-logo" onClick={() => handleViewNavigation('home')}>
+          <span className="nav-logo-mark" aria-hidden="true">H</span>
+          <span className="nav-logo-text">Hive.tn</span>
+        </button>
+      </div>
+
+      <div className="nav-center nav-center--desktop">
+        {NAV_ITEMS.map((item) => (
+          <NavItem
+            key={item.key}
+            label={item.label}
+            active={isNavItemActive(item)}
+            onClick={() => handleNavItemClick(item)}
+          />
+        ))}
+      </div>
+
+      <div className="nav-right nav-right--desktop">
+        {!isAuthenticated ? (
+          <>
+            <NavbarButton onClick={() => handleViewNavigation('signIn')}>Se connecter</NavbarButton>
+            <NavbarButton variant="primary" onClick={() => handleViewNavigation('signUp')}>
+              S'inscrire
+            </NavbarButton>
+          </>
+        ) : (
+          <div className="nav-user-actions">
+            <NavbarButton variant="primary" className="nav-launch-btn" onClick={handleCreateProject}>
+              Lancer un projet
+            </NavbarButton>
+
+            <div className="notification-container" ref={notificationRef}>
+              <NotificationButton
+                unreadCount={unreadCount}
+                onClick={() => {
+                  setShowNotifications((prev) => !prev);
+                  setShowProfileMenu(false);
+                }}
+              />
+
+              {showNotifications && (
+                <div className="notification-dropdown">
+                  <div className="notification-dropdown-header">
+                    <strong>Notifications</strong>
+                    {unreadCount > 0 && (
+                      <button type="button" className="notification-mark-all" onClick={handleMarkAllAsRead}>
+                        Tout marquer comme lu
+                      </button>
+                    )}
+                  </div>
+                  <div className="dropdown-divider"></div>
+
+                  {loadingNotifications ? (
+                    <div className="notification-empty">Chargement...</div>
+                  ) : notifications.length === 0 ? (
+                    <div className="notification-empty">Aucune notification pour le moment.</div>
+                  ) : (
+                    <div className="notification-list">
+                      {notifications.map((notification) => (
+                        <button
+                          key={notification.id}
+                          type="button"
+                          className={`notification-item ${notification.is_read ? 'is-read' : 'is-unread'}`}
+                          onClick={() => handleOpenNotificationLink(notification)}
+                        >
+                          <div className="notification-item-top">
+                            <span className="notification-item-title">{notification.title}</span>
+                            <span className="notification-item-time">{formatNotificationTime(notification.created_at)}</span>
+                          </div>
+                          <span className="notification-item-message">{notification.message}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="user-profile-container" ref={menuRef}>
+              <AvatarButton
+                avatar={storedUser.avatar}
+                initials={userInitials}
+                expanded={showProfileMenu}
+                onClick={() => {
+                  setShowProfileMenu((prev) => !prev);
+                  setShowNotifications(false);
+                }}
+              />
+
+              {showProfileMenu && (
+                <div className="profile-dropdown" role="menu">
+                  <div className="dropdown-header">
+                    <strong>{userName}</strong>
+                    <span className="text-small">{userEmail}</span>
+                  </div>
+                  <div className="dropdown-divider"></div>
+                  {PROFILE_MENU_ITEMS.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.key}
+                        type="button"
+                        className="dropdown-item"
+                        onClick={() => handleProfileItemClick(item)}
+                      >
+                        <span className="dropdown-item-icon"><Icon size={17} strokeWidth={2} aria-hidden="true" /></span>
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
+                  <div className="dropdown-divider"></div>
+                  <button
+                    type="button"
+                    className="dropdown-item text-danger"
+                    onClick={() => {
+                      closeAllMenus();
+                      if (onLogout) onLogout();
+                    }}
+                  >
+                    <span className="dropdown-item-icon"><LogOut size={17} strokeWidth={2} aria-hidden="true" /></span>
+                    <span>Déconnexion</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="nav-mobile-actions">
+        {!isAuthenticated ? (
+          <>
+            <button type="button" className="nav-mobile-auth-link" onClick={() => handleViewNavigation('signIn')}>
+              Se connecter
+            </button>
+            <NavbarButton variant="primary" className="nav-mobile-signup" onClick={() => handleViewNavigation('signUp')}>
+              S'inscrire
+            </NavbarButton>
+          </>
+        ) : (
+          <>
+            <NotificationButton
+              unreadCount={unreadCount}
+              className="notification-btn--mobile"
+              onClick={() => navigateToPath('/profile')}
+            />
+            <button
+              type="button"
+              className="nav-mobile-avatar-link"
+              onClick={() => navigateToPath('/profile')}
+              aria-label="Voir mon profil"
+            >
+              {storedUser.avatar ? <img src={storedUser.avatar} alt="Avatar" /> : <span>{userInitials}</span>}
+            </button>
+          </>
+        )}
       </div>
 
       <button
@@ -217,141 +489,47 @@ const Navbar = ({ onNavigate, isAuthenticated, onLogout, activeTab }) => {
         aria-expanded={isMobileMenuOpen}
         onClick={() => setIsMobileMenuOpen((prev) => !prev)}
       >
-        <span></span>
-        <span></span>
-        <span></span>
+        {isMobileMenuOpen ? <X size={18} strokeWidth={2.4} /> : <Menu size={18} strokeWidth={2.4} />}
       </button>
 
       <div className={`nav-mobile-panel ${isMobileMenuOpen ? 'open' : ''}`}>
-        <div className="nav-center">
-          <span className={`nav-link ${activeTab === 'discover' ? 'active' : ''}`} style={{ cursor: 'pointer' }} onClick={() => handleMenuNavigate('discover')}>Decouvrir</span>
-          <span className={`nav-link ${activeTab === 'home' ? 'active' : ''}`} style={{ cursor: 'pointer' }} onClick={() => handleMenuNavigate('home')}>Accueil</span>
-          <span className={`nav-link ${activeTab === 'startProject' ? 'active' : ''}`} style={{ cursor: 'pointer' }} onClick={handleCreateProject}>Lancer un projet</span>
+        <div className="nav-mobile-links">
+          {NAV_ITEMS.map((item) => (
+            <NavItem
+              key={item.key}
+              label={item.label}
+              active={isNavItemActive(item)}
+              onClick={() => handleNavItemClick(item)}
+            />
+          ))}
         </div>
 
-        <div className="nav-right">
+        <div className="nav-mobile-footer">
+          <NavbarButton variant="primary" className="nav-mobile-launch" onClick={handleCreateProject}>
+            Lancer un projet
+          </NavbarButton>
+
           {!isAuthenticated ? (
-            <>
-              <span className="nav-link" style={{ cursor: 'pointer' }} onClick={() => handleMenuNavigate('signIn')}>Connexion</span>
-              <button className="nav-btn-solid" onClick={() => handleMenuNavigate('signUp')}>S'inscrire</button>
-            </>
+            <div className="nav-mobile-auth-actions">
+              <NavbarButton onClick={() => handleViewNavigation('signIn')}>Se connecter</NavbarButton>
+              <NavbarButton variant="primary" onClick={() => handleViewNavigation('signUp')}>
+                S'inscrire
+              </NavbarButton>
+            </div>
           ) : (
-            <div className="nav-user-actions">
-              <div className="notification-container" ref={notificationRef}>
-                <button
-                  type="button"
-                  className="notification-btn"
-                  aria-label="Notifications"
-                  onClick={() => {
-                    setShowNotifications((prev) => !prev);
-                    setShowProfileMenu(false);
-                  }}
-                >
-                  <span className="notification-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5"></path><path d="M10 21a2.3 2.3 0 0 0 4 0"></path></svg></span>
-                  {unreadCount > 0 && <span className="notification-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
-                </button>
-
-                {showNotifications && (
-                  <div className="notification-dropdown">
-                    <div className="notification-dropdown-header">
-                      <strong>Notifications</strong>
-                      {unreadCount > 0 && (
-                        <button type="button" className="notification-mark-all" onClick={handleMarkAllAsRead}>
-                          Tout marquer comme lu
-                        </button>
-                      )}
-                    </div>
-                    <div className="dropdown-divider"></div>
-
-                    {loadingNotifications ? (
-                      <div className="notification-empty">Chargement...</div>
-                    ) : notifications.length === 0 ? (
-                      <div className="notification-empty">Aucune notification pour le moment.</div>
-                    ) : (
-                      <div className="notification-list">
-                        {notifications.map((notification) => (
-                          <button
-                            key={notification.id}
-                            type="button"
-                            className={`notification-item ${notification.is_read ? 'is-read' : 'is-unread'}`}
-                            onClick={() => handleOpenNotificationLink(notification)}
-                          >
-                            <div className="notification-item-top">
-                              <span className="notification-item-title">{notification.title}</span>
-                              <span className="notification-item-time">{formatNotificationTime(notification.created_at)}</span>
-                            </div>
-                            <span className="notification-item-message">{notification.message}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="user-profile-container" ref={menuRef}>
-                <div
-                  className="user-avatar"
-                  onClick={() => {
-                    setShowProfileMenu((prev) => !prev);
-                    setShowNotifications(false);
-                  }}
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
-                    background: storedUser.avatar ? 'none' : 'linear-gradient(135deg, #0ce688, #0ab56b)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '14px',
-                    fontWeight: '800',
-                    color: '#0b0f19',
-                    cursor: 'pointer',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {storedUser.avatar ? (
-                    <img src={storedUser.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    userInitials
-                  )}
-                </div>
-
-                {showProfileMenu && (
-                  <div className="profile-dropdown">
-                    <div className="dropdown-header">
-                      <strong>{userName}</strong>
-                      <span className="text-small" style={{ color: '#a1a1aa', fontSize: '13px' }}>{userEmail}</span>
-                    </div>
-                    <div className="dropdown-divider"></div>
-                    {profileMenuItems.map((item) => (
-                      <div key={item.key} className="dropdown-item" onClick={() => handleMenuNavigate(item.key)}>
-                        <span className="dropdown-item-icon">{item.icon}</span>
-                        <span>{item.label}</span>
-                      </div>
-                    ))}
-                    <div className="dropdown-divider"></div>
-                    <div
-                      className="dropdown-item text-danger"
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        setIsMobileMenuOpen(false);
-                        if (onLogout) onLogout();
-                      }}
-                    >
-                      <span className="dropdown-item-icon">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                          <path d="M16 17l5-5-5-5" />
-                          <path d="M21 12H9" />
-                        </svg>
-                      </span>
-                      <span>Deconnexion</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+            <div className="nav-mobile-profile-links">
+              {mobileProfileItems}
+              <button
+                type="button"
+                className="nav-mobile-profile-link nav-mobile-profile-link--danger"
+                onClick={() => {
+                  closeAllMenus();
+                  if (onLogout) onLogout();
+                }}
+              >
+                <LogOut size={16} strokeWidth={2} aria-hidden="true" />
+                <span>Déconnexion</span>
+              </button>
             </div>
           )}
         </div>
@@ -361,4 +539,3 @@ const Navbar = ({ onNavigate, isAuthenticated, onLogout, activeTab }) => {
 };
 
 export default Navbar;
-

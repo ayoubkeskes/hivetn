@@ -1,4 +1,4 @@
-import React, { Suspense, useCallback, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useState } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import { clearAuthSession, getStoredToken } from "@/shared/utils/authStorage.js";
@@ -24,6 +24,7 @@ const DonationPage = React.lazy(() => import("@/modules/payments/pages/DonationP
 const SupportTicketsPage = React.lazy(() => import("@/modules/support/pages/SupportTicketsPage.jsx"));
 const CreateSupportTicketPage = React.lazy(() => import("@/modules/support/pages/CreateSupportTicketPage.jsx"));
 const SupportTicketDetailsPage = React.lazy(() => import("@/modules/support/pages/SupportTicketDetailsPage.jsx"));
+const InfoPage = React.lazy(() => import("@/InfoPage.jsx"));
 const Footer = React.lazy(() => import("@/shared/components/Footer.jsx"));
 
 function AppRoutes() {
@@ -123,6 +124,7 @@ function AppRoutes() {
     setIsAuthenticated(false);
     navigate("/");
   };
+
 
   return (
     <Suspense
@@ -262,6 +264,22 @@ function AppRoutes() {
         <Route
           path="/saved"
           element={<SavedProjects isAuthenticated={isAuthenticated} onNavigate={handleNavigate} onLogout={handleLogout} />}
+        />
+        <Route
+          path="/about"
+          element={<InfoPage pageKey="about" isAuthenticated={isAuthenticated} onNavigate={handleNavigate} onLogout={handleLogout} />}
+        />
+        <Route
+          path="/terms"
+          element={<InfoPage pageKey="terms" isAuthenticated={isAuthenticated} onNavigate={handleNavigate} onLogout={handleLogout} />}
+        />
+        <Route
+          path="/privacy"
+          element={<InfoPage pageKey="privacy" isAuthenticated={isAuthenticated} onNavigate={handleNavigate} onLogout={handleLogout} />}
+        />
+        <Route
+          path="/cookies"
+          element={<InfoPage pageKey="cookies" isAuthenticated={isAuthenticated} onNavigate={handleNavigate} onLogout={handleLogout} />}
         />
         <Route
           path="/support"

@@ -26,7 +26,7 @@ const StartProject = ({ onNavigate, isAuthenticated, onLogout }) => {
 
       <div className="start-main">
         {/* 1. Hero Section */}
-        <section className="sp-hero">
+        <section className="sp-hero" id="start-hero">
           <div className="sp-hero-text-col">
             <h1 className="sp-hero-title">Donnez vie à vos idées avec la force de la communauté.</h1>
             <p className="sp-hero-subtitle">
@@ -67,7 +67,7 @@ const StartProject = ({ onNavigate, isAuthenticated, onLogout }) => {
         </section>
 
         {/* 3. Comment ça marche ? (Timeline) */}
-        <section className="sp-section">
+        <section className="sp-section" id="guide-createur">
           <h2 className="sp-section-title">Comment ça marche ?</h2>
           <div className="sp-timeline">
             <div className="sp-step">
@@ -102,7 +102,7 @@ const StartProject = ({ onNavigate, isAuthenticated, onLogout }) => {
         </section>
 
         {/* 4. Social Proof / Success Stories */}
-        <section className="sp-section">
+        <section className="sp-section" id="securite-confiance">
           <h2 className="sp-section-title">Ils l'ont fait avec nous</h2>
           <div className="sp-testimonials">
             <div className="sp-quote-card">
@@ -153,23 +153,33 @@ const StartProject = ({ onNavigate, isAuthenticated, onLogout }) => {
         </section>
 
         {/* 6. FAQ & Final CTA */}
-        <section className="sp-section" style={{ borderTop: 'none', paddingTop: '0' }}>
+        <section className="sp-section" id="faq-createur" style={{ borderTop: 'none', paddingTop: '0' }}>
           <div className="sp-faq">
             <h2 className="sp-section-title" style={{marginBottom: '40px'}}>Questions Fréquentes</h2>
             
             <div className="sp-faq-item">
               <div className="sp-faq-q">La création d'une campagne est-elle gratuite ?</div>
-              <div className="sp-faq-a">Oui, lancer un projet sur Hive.tn est 100% gratuit. Nous prenons uniquement une commission modeste (5%) sur les fonds si votre campagne est financée avec succès.</div>
+              <div className="sp-faq-a">Oui, créer et soumettre un projet sur Hive.tn est entièrement gratuit. Aucun frais n’est appliqué pour le moment durant la phase actuelle de la plateforme.</div>
             </div>
             
             <div className="sp-faq-item">
-              <div className="sp-faq-q">Que se passe-t-il si mon objectif n'est pas atteint ?</div>
-              <div className="sp-faq-a">Hive.tn fonctionne sur le principe du "Tout ou Rien". Si l'objectif n'est pas atteint à la fin de la période, les contributeurs sont automatiquement remboursés, et vous ne payez rien.</div>
+              <div className="sp-faq-q">Que se passe-t-il si mon projet n'est pas accepté ?</div>
+              <div className="sp-faq-a">Chaque campagne est examinée par notre équipe avant publication. Si votre projet ne respecte pas nos critères, il peut être refusé ou renvoyé en modification.</div>
             </div>
 
             <div className="sp-faq-item">
-              <div className="sp-faq-q">Puis-je modifier ma campagne une fois lancée ?</div>
-              <div className="sp-faq-a">Vous pouvez publier des "Actualités" et modifier certaines informations (FAQ, images secondaires) pendant la campagne, mais l'objectif financier et le délai final ne peuvent être modifiés une fois publiés.</div>
+              <div className="sp-faq-q">Puis-je modifier ma campagne après l’avoir soumise ?</div>
+              <div className="sp-faq-a">Oui, tant que votre campagne est en brouillon ou refusée, vous pouvez la modifier et la resoumettre. Une fois approuvée et publiée, certaines modifications peuvent être limitées.</div>
+            </div>
+
+            <div className="sp-faq-item">
+              <div className="sp-faq-q">Comment les projets sont-ils sélectionnés ?</div>
+              <div className="sp-faq-a">Toutes les campagnes passent par une phase de validation afin de garantir leur qualité et leur crédibilité avant leur publication sur la plateforme.</div>
+            </div>
+
+            <div className="sp-faq-item">
+              <div className="sp-faq-q">Puis-je recevoir des contributions financières ?</div>
+              <div className="sp-faq-a">La plateforme Hive.tn est en cours d’évolution. Les fonctionnalités de contribution financière seront ajoutées prochainement.</div>
             </div>
           </div>
 

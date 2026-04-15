@@ -1,5 +1,7 @@
 ﻿import React, { useRef, useState } from 'react';
 
+import { CAMPAIGN_CATEGORIES } from '../../shared/constants/campaignCategories.js';
+
 const API_URL = 'http://localhost:5000';
 
 const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
@@ -370,11 +372,9 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
                 }}
               >
                 <option value="" disabled>Sélectionnez une catégorie</option>
-                <option value="Arts & BD">Arts & BD</option>
-                <option value="Artisanat">Artisanat</option>
-                <option value="Cinéma & Vidéo">Cinéma & Vidéo</option>
-                <option value="Projets Solidaires">Projets Solidaires</option>
-                <option value="Tech & App">Tech & App</option>
+                {CAMPAIGN_CATEGORIES.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
               </select>
             </div>
           </div>

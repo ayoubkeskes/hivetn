@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './AdminDashboard.css';
 import AdminSupportWorkspace from './components/Support/AdminSupportWorkspace';
@@ -711,7 +711,7 @@ const AdminDashboard = ({ onNavigate }) => {
           </div>
 
           <div className={`admin-nav-item ${activeTab === 'pledges' ? 'active' : ''}`} onClick={() => handleAdminTabChange('pledges')}>
-            <div className="nav-label"><span className="nav-icon">�</span> Soutiens</div>
+            <div className="nav-label"><span className="nav-icon">♡</span> Soutiens</div>
             {pledges.length > 0 && <span className="nav-count">{pledges.length}</span>}
           </div>
           <div className={`admin-nav-item ${activeTab === 'users' ? 'active' : ''}`} onClick={() => handleAdminTabChange('users')}>
@@ -1047,7 +1047,7 @@ const AdminDashboard = ({ onNavigate }) => {
                         </td>
                         <td>
                           <div className="cell-primary">{pledge.campaign_title || 'Campagne inconnue'}</div>
-                          <div className="cell-secondary">{pledge.campaign_category || 'Sans categorie'} � {formatCampaignStatus(pledge.campaign_status)}</div>
+                          <div className="cell-secondary">{pledge.campaign_category || 'Sans categorie'} • {formatCampaignStatus(pledge.campaign_status)}</div>
                         </td>
                         <td>
                           <div className="cell-primary">{pledge.creator_name || 'Createur inconnu'}</div>

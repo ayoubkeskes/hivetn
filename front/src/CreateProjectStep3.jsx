@@ -20,7 +20,6 @@ const CreateProjectStep3 = ({ onNavigate, onSaveDraft, draftProject }) => {
     .join('')
     .toUpperCase()
     .slice(0, 2);
-
   const MAX_TITLE = 60;
   const MAX_SUBTITLE = 135;
 
