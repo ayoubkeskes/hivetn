@@ -563,6 +563,63 @@ export const ensureRuntimeSchema = async (pool) => {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS settings (
+      id SERIAL PRIMARY KEY,
+      key VARCHAR UNIQUE NOT NULL,
+      value JSONB NOT NULL,
+      updated_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    INSERT INTO settings (key, value)
+    VALUES
+      ('platform', '{"commission_rate":5,"min_campaign_amount":500,"default_duration":30}'::jsonb),
+      ('moderation', '{"auto_approval":false,"require_review":true}'::jsonb),
+      ('notifications', '{"email_admin":true,"alerts_enabled":true}'::jsonb),
+      ('support', '{"sla_hours":24,"ticket_categories":["GENERAL","PAYMENT","CAMPAIGN","TECHNICAL","ACCOUNT"]}'::jsonb),
+      ('security', '{"max_admins":5,"session_timeout":120}'::jsonb)
+    ON CONFLICT (key) DO NOTHING
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS admin_logs (
+      id SERIAL PRIMARY KEY,
+      admin_user_id UUID NULL REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE,
+      action_type VARCHAR(100) NOT NULL,
+      entity_type VARCHAR(100) NOT NULL,
+      entity_id VARCHAR(100),
+      target_user_id UUID NULL REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE,
+      target_campaign_id UUID NULL REFERENCES campaigns(id) ON DELETE SET NULL ON UPDATE CASCADE,
+      description TEXT NOT NULL,
+      metadata JSONB DEFAULT '{}'::jsonb,
+      ip_address VARCHAR(100),
+      user_agent TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_admin_logs_created_at
+    ON admin_logs (created_at DESC)
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_admin_logs_action_type
+    ON admin_logs (action_type)
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_admin_logs_entity_type
+    ON admin_logs (entity_type)
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_admin_logs_admin_user_id
+    ON admin_logs (admin_user_id)
+  `);
+
+  await pool.query(`
     DO $$
     BEGIN
       IF NOT EXISTS (

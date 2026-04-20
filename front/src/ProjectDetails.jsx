@@ -255,7 +255,8 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
 
   const rewardCount = campaign?.rewards?.length || 0;
   const amountRaised = Number(campaign?.amount_raised ?? campaign?.current_amount ?? 0);
-  const fundedPercent = Math.max(0, Math.min(Number(campaign?.funded_percent || 0), 100));
+  const fundedPercent = Math.max(0, Number(campaign?.funded_percent || 0));
+  const progressPercent = Math.min(fundedPercent, 100);
   const backerCount = Number(campaign?.backer_count || 0);
   const creatorName = campaign?.creator_name || "Créateur inconnu";
   const creatorInitials = creatorName
@@ -509,7 +510,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
           <div className="pd-right-rail">
             <div className="pd-stats-block">
               <div className="pd-progress-bar">
-                <div className="pd-progress-fill" style={{ width: `${fundedPercent}%` }}></div>
+                <div className="pd-progress-fill" style={{ width: `${progressPercent}%` }}></div>
               </div>
 
               <div className="pd-stat-group">

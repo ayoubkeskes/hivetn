@@ -3,3 +3,4 @@ dist/
 .vite/
 backend/uploads/
 .env
+front/vite-admin*.log

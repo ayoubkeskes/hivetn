@@ -17,6 +17,22 @@ const resolveMediaUrl = (url) => {
   return buildApiUrl(url);
 };
 
+const resolveOptionalMediaUrl = (url) => {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+    return url;
+  }
+  return buildApiUrl(url);
+};
+
+const getInitials = (name) => String(name || "")
+  .split(" ")
+  .filter(Boolean)
+  .map((word) => word[0])
+  .join("")
+  .toUpperCase()
+  .slice(0, 2);
+
 const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [filterCategory, setFilterCategory] = useState(ALL_CATEGORIES_LABEL);
@@ -128,7 +144,8 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
     title: campaign.title,
     creatorName: campaign.creator_name || "Créateur inconnu",
     creatorId: campaign.porteur_id,
-    creatorAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80",
+    creatorAvatar: resolveOptionalMediaUrl(campaign.creator_avatar),
+    creatorInitials: getInitials(campaign.creator_name || "Créateur inconnu"),
     image: resolveMediaUrl(campaign.image_url),
     fundedPercent: Number(campaign.funded_percent || 0),
     statusMessage: `${campaign.category || "Projet"} • ${formatMillimesToTnd(campaign.amount_raised || 0)} sur ${formatMillimesToTnd(campaign.target_amount)}`,
@@ -235,15 +252,13 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
 
                   <div className="ks-card-content">
                     <div className="ks-card-top-row">
-                      <img src={project.creatorAvatar} alt={project.creatorName} className="ks-creator-avatar" loading="lazy" />
                       <div className="ks-card-title-col">
                         <h3 className="ks-card-title">{project.title}</h3>
                       </div>
                     </div>
 
-                    <div 
-                      className="ks-creator-name"
-                      style={project.creatorId ? { cursor: 'pointer', textDecoration: 'underline' } : {}}
+                    <div
+                      className={`ks-creator-row${project.creatorId ? " ks-creator-row--link" : ""}`}
                       onClick={(e) => {
                         if (project.creatorId) {
                           e.stopPropagation();
@@ -251,7 +266,14 @@ const Discover = ({ onNavigate, isAuthenticated, onLogout }) => {
                         }
                       }}
                     >
-                      Par {project.creatorName}
+                      {project.creatorAvatar ? (
+                        <img src={project.creatorAvatar} alt={project.creatorName} className="ks-creator-avatar" loading="lazy" />
+                      ) : (
+                        <div className="ks-creator-avatar ks-creator-avatar--fallback" aria-label={project.creatorName}>
+                          {project.creatorInitials || "?"}
+                        </div>
+                      )}
+                      <span className="ks-creator-name">Par {project.creatorName}</span>
                     </div>
 
                     <div className="ks-card-stats">

@@ -19,7 +19,7 @@ const CreateProjectStep1 = React.lazy(() => import("@/modules/campaigns/pages/Cr
 const CreateProjectStep2 = React.lazy(() => import("@/modules/campaigns/pages/CreateProjectStep2.jsx"));
 const CreateProjectStep3 = React.lazy(() => import("@/modules/campaigns/pages/CreateProjectStep3.jsx"));
 const ProjectEditor = React.lazy(() => import("@/modules/campaigns/pages/ProjectEditor.jsx"));
-const AdminDashboard = React.lazy(() => import("@/modules/admin/pages/AdminDashboard.jsx"));
+const AdminDashboard = React.lazy(() => import("@/admin/AdminDashboard.jsx"));
 const DonationPage = React.lazy(() => import("@/modules/payments/pages/DonationPage.jsx"));
 const PaymentSuccessPage = React.lazy(() => import("@/modules/payments/pages/PaymentSuccessPage.jsx"));
 const PaymentCancelPage = React.lazy(() => import("@/modules/payments/pages/PaymentCancelPage.jsx"));
@@ -316,9 +316,7 @@ function AppRoutes() {
           path="/support/:id"
           element={<SupportTicketDetailsPage isAuthenticated={isAuthenticated} onNavigate={handleNavigate} onLogout={handleLogout} />}
         />
-        <Route path="/admin/support" element={<AdminDashboard onNavigate={handleNavigate} />} />
-        <Route path="/admin/support/:ticketId" element={<AdminDashboard onNavigate={handleNavigate} />} />
-        <Route path="/admin" element={<AdminDashboard onNavigate={handleNavigate} />} />
+        <Route path="/admin/*" element={<AdminDashboard />} />
       </Routes>
 
       {shouldShowFooter && <Footer />}

@@ -12,10 +12,7 @@ const fundingStatsSelect = `
   COALESCE(fs.backer_count, 0)::int AS backer_count,
   COALESCE(fs.paid_donation_count, 0)::int AS paid_donation_count,
   CASE
-    WHEN c.target_amount > 0 THEN LEAST(
-      ROUND((c.current_amount::numeric / c.target_amount::numeric) * 100),
-      100
-    )::int
+    WHEN c.target_amount > 0 THEN ROUND((c.current_amount::numeric / c.target_amount::numeric) * 100)::int
     ELSE 0
   END AS funded_percent
 `;
@@ -76,7 +73,7 @@ export const create = async (porteurId, { title, description, category, target_a
  */
 export const findById = async (id) => {
   const { rows } = await pool.query(
-    `SELECT c.*, u.name AS creator_name, u.email AS creator_email,
+    `SELECT c.*, u.name AS creator_name, u.email AS creator_email, u.avatar AS creator_avatar,
             ${fundingStatsSelect}
      FROM campaigns c
      JOIN users u ON c.porteur_id = u.id
@@ -110,7 +107,7 @@ export const findByPorteur = async (porteurId) => {
  */
 export const findAllActive = async () => {
   const { rows } = await pool.query(
-    `SELECT c.*, u.name AS creator_name, u.email AS creator_email,
+    `SELECT c.*, u.name AS creator_name, u.email AS creator_email, u.avatar AS creator_avatar,
             ${fundingStatsSelect}
      FROM campaigns c
      JOIN users u ON c.porteur_id = u.id

@@ -2,57 +2,61 @@
 
 import { getCampaignDaysLeft } from '../shared/utils/campaignDates.js';
 
-const ProjectCard = ({ project, onNavigate, actions, overlay }) => (
-  <article
-    className="project-card"
-    onClick={() => onNavigate('projectDetails', project.id)}
-    role="link"
-    tabIndex={0}
-    aria-label={`Projet : ${project.title}`}
-    onKeyDown={(e) => e.key === 'Enter' && onNavigate('projectDetails', project.id)}
-  >
-    <div className="project-image-container">
-      <span className="project-badge">{project.category}</span>
-      <img
-        src={project.image}
-        alt={project.title}
-        className="project-image"
-        loading="lazy"
-      />
-      {overlay && <div className="project-card-overlay">{overlay}</div>}
-    </div>
-    <div className="project-content">
-      <h3 className="project-title">{project.title}</h3>
-      <p 
-        className={`project-creator${project.creatorId ? ' project-creator--link' : ''}`}
-        onClick={(e) => {
-          if (project.creatorId) {
-            e.stopPropagation();
-            onNavigate('publicProfile', project.creatorId);
-          }
-        }}
-      >
-        {project.creator}
-      </p>
-      <p className="project-desc">{project.desc}</p>
+const ProjectCard = ({ project, onNavigate, actions, overlay }) => {
+  const fundedPercent = Math.max(0, Number(project.funded || 0));
+  const progressPercent = Math.min(fundedPercent, 100);
+
+  return (
+    <article
+      className="project-card"
+      onClick={() => onNavigate('projectDetails', project.id)}
+      role="link"
+      tabIndex={0}
+      aria-label={`Projet : ${project.title}`}
+      onKeyDown={(e) => e.key === 'Enter' && onNavigate('projectDetails', project.id)}
+    >
+      <div className="project-image-container">
+        <span className="project-badge">{project.category}</span>
+        <img
+          src={project.image}
+          alt={project.title}
+          className="project-image"
+          loading="lazy"
+        />
+        {overlay && <div className="project-card-overlay">{overlay}</div>}
+      </div>
+      <div className="project-content">
+        <h3 className="project-title">{project.title}</h3>
+        <p
+          className={`project-creator${project.creatorId ? ' project-creator--link' : ''}`}
+          onClick={(e) => {
+            if (project.creatorId) {
+              e.stopPropagation();
+              onNavigate('publicProfile', project.creatorId);
+            }
+          }}
+        >
+          {project.creator}
+        </p>
+        <p className="project-desc">{project.desc}</p>
 
       <div className="project-stats">
         <div
           className="progress-bar-bg"
           role="progressbar"
-          aria-valuenow={project.funded}
+          aria-valuenow={progressPercent}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`${project.funded}% financé`}
+          aria-label={`${fundedPercent}% financé`}
         >
           <div
             className="progress-bar-fill"
-            style={{ width: `${Math.min(project.funded, 100)}%` }}
+            style={{ width: `${progressPercent}%` }}
           />
         </div>
         <div className="stats-row">
           <div className="stat-item">
-            <span className="stat-value">{project.funded}%</span>
+            <span className="stat-value">{fundedPercent}%</span>
             <span className="stat-label">financé</span>
           </div>
           <div className="stat-item stat-item--center">
@@ -70,7 +74,8 @@ const ProjectCard = ({ project, onNavigate, actions, overlay }) => (
 
       {actions && <div className="project-card-actions">{actions}</div>}
     </div>
-  </article>
-);
+    </article>
+  );
+};
 
 export default ProjectCard;

@@ -10,6 +10,7 @@ export const getStats = async () => {
     categoryBreakdown,
     paymentStats,
     latestPaidDonations,
+    settingsResult,
   ] = await Promise.all([
     pool.query(`
       SELECT
@@ -54,10 +55,18 @@ export const getStats = async () => {
       ORDER BY COALESCE(d.paid_at, d.created_at) DESC
       LIMIT 5
     `),
+
+    pool.query(`
+      SELECT value
+      FROM settings
+      WHERE key = 'platform'
+    `),
   ]);
 
   const cs = campaignStats.rows[0];
   const ps = paymentStats.rows[0];
+  const platformSettings = settingsResult.rows[0]?.value || {};
+  const commissionRate = Number(platformSettings.commission_rate || 5) / 100;
   const totalCampaigns = parseInt(cs.active_campaigns, 10) + parseInt(cs.closed_campaigns, 10);
   const successRate = totalCampaigns > 0
     ? Math.round((parseInt(cs.closed_campaigns, 10) / totalCampaigns) * 100)
@@ -75,7 +84,7 @@ export const getStats = async () => {
     totalCampaigns: parseInt(cs.total_campaigns, 10),
     successRate,
     totalUsers: parseInt(userCount.rows[0].total_users, 10),
-    commissionRate: 0.05,
+    commissionRate,
     categorySplit: categoryBreakdown.rows.map((row) => ({
       name: row.category || "Non categorise",
       value: parseInt(row.count, 10),

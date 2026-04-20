@@ -10,11 +10,15 @@ import {
   deleteCampaign,
   deleteUser,
   getAllCampaigns,
+  getAdminLog,
+  getAdminLogs,
   getPendingCampaigns,
   getPledges,
+  getSettings,
   getStats,
   getUsers,
   rejectCampaign,
+  updateSetting,
   updateAcceptedCampaign,
   updateAcceptedCampaignImage,
   updateAcceptedCampaignVideo,
@@ -27,6 +31,10 @@ const router = Router();
 router.use(authenticate, requireAdmin);
 
 router.get("/stats", getStats);
+router.get("/settings", getSettings);
+router.put("/settings/:key", updateSetting);
+router.get("/logs", getAdminLogs);
+router.get("/logs/:id", getAdminLog);
 router.get("/campaigns", getAllCampaigns);
 router.get("/campaigns/pending", getPendingCampaigns);
 router.get("/campaigns/:id/comments", getAdminCampaignComments);
