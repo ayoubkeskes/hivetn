@@ -44,6 +44,16 @@ export const findSupportedCampaignsByDonor = async (donorId) => {
          c.created_at
        FROM contributions c
        WHERE c.status = 'CONFIRMED'
+
+       UNION ALL
+
+       SELECT
+         p.campaign_id,
+         p.user_id,
+         ROUND(p.amount * 1000)::int AS amount,
+         COALESCE(p.paid_at, p.created_at) AS created_at
+       FROM payments p
+       WHERE p.status = 'paid'
      ),
      combined_campaign_support_counts AS (
        SELECT

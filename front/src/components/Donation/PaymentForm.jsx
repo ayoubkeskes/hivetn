@@ -13,10 +13,10 @@ const PaymentForm = ({
   <div className="dp-payment-panel">
     <div className="dp-payment-panel__section">
       <p className="dp-payment-panel__eyebrow">Confirmation</p>
-      <h2>Confirmez votre contribution</h2>
+      <h2>Confirmez votre paiement de test</h2>
       <p className="dp-payment-panel__intro">
-        Le paiement sécurisé sera intégré prochainement. Cette action enregistre
-        actuellement un soutien confirmé dans le système Hive.tn.
+        Hive.tn va creer une session Stripe Checkout en mode test. Le paiement
+        n'est considere comme confirme qu'apres verification serveur par webhook.
       </p>
     </div>
 
@@ -69,15 +69,15 @@ const PaymentForm = ({
     <div className="dp-payment-panel__section">
       <div className="dp-payment-panel__header">
         <h3>Methode de paiement</h3>
-        <p>MVP manuel, sans stockage de donnees bancaires sensibles.</p>
+        <p>Stripe Checkout heberge, strictement en mode test.</p>
       </div>
 
       <div className="dp-mvp-payment-note">
-        <strong>MVP_MANUAL</strong>
+        <strong>STRIPE TEST MODE</strong>
         <p>
-          Aucun numéro de carte, CVV ou autre donnée de paiement n'est collecté
-          ici. Le système enregistre seulement une contribution confirmée, afin
-          de preparer l integration future d une vraie passerelle.
+          Hive.tn ne collecte pas les donnees de carte sur cette page. En
+          cliquant sur le CTA, vous serez redirige vers Stripe Checkout pour
+          finaliser un paiement de test securise.
         </p>
       </div>
     </div>

@@ -21,6 +21,8 @@ const CreateProjectStep3 = React.lazy(() => import("@/modules/campaigns/pages/Cr
 const ProjectEditor = React.lazy(() => import("@/modules/campaigns/pages/ProjectEditor.jsx"));
 const AdminDashboard = React.lazy(() => import("@/modules/admin/pages/AdminDashboard.jsx"));
 const DonationPage = React.lazy(() => import("@/modules/payments/pages/DonationPage.jsx"));
+const PaymentSuccessPage = React.lazy(() => import("@/modules/payments/pages/PaymentSuccessPage.jsx"));
+const PaymentCancelPage = React.lazy(() => import("@/modules/payments/pages/PaymentCancelPage.jsx"));
 const SupportTicketsPage = React.lazy(() => import("@/modules/support/pages/SupportTicketsPage.jsx"));
 const CreateSupportTicketPage = React.lazy(() => import("@/modules/support/pages/CreateSupportTicketPage.jsx"));
 const SupportTicketDetailsPage = React.lazy(() => import("@/modules/support/pages/SupportTicketDetailsPage.jsx"));
@@ -230,6 +232,26 @@ function AppRoutes() {
               onNavigate={handleNavigate}
               onLogout={handleLogout}
               onLoginSuccess={() => setIsAuthenticated(true)}
+            />
+          }
+        />
+        <Route
+          path="/payment/success"
+          element={
+            <PaymentSuccessPage
+              isAuthenticated={isAuthenticated}
+              onNavigate={handleNavigate}
+              onLogout={handleLogout}
+            />
+          }
+        />
+        <Route
+          path="/payment/cancel"
+          element={
+            <PaymentCancelPage
+              isAuthenticated={isAuthenticated}
+              onNavigate={handleNavigate}
+              onLogout={handleLogout}
             />
           }
         />

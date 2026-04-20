@@ -25,7 +25,7 @@ const fundingStatsJoin = `
     SELECT
       combined.campaign_id,
       COUNT(*)::int AS backer_count,
-      COUNT(*) FILTER (WHERE combined.source = 'DONATION')::int AS paid_donation_count
+      COUNT(*) FILTER (WHERE combined.source IN ('DONATION', 'PAYMENT'))::int AS paid_donation_count
     FROM (
       SELECT campaign_id, 'PLEDGE'::text AS source
       FROM pledges
@@ -42,6 +42,12 @@ const fundingStatsJoin = `
       SELECT campaign_id, 'CONTRIBUTION'::text AS source
       FROM contributions
       WHERE status = 'CONFIRMED'
+
+      UNION ALL
+
+      SELECT campaign_id, 'PAYMENT'::text AS source
+      FROM payments
+      WHERE status = 'paid'
     ) combined
     GROUP BY combined.campaign_id
   ) fs ON fs.campaign_id = c.id

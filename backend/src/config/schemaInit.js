@@ -154,6 +154,76 @@ export const ensureRuntimeSchema = async (pool) => {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS payments (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+      campaign_id UUID NOT NULL REFERENCES campaigns(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+      stripe_session_id TEXT NULL,
+      stripe_payment_intent_id TEXT NULL,
+      amount NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
+      currency VARCHAR(10) NOT NULL DEFAULT 'tnd',
+      status VARCHAR(20) NOT NULL DEFAULT 'pending',
+      provider VARCHAR(30) NOT NULL DEFAULT 'stripe',
+      payment_mode VARCHAR(20) NOT NULL DEFAULT 'test',
+      reward_id TEXT NULL,
+      contributor_note TEXT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      paid_at TIMESTAMPTZ NULL
+    )
+  `);
+
+  await pool.query(`
+    ALTER TABLE payments
+    ADD COLUMN IF NOT EXISTS stripe_session_id TEXT NULL,
+    ADD COLUMN IF NOT EXISTS stripe_payment_intent_id TEXT NULL,
+    ADD COLUMN IF NOT EXISTS reward_id TEXT NULL,
+    ADD COLUMN IF NOT EXISTS contributor_note TEXT NULL,
+    ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ NULL
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_payments_campaign_id
+    ON payments (campaign_id, created_at DESC)
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_payments_user_id
+    ON payments (user_id, created_at DESC)
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_payments_status
+    ON payments (status)
+  `);
+
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_stripe_session_id_unique
+    ON payments (stripe_session_id)
+    WHERE stripe_session_id IS NOT NULL
+  `);
+
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_stripe_payment_intent_id_unique
+    ON payments (stripe_payment_intent_id)
+    WHERE stripe_payment_intent_id IS NOT NULL
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS payment_webhook_events (
+      stripe_event_id TEXT PRIMARY KEY,
+      event_type VARCHAR(120) NOT NULL,
+      stripe_session_id TEXT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_payment_webhook_events_session_id
+    ON payment_webhook_events (stripe_session_id)
+  `);
+
+  await pool.query(`
     ALTER TABLE donations
     ADD COLUMN IF NOT EXISTS provider VARCHAR(30) DEFAULT 'manual',
     ADD COLUMN IF NOT EXISTS currency_token VARCHAR(10) DEFAULT 'TND',
@@ -240,10 +310,6 @@ export const ensureRuntimeSchema = async (pool) => {
   `);
 
   await pool.query(`
-    DROP TABLE IF EXISTS payment_webhook_events
-  `);
-
-  await pool.query(`
     UPDATE campaigns c
     SET current_amount = COALESCE((
       SELECT SUM(p.amount)
@@ -260,6 +326,11 @@ export const ensureRuntimeSchema = async (pool) => {
       FROM contributions ct
       WHERE ct.campaign_id = c.id
         AND ct.status = 'CONFIRMED'
+    ), 0) + COALESCE((
+      SELECT ROUND(SUM(pay.amount) * 1000)::int
+      FROM payments pay
+      WHERE pay.campaign_id = c.id
+        AND pay.status = 'paid'
     ), 0),
     collected_amount = COALESCE((
       SELECT SUM(p.amount)::numeric / 1000
@@ -276,6 +347,11 @@ export const ensureRuntimeSchema = async (pool) => {
       FROM contributions ct
       WHERE ct.campaign_id = c.id
         AND ct.status = 'CONFIRMED'
+    ), 0) + COALESCE((
+      SELECT SUM(pay.amount)
+      FROM payments pay
+      WHERE pay.campaign_id = c.id
+        AND pay.status = 'paid'
     ), 0),
     contribution_count = COALESCE((
       SELECT COUNT(*)
@@ -292,6 +368,11 @@ export const ensureRuntimeSchema = async (pool) => {
       FROM contributions ct
       WHERE ct.campaign_id = c.id
         AND ct.status = 'CONFIRMED'
+    ), 0) + COALESCE((
+      SELECT COUNT(*)
+      FROM payments pay
+      WHERE pay.campaign_id = c.id
+        AND pay.status = 'paid'
     ), 0)
   `);
 
@@ -491,6 +572,22 @@ export const ensureRuntimeSchema = async (pool) => {
       ) THEN
         CREATE TRIGGER set_updated_at_support_tickets
         BEFORE UPDATE ON support_tickets
+        FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+      END IF;
+    END
+    $$;
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_trigger
+        WHERE tgname = 'set_updated_at_payments'
+      ) THEN
+        CREATE TRIGGER set_updated_at_payments
+        BEFORE UPDATE ON payments
         FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
       END IF;
     END

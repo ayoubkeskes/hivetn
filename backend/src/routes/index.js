@@ -6,6 +6,7 @@ import adminRoutes from "../modules/admin/admin.routes.js";
 import savedRoutes from "../modules/saved/saved.routes.js";
 import pledgeRoutes from "../modules/pledges/pledge.routes.js";
 import notificationRoutes from "../modules/notifications/notification.routes.js";
+import paymentRoutes from "../modules/payments/payment.routes.js";
 import supportRoutes from "../modules/support/support.routes.js";
 import adminSupportRoutes from "../modules/support/admin-support.routes.js";
 import userRoutes from "../modules/users/user.routes.js";
@@ -19,6 +20,7 @@ router.use("/admin", adminRoutes);
 router.use("/saved", savedRoutes);
 router.use("/pledges", pledgeRoutes);
 router.use("/notifications", notificationRoutes);
+router.use("/payments", paymentRoutes);
 router.use("/support", supportRoutes);
 router.use("/users", userRoutes);
 

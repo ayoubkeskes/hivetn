@@ -5,12 +5,11 @@ import Navbar from "./Navbar";
 import "./DonationPage.css";
 
 import DonationFAQ from "./components/Donation/DonationFAQ";
-import DonationSuccessState from "./components/Donation/DonationSuccessState";
 import DonationSummaryCard from "./components/Donation/DonationSummaryCard";
 import PaymentForm from "./components/Donation/PaymentForm";
 import RewardOptionCard from "./components/Donation/RewardOptionCard";
 
-import { getContributionContext, createContribution as createContributionRequest } from "./modules/payments/services/contributionApi.js";
+import { createCheckoutSession, getContributionContext } from "./modules/payments/services/contributionApi.js";
 import { formatTndValue, parseTndInput } from "./shared/utils/currency.js";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1528157777178-0062a444aeb8?w=1200&q=80";
@@ -18,24 +17,24 @@ const DEFAULT_FREE_AMOUNT = "25";
 
 const DEFAULT_FAQ = [
   {
-    question: "Quand le paiement réel sera-t-il disponible ?",
+    question: "Est-ce un vrai paiement ?",
     answer:
-      "Cette version MVP enregistre pour l'instant un soutien confirmé dans le système. Une vraie passerelle de paiement sera intégrée prochainement.",
+      "Non. Cette integration utilise Stripe Checkout en mode test uniquement. Aucun encaissement réel n'est active tant que vous gardez des cles Stripe de test.",
   },
   {
-    question: "Mes donnees bancaires sont-elles stockees ?",
+    question: "Mes donnees de carte transitent-elles par Hive.tn ?",
     answer:
-      "Non. Cette page MVP ne collecte ni numéro de carte ni CVV. Seules les informations de contribution nécessaires au produit sont enregistrées.",
+      "Non. La saisie de carte se fait sur la page Stripe hebergee. Hive.tn enregistre seulement les informations de support necessaires a la base de donnees.",
   },
   {
-    question: "Puis-je contribuer sans récompense ?",
+    question: "Quand la campagne est-elle mise a jour ?",
     answer:
-      "Oui. Le soutien libre reste disponible même si la campagne ne propose pas de récompense particulière.",
+      "Apres le paiement de test reussi, Stripe envoie un webhook au backend. Le paiement passe alors a paid dans PostgreSQL et le montant collecte de la campagne est incremente.",
   },
   {
-    question: "Que voit le créateur ?",
+    question: "Puis-je soutenir sans recompense ?",
     answer:
-      "Le créateur voit qu'une contribution confirmée a été enregistrée pour sa campagne avec le montant et, si vous en laissez un, votre message.",
+      "Oui. Vous pouvez garder un soutien libre ou choisir une recompense existante avant de passer sur Stripe Checkout.",
   },
 ];
 
@@ -118,15 +117,15 @@ const DonationSidebar = ({ campaign, creator, faqItems, faqOpenIndex, onFaqToggl
   <aside className="dp-sidebar">
     <div className="dp-sidebar-card dp-sidebar-card--accent">
       <p className="dp-sidebar-card__eyebrow">A savoir</p>
-      <h3>Contribution MVP connectée à PostgreSQL</h3>
+      <h3>Paiement Stripe en mode test</h3>
       <p>
-        Votre soutien est enregistre dans la base de donnees et les totaux de la
-        campagne sont mis à jour instantanément, sans intégrer de paiement réel.
+        Votre session Stripe est creee cote backend, puis finalisee par webhook
+        pour mettre a jour PostgreSQL et les totaux de la campagne de maniere fiable.
       </p>
       <ul className="dp-trust-list">
-        <li>Aucune donnee de carte n est stockee</li>
-        <li>Le créateur voit les nouveaux soutiens en temps réel</li>
-        <li>Le système est prêt pour une future passerelle</li>
+        <li>Stripe Checkout heberge la saisie de carte</li>
+        <li>Le paiement reste strictement en test mode</li>
+        <li>Les webhooks evitent les doubles increments</li>
       </ul>
     </div>
 
@@ -246,7 +245,6 @@ const DonationPage = ({ onNavigate, isAuthenticated, onLogout }) => {
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [successState, setSuccessState] = useState(null);
 
   const loadContext = useCallback(async () => {
     if (!campaignId) {
@@ -350,7 +348,7 @@ const DonationPage = ({ onNavigate, isAuthenticated, onLogout }) => {
     }
 
     if (!isAuthenticated) {
-      onNavigate("signIn", "Connectez-vous pour confirmer votre contribution.");
+      onNavigate("signIn", "Connectez-vous pour ouvrir le paiement Stripe de test.");
       return;
     }
 
@@ -358,24 +356,20 @@ const DonationPage = ({ onNavigate, isAuthenticated, onLogout }) => {
     setSubmitError("");
 
     try {
-      const data = await createContributionRequest({
+      const data = await createCheckoutSession({
         campaignId,
         amount: Number(parsedAmount).toFixed(2),
         rewardId: selectedReward?.id || null,
         contributorNote,
       });
 
-      if (data.campaign) {
-        setCampaign(data.campaign);
+      if (!data.checkoutUrl) {
+        throw new Error("Stripe n'a pas retourne d'URL de checkout.");
       }
 
-      setSuccessState({
-        pledgeId: data.contribution?.id,
-        confirmationMessage: data.message,
-        updatedTotals: data.updatedCampaignTotals,
-      });
+      window.location.assign(data.checkoutUrl);
     } catch (error) {
-      setSubmitError(error.message || "La contribution n'a pas pu être enregistrée.");
+      setSubmitError(error.message || "Impossible de lancer le paiement Stripe de test.");
     } finally {
       setSubmitting(false);
     }
@@ -405,27 +399,6 @@ const DonationPage = ({ onNavigate, isAuthenticated, onLogout }) => {
               Retour à la découverte
             </button>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (successState) {
-    return (
-      <div className="dp-page">
-        <Navbar onNavigate={onNavigate} isAuthenticated={isAuthenticated} onLogout={onLogout} activeTab="discover" />
-        <div className="dp-shell">
-          <DonationSuccessState
-            campaign={campaign}
-            creator={creator}
-            selection={selection}
-            amountTnd={parsedAmount}
-            pledgeId={successState.pledgeId}
-            confirmationMessage={successState.confirmationMessage}
-            updatedTotals={successState.updatedTotals}
-            onBackToCampaign={() => navigate(`/project/${campaignId}`)}
-            onDiscover={() => onNavigate("discover")}
-          />
         </div>
       </div>
     );
@@ -499,8 +472,9 @@ const DonationPage = ({ onNavigate, isAuthenticated, onLogout }) => {
                   <p className="dp-section-header__eyebrow">Etape 2</p>
                   <h2>Confirmez votre contribution</h2>
                   <p>
-                    Tout est connecté à la base de données. À la confirmation, le
-                    soutien est enregistré et les totaux de campagne sont mis à jour.
+                    La session Stripe Checkout sera creee cote serveur avec vos
+                    identifiants de campagne et d utilisateur. La campagne sera
+                    mise a jour apres confirmation du webhook Stripe.
                   </p>
                 </div>
 

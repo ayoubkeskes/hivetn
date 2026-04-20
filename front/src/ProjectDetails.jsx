@@ -6,7 +6,7 @@ import "./ProjectDetails.css";
 import Navbar from "./Navbar";
 import ProjectCommentsSection from "./components/ProjectCommentsSection";
 import { buildApiUrl } from "./shared/services/api.js";
-import { formatMillimesToTnd, parseTndInput } from "./shared/utils/currency.js";
+import { formatMillimesToTnd } from "./shared/utils/currency.js";
 import { getCampaignEndDate } from "./shared/utils/campaignDates.js";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1528157777178-0062a444aeb8?w=1200&q=80";
@@ -123,10 +123,6 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
   const [isSaved, setIsSaved] = useState(false);
   const [savingInProgress, setSavingInProgress] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
-  const [supportAmount, setSupportAmount] = useState("25");
-  const [supportError, setSupportError] = useState("");
-  const [supportSuccess, setSupportSuccess] = useState("");
-  const [supportSubmitting, setSupportSubmitting] = useState(false);
 
   const supportRequested = useMemo(
     () => new URLSearchParams(location.search).get("support") === "1",
@@ -225,73 +221,6 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
     }
   };
 
-  const handleStartSupport = async (tokenOverride, amountOverride = null) => {
-    if (!campaign) return;
-
-    if (campaign.status !== "ACTIVE") {
-      setSupportError("Cette campagne n'accepte pas de soutiens pour le moment.");
-      return;
-    }
-
-    const rawAmount = amountOverride ?? supportAmount;
-    const parsedAmount = parseTndInput(rawAmount);
-    if (!parsedAmount || parsedAmount <= 0) {
-      setSupportError("Saisissez un montant valide supérieur à 0 TND.");
-      return;
-    }
-
-    const token = tokenOverride || localStorage.getItem("token");
-    if (!token) {
-      setLoginError("");
-      setPostLoginAction({ type: "support", amount: rawAmount });
-      setShowLoginModal(true);
-      return;
-    }
-
-    setSupportSubmitting(true);
-    setSupportError("");
-    setSupportSuccess("");
-
-    try {
-      const response = await fetch(buildApiUrl("/api/pledges"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          campaign_id: campaign.id,
-          amount_tnd: String(parsedAmount),
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok || !data.success) {
-        if (response.status === 401) {
-          setPostLoginAction({ type: "support", amount: rawAmount });
-          setShowLoginModal(true);
-          setLoginError(data.message || "");
-          return;
-        }
-
-        setSupportError(data.message || "Impossible d'enregistrer votre soutien pour le moment.");
-        return;
-      }
-
-      if (data.campaign) {
-        setCampaign(normalizeCampaign(data.campaign));
-      }
-
-      setSupportSuccess("Merci ! Votre soutien a bien été enregistré sur cette campagne.");
-      setSupportAmount("");
-    } catch (requestError) {
-      console.error("Create support error:", requestError);
-      setSupportError("Une erreur réseau est survenue pendant l'enregistrement de votre soutien.");
-    } finally {
-      setSupportSubmitting(false);
-    }
-  };
-
   const handleQuickLogin = async () => {
     try {
       const response = await fetch(buildApiUrl("/api/auth/login"), {
@@ -317,11 +246,6 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
 
       if (queuedAction?.type === "save") {
         await handleSaveCampaign(data.token);
-        return;
-      }
-
-      if (queuedAction?.type === "support") {
-        await handleStartSupport(data.token, queuedAction.amount);
       }
     } catch (requestError) {
       console.error("Quick login error:", requestError);
@@ -347,15 +271,10 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
   const hasStoryContent = hasVisibleStoryContent(story);
   const campaignEndDate = getCampaignEndDate(campaign);
 
-  const loginModalCopy = postLoginAction?.type === "support"
-    ? {
-        title: "Connexion requise",
-        description: "Connectez-vous pour enregistrer votre soutien et le rattacher à votre compte Hive.tn.",
-      }
-    : {
-        title: "Connexion requise",
-        description: "Vous devez être connecté pour enregistrer cette campagne.",
-      };
+  const loginModalCopy = {
+    title: "Connexion requise",
+    description: "Vous devez être connecté pour enregistrer cette campagne.",
+  };
 
   if (loading) {
     return (
@@ -645,9 +564,6 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                   </svg>
                 </button>
               </div>
-
-              {supportError && <p className="pd-support-feedback is-error">{supportError}</p>}
-              {supportSuccess && <p className="pd-support-feedback is-success">{supportSuccess}</p>}
             </div>
 
             {false && (

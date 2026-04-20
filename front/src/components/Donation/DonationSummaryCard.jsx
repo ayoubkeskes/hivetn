@@ -67,7 +67,7 @@ const DonationSummaryCard = ({
         onClick={onSubmit}
         disabled={submitting || disabled}
       >
-        {submitting ? "Confirmation en cours..." : "Confirmer la contribution"}
+        {submitting ? "Redirection vers Stripe..." : "Proceed to secure test payment"}
       </button>
 
       <button type="button" className="dp-secondary-btn dp-secondary-btn--full" onClick={onBack}>
@@ -75,9 +75,9 @@ const DonationSummaryCard = ({
       </button>
 
       <p className="dp-summary-card__legal">
-        Cette version MVP met à jour PostgreSQL en temps réel, sans intégrer de
-        passerelle bancaire. Les donnees sensibles de carte ne sont jamais
-        stockees.
+        Le paiement s'ouvre sur Stripe Checkout en mode test. Une fois le
+        webhook recu, PostgreSQL passe le paiement a paid et incremente la
+        campagne sans double comptage.
       </p>
     </aside>
   );

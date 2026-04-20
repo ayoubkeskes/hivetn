@@ -9,13 +9,16 @@ const buildRewardQuery = (rewardId) => {
 export const getContributionContext = async ({ campaignId, rewardId }) =>
   requestJson(`/api/campaigns/${campaignId}/contribution-context${buildRewardQuery(rewardId)}`);
 
-export const createContribution = async ({ campaignId, amount, rewardId, contributorNote }) =>
-  requestJson(`/api/campaigns/${campaignId}/contributions`, {
+export const createCheckoutSession = async ({ campaignId, amount, rewardId, contributorNote }) =>
+  requestJson("/api/payments/create-checkout-session", {
     method: "POST",
     body: {
+      campaignId,
       amount,
       rewardId,
-      paymentMethod: "MVP_MANUAL",
       contributorNote,
     },
   });
+
+export const getPaymentSession = async (sessionId) =>
+  requestJson(`/api/payments/session/${encodeURIComponent(sessionId)}`);

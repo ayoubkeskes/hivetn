@@ -21,7 +21,7 @@ const fundingStatsJoin = `
     SELECT
       combined.campaign_id,
       COUNT(*)::int AS backer_count,
-      COUNT(*) FILTER (WHERE combined.source = 'DONATION')::int AS paid_donation_count
+      COUNT(*) FILTER (WHERE combined.source IN ('DONATION', 'PAYMENT'))::int AS paid_donation_count
     FROM (
       SELECT campaign_id, 'PLEDGE'::text AS source
       FROM pledges
@@ -38,6 +38,12 @@ const fundingStatsJoin = `
       SELECT campaign_id, 'CONTRIBUTION'::text AS source
       FROM contributions
       WHERE status = 'CONFIRMED'
+
+      UNION ALL
+
+      SELECT campaign_id, 'PAYMENT'::text AS source
+      FROM payments
+      WHERE status = 'paid'
     ) combined
     GROUP BY combined.campaign_id
   ) fs ON fs.campaign_id = c.id
@@ -117,6 +123,16 @@ export const findPublicSupportedCampaignsByUserId = async (userId) => {
          c.created_at
        FROM contributions c
        WHERE c.status = 'CONFIRMED'
+
+       UNION ALL
+
+       SELECT
+         p.campaign_id,
+         p.user_id,
+         ROUND(p.amount * 1000)::int AS amount,
+         COALESCE(p.paid_at, p.created_at) AS created_at
+       FROM payments p
+       WHERE p.status = 'paid'
      ),
      combined_campaign_support_counts AS (
        SELECT
