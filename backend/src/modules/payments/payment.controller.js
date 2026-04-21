@@ -105,7 +105,7 @@ const buildCampaignSummary = (campaign) => ({
   contributionCount: Number(campaign.contribution_count || 0),
 });
 
-const finalizeSuccessfulPayment = async ({ session, eventId }) => {
+const finalizeSuccessfulPayment = async ({ session, eventId = null, eventType = "checkout.session.completed" }) => {
   const client = await pool.connect();
 
   try {
@@ -119,15 +119,17 @@ const finalizeSuccessfulPayment = async ({ session, eventId }) => {
       throw new Error(`Paiement introuvable pour la session Stripe ${session?.id || "inconnue"}.`);
     }
 
-    const registered = await PaymentModel.registerWebhookEvent(client, {
-      stripeEventId: eventId,
-      eventType: "checkout.session.completed",
-      stripeSessionId: session.id,
-    });
+    if (eventId) {
+      const registered = await PaymentModel.registerWebhookEvent(client, {
+        stripeEventId: eventId,
+        eventType,
+        stripeSessionId: session.id,
+      });
 
-    if (!registered) {
-      await client.query("ROLLBACK");
-      return { duplicate: true };
+      if (!registered) {
+        await client.query("ROLLBACK");
+        return { duplicate: true };
+      }
     }
 
     const lockedPayment = await PaymentModel.lockPaymentById(client, payment.id);
@@ -443,6 +445,14 @@ export const getCheckoutSessionStatus = async (req, res) => {
     }
 
     const stripeSession = await retrieveStripeCheckoutSession(sessionId);
+
+    if (payment.status !== "paid" && stripeSession?.payment_status === "paid") {
+      await finalizeSuccessfulPayment({
+        session: stripeSession,
+        eventType: "checkout.session.completed.sync",
+      });
+    }
+
     const refreshedPayment = await PaymentModel.findById(payment.id);
 
     return res.status(200).json({

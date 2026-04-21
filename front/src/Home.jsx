@@ -61,6 +61,19 @@ const CATEGORY_FILTERS = [
 
 const normalizeCategory = (value) => (value || '').trim().toLowerCase();
 
+const compareFeaturedProjects = (left, right) => {
+  const amountGap = Number(right?.amountRaised || 0) - Number(left?.amountRaised || 0);
+  if (amountGap !== 0) return amountGap;
+
+  const fundedGap = Number(right?.funded || 0) - Number(left?.funded || 0);
+  if (fundedGap !== 0) return fundedGap;
+
+  const backerGap = Number(right?.backerCount || 0) - Number(left?.backerCount || 0);
+  if (backerGap !== 0) return backerGap;
+
+  return String(left?.title || '').localeCompare(String(right?.title || ''), 'fr', { sensitivity: 'base' });
+};
+
 const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
@@ -80,20 +93,24 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
         const res = await fetch(buildApiUrl('/api/campaigns'));
         const data = await res.json();
         if (data.success) {
-          setProjects(data.campaigns.map((campaign) => ({
-            id: campaign.id,
-            title: campaign.title,
-            creator: `Par ${campaign.creator_name || 'Créateur inconnu'}`,
-            creatorId: campaign.porteur_id,
-            desc: campaign.description || '',
-            image: resolveMediaUrl(campaign.image_url),
-            funded: Number(campaign.funded_percent || 0),
-            collected: formatMillimesToTnd(campaign.amount_raised || 0),
-            amountRaised: Number(campaign.amount_raised || 0),
-            backerCount: Number(campaign.backer_count || 0),
-            daysLeft: getCampaignDaysLeft(campaign),
-            category: campaign.category || 'Projet',
-          })));
+          const rankedProjects = data.campaigns
+            .map((campaign) => ({
+              id: campaign.id,
+              title: campaign.title,
+              creator: `Par ${campaign.creator_name || 'Créateur inconnu'}`,
+              creatorId: campaign.porteur_id,
+              desc: campaign.description || '',
+              image: resolveMediaUrl(campaign.image_url),
+              funded: Number(campaign.funded_percent || 0),
+              collected: formatMillimesToTnd(campaign.amount_raised || 0),
+              amountRaised: Number(campaign.amount_raised || 0),
+              backerCount: Number(campaign.backer_count || 0),
+              daysLeft: getCampaignDaysLeft(campaign),
+              category: campaign.category || 'Projet',
+            }))
+            .sort(compareFeaturedProjects);
+
+          setProjects(rankedProjects);
         }
       } catch (err) {
         console.error('Failed to fetch homepage campaigns:', err);
@@ -124,6 +141,7 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
       return activeCategoryFilter.matches.some((match) => normalized.includes(match));
     })
     : projects;
+  const featuredProjects = filteredProjects.slice(0, 4);
 
   return (
     <div className="home-container">
@@ -170,7 +188,7 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
 
         <section className="projects-section" id="projets-recents">
           <div className="projects-header">
-            <h2 className="section-title">Campagnes publiées</h2>
+            <h2 className="section-title">4 campagnes vedettes</h2>
             <div className="category-filter-row" aria-label="Filtrer les campagnes par catégorie">
               {CATEGORY_FILTERS.map((filter) => {
                 const isActive = activeCategoryFilter?.id === filter.id;
@@ -198,7 +216,7 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
             <div style={{ textAlign: 'center', color: '#a1a1aa', padding: '40px 0' }}>Aucune campagne dans cette catégorie pour le moment.</div>
           ) : (
             <div className="projects-grid">
-              {filteredProjects.map((project) => (
+              {featuredProjects.map((project) => (
                 <ProjectCard key={project.id} project={project} onNavigate={onNavigate} />
               ))}
             </div>

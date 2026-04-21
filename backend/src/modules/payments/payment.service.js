@@ -10,9 +10,28 @@ const createConfigError = (message, statusCode = 500) => {
   return error;
 };
 
+const looksLikePlaceholderKey = (value) => {
+  const normalized = String(value || "").trim().toLowerCase();
+
+  return (
+    !normalized ||
+    normalized.includes("replace") ||
+    normalized.includes("example") ||
+    normalized.includes("your_") ||
+    normalized.endsWith("_me")
+  );
+};
+
 const ensureTestKey = () => {
   if (!env.STRIPE_SECRET_KEY) {
     throw createConfigError("Stripe n'est pas configure. Ajoutez STRIPE_SECRET_KEY.", 500);
+  }
+
+  if (looksLikePlaceholderKey(env.STRIPE_SECRET_KEY)) {
+    throw createConfigError(
+      "STRIPE_SECRET_KEY contient encore une valeur d'exemple. Remplacez-la par une vraie cle Stripe de test depuis le dashboard Stripe.",
+      500
+    );
   }
 
   if (!env.STRIPE_SECRET_KEY.startsWith("sk_test_")) {

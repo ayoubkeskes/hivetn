@@ -73,7 +73,7 @@ export default function PaymentSuccessPage({ isAuthenticated, onNavigate, onLogo
         setState({
           loading: false,
           attempts: attempt,
-          error: error.message || "Impossible de recuperer le statut de ce paiement.",
+          error: error.message || "Impossible de récupérer le statut de ce paiement.",
           payment: null,
           campaign: null,
           stripeSession: null,
@@ -106,19 +106,25 @@ export default function PaymentSuccessPage({ isAuthenticated, onNavigate, onLogo
             <div className="payment-status-badge">Stripe Test Mode</div>
             <h1 className="payment-status-title">
               {payment?.status === "paid"
-                ? "Paiement de test confirme"
-                : "Retour Stripe recu"}
+                ? "Paiement de test confirmé"
+                : "Retour Stripe reçu"}
             </h1>
 
             <p className="payment-status-copy">
               {payment?.status === "paid"
-                ? "Votre support de test est bien rattache a votre compte et a la campagne. Hive.tn a mis a jour la base de donnees apres confirmation Stripe."
-                : "Stripe a redirige vers Hive.tn. Le backend finalise maintenant le support via webhook avant d'afficher l'etat definitif."}
+                ? "Votre contribution de test est bien rattachée à votre compte et à la campagne. Hive.tn a mis à jour la base de données après confirmation Stripe."
+                : "Stripe vous a redirigé vers Hive.tn. Le backend finalise maintenant la confirmation du paiement avant d'afficher l'état définitif."}
             </p>
+
+            {payment?.status === "paid" && campaign?.id && (
+              <div className="payment-status-alert payment-status-alert--success">
+                Paiement confirmé. La campagne est prête à afficher le montant mis à jour.
+              </div>
+            )}
 
             {awaitingWebhook && (
               <div className="payment-status-alert">
-                Finalisation en cours. La page reverifie automatiquement le statut quelques secondes pour laisser le webhook Stripe terminer.
+                Finalisation en cours. La page revérifie automatiquement le statut pendant quelques secondes pour laisser la confirmation Stripe se terminer.
               </div>
             )}
 
@@ -139,13 +145,13 @@ export default function PaymentSuccessPage({ isAuthenticated, onNavigate, onLogo
               </div>
               <div className="payment-status-metric">
                 <span>Session Stripe</span>
-                <strong>{state.stripeSession?.paymentStatus || "inconnue"}</strong>
+                <strong>{state.stripeSession?.paymentStatus || "inconnu"}</strong>
               </div>
             </div>
           </div>
 
           <aside className="payment-status-side">
-            <h2>Resume</h2>
+            <h2>Résumé</h2>
 
             <div className="payment-status-list">
               <div>
@@ -162,17 +168,17 @@ export default function PaymentSuccessPage({ isAuthenticated, onNavigate, onLogo
               </div>
               <div>
                 <span>Webhook</span>
-                <strong>{payment?.status === "paid" ? "Traite" : "En cours"}</strong>
+                <strong>{payment?.status === "paid" ? "Traité" : "En cours"}</strong>
               </div>
             </div>
 
             <p>
-              Cette page reste volontairement en test mode. Utilisez uniquement des cles Stripe de test et les cartes de test Stripe en local.
+              Cette page reste volontairement en mode test. Utilisez uniquement des clés Stripe de test et des cartes de test Stripe en local.
             </p>
 
             <div className="payment-status-actions">
               <Link className="payment-status-btn" to={campaign?.id ? `/project/${campaign.id}` : "/discover"}>
-                Retour a la campagne
+                Retour à la campagne
               </Link>
               <Link className="payment-status-btn--ghost" to="/profile">
                 Voir mon profil

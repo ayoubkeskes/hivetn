@@ -128,8 +128,14 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
     () => new URLSearchParams(location.search).get("support") === "1",
     [location.search]
   );
+  const paymentSuccessRequested = useMemo(
+    () => new URLSearchParams(location.search).get("payment") === "success",
+    [location.search]
+  );
 
   useEffect(() => {
+    let isCancelled = false;
+
     const fetchCampaign = async () => {
       if (!campaignId) {
         setLoading(false);
@@ -138,24 +144,57 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
       }
 
       try {
-        const response = await fetch(buildApiUrl(`/api/campaigns/${campaignId}`));
+        const response = await fetch(buildApiUrl(`/api/campaigns/${campaignId}`), {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        });
         const data = await response.json();
         if (!response.ok || !data.success) {
-          setError(data.message || "Campagne introuvable.");
+          if (!isCancelled) {
+            setError(data.message || "Campagne introuvable.");
+          }
           return;
         }
 
-        setCampaign(normalizeCampaign(data.campaign));
+        if (!isCancelled) {
+          setCampaign(normalizeCampaign(data.campaign));
+          setError("");
+        }
       } catch (loadError) {
         console.error("Load campaign error:", loadError);
-        setError("Impossible de charger cette campagne.");
+        if (!isCancelled) {
+          setError("Impossible de charger cette campagne.");
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     };
 
     fetchCampaign();
-  }, [campaignId]);
+
+    if (!paymentSuccessRequested) {
+      return () => {
+        isCancelled = true;
+      };
+    }
+
+    const retryDelays = [1200, 2600, 4200];
+    const retryTimers = retryDelays.map((delay) =>
+      window.setTimeout(() => {
+        fetchCampaign();
+      }, delay)
+    );
+
+    return () => {
+      isCancelled = true;
+      retryTimers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [campaignId, paymentSuccessRequested]);
 
   useEffect(() => {
     const checkSavedStatus = async () => {

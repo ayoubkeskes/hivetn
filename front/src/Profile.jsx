@@ -134,7 +134,7 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
     const fetchBackedCampaigns = async () => {
       setLoadingBacked(true);
       try {
-        const response = await fetch(buildApiUrl("/api/pledges/my"), {
+        const response = await fetch(buildApiUrl("/api/users/me/supports"), {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await response.json();
@@ -147,10 +147,11 @@ const Profile = ({ onNavigate, isAuthenticated, onLogout }) => {
             image: campaign.image_url ? buildApiUrl(campaign.image_url) : FALLBACK_IMAGE,
             funded: Number(campaign.funded_percent || 0),
             collected: formatMillimesToTnd(campaign.total_contributed),
+            amountRaised: Number(campaign.amount_raised || 0),
             daysLeft: getCampaignDaysLeft(campaign),
             category: campaign.category || "Non catégorisé",
             dbStatus: campaign.status,
-            pledgeCount: campaign.pledge_count || 0,
+            pledgeCount: Number(campaign.pledge_count || 0),
             lastSupportedAt: campaign.last_supported_at || "",
           }));
           setBackedProjects(projects);

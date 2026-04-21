@@ -6,7 +6,7 @@ import Navbar from "@/Navbar";
 import "./PaymentStatusPage.css";
 
 const formatAmount = (amount) => {
-  if (!amount) return "Montant non precise";
+  if (!amount) return "Montant non précisé";
 
   return `${Number(amount).toLocaleString("fr-FR", {
     minimumFractionDigits: 2,
@@ -27,23 +27,23 @@ export default function PaymentCancelPage({ isAuthenticated, onNavigate, onLogou
         <section className="payment-status-card">
           <div className="payment-status-main">
             <div className="payment-status-badge is-cancelled">Stripe Test Mode</div>
-            <h1 className="payment-status-title">Paiement de test annule</h1>
+            <h1 className="payment-status-title">Paiement de test annulé</h1>
             <p className="payment-status-copy">
-              Aucun paiement reussi n'a ete confirme pour cette tentative. Tant qu'un webhook Stripe de succes n'est pas recu, la campagne n'est pas incrementee.
+              Aucun paiement réussi n'a été confirmé pour cette tentative. Tant que la confirmation Stripe n'est pas reçue, la campagne n'est pas incrémentée.
             </p>
 
             <div className="payment-status-grid">
               <div className="payment-status-metric">
-                <span>Montant vise</span>
+                <span>Montant visé</span>
                 <strong>{formatAmount(amount)}</strong>
               </div>
               <div className="payment-status-metric">
                 <span>Statut</span>
-                <strong>annule</strong>
+                <strong>annulé</strong>
               </div>
               <div className="payment-status-metric">
                 <span>Mode</span>
-                <strong>stripe test</strong>
+                <strong>test Stripe</strong>
               </div>
             </div>
           </div>
@@ -51,15 +51,15 @@ export default function PaymentCancelPage({ isAuthenticated, onNavigate, onLogou
           <aside className="payment-status-side">
             <h2>Que faire ensuite ?</h2>
             <p>
-              Vous pouvez relancer la tentative de paiement de test depuis la campagne, ou revenir plus tard sans perdre l'acces au projet.
+              Vous pouvez relancer la tentative de paiement de test depuis la campagne, ou revenir plus tard sans perdre l'accès au projet.
             </p>
 
             <div className="payment-status-actions">
               <Link className="payment-status-btn" to={campaignId ? `/campaigns/${campaignId}/contribute` : "/discover"}>
-                Reessayer
+                Réessayer
               </Link>
               <Link className="payment-status-btn--ghost" to={campaignId ? `/project/${campaignId}` : "/discover"}>
-                Retour a la campagne
+                Retour à la campagne
               </Link>
             </div>
           </aside>

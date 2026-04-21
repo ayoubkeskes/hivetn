@@ -27,6 +27,7 @@
 .payment-status-side {
   display: grid;
   gap: 18px;
+  min-width: 0;
 }
 
 .payment-status-badge {
@@ -73,6 +74,12 @@
   font-size: 14px;
 }
 
+.payment-status-alert--success {
+  border-color: rgba(12, 230, 136, 0.28);
+  background: rgba(12, 230, 136, 0.12);
+  color: #93f5c4;
+}
+
 .payment-status-grid {
   display: grid;
   gap: 14px;
@@ -84,6 +91,7 @@
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
+  min-width: 0;
 }
 
 .payment-status-metric span {
@@ -96,8 +104,12 @@
 }
 
 .payment-status-metric strong {
+  display: block;
   color: #ffffff;
   font-size: 1.2rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .payment-status-side {
@@ -122,6 +134,7 @@
 .payment-status-list div {
   display: grid;
   gap: 4px;
+  min-width: 0;
 }
 
 .payment-status-list span {
@@ -132,8 +145,12 @@
 }
 
 .payment-status-list strong {
+  display: block;
   color: #ffffff;
   font-size: 1rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .payment-status-actions {

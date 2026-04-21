@@ -663,7 +663,7 @@
 }
 
 .hero-section {
-  padding: clamp(56px, 9vw, 88px) var(--container-padding) clamp(42px, 8vw, 72px);
+  padding: clamp(20px, 4vw, 36px) var(--container-padding) clamp(42px, 8vw, 72px);
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
@@ -1681,7 +1681,7 @@
   }
 
   .hero-section {
-    padding-top: var(--space-5);
+    padding-top: var(--space-3);
   }
 
   .hero-eyebrow {

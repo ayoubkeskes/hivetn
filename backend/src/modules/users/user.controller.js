@@ -50,3 +50,20 @@ export const getPublicProfile = async (req, res) => {
     });
   }
 };
+
+export const getMySupportedCampaigns = async (req, res) => {
+  try {
+    const campaigns = await UserModel.findPublicSupportedCampaignsByUserId(req.user.id);
+
+    return res.status(200).json({
+      success: true,
+      campaigns,
+    });
+  } catch (error) {
+    console.error("Get my supported campaigns error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur interne du serveur.",
+    });
+  }
+};

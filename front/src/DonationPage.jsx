@@ -19,22 +19,22 @@ const DEFAULT_FAQ = [
   {
     question: "Est-ce un vrai paiement ?",
     answer:
-      "Non. Cette integration utilise Stripe Checkout en mode test uniquement. Aucun encaissement réel n'est active tant que vous gardez des cles Stripe de test.",
+      "Non. Cette intégration utilise Stripe Checkout uniquement en mode test. Aucun encaissement réel n'est activé tant que vous utilisez des clés Stripe de test.",
   },
   {
-    question: "Mes donnees de carte transitent-elles par Hive.tn ?",
+    question: "Mes données de carte transitent-elles par Hive.tn ?",
     answer:
-      "Non. La saisie de carte se fait sur la page Stripe hebergee. Hive.tn enregistre seulement les informations de support necessaires a la base de donnees.",
+      "Non. La saisie de carte se fait sur la page Stripe hébergée. Hive.tn enregistre seulement les informations de contribution nécessaires dans la base de données.",
   },
   {
-    question: "Quand la campagne est-elle mise a jour ?",
+    question: "Quand la campagne est-elle mise à jour ?",
     answer:
-      "Apres le paiement de test reussi, Stripe envoie un webhook au backend. Le paiement passe alors a paid dans PostgreSQL et le montant collecte de la campagne est incremente.",
+      "Après un paiement de test réussi, Hive.tn vérifie la session Stripe côté serveur puis met à jour PostgreSQL et le total de la campagne. Le webhook Stripe reste utilisé pour fiabiliser la confirmation et éviter les doublons.",
   },
   {
-    question: "Puis-je soutenir sans recompense ?",
+    question: "Puis-je soutenir sans récompense ?",
     answer:
-      "Oui. Vous pouvez garder un soutien libre ou choisir une recompense existante avant de passer sur Stripe Checkout.",
+      "Oui. Vous pouvez faire un soutien libre ou choisir une récompense existante avant de passer sur Stripe Checkout.",
   },
 ];
 
@@ -116,16 +116,16 @@ const CampaignHeader = ({ campaign, creator, totals }) => {
 const DonationSidebar = ({ campaign, creator, faqItems, faqOpenIndex, onFaqToggle }) => (
   <aside className="dp-sidebar">
     <div className="dp-sidebar-card dp-sidebar-card--accent">
-      <p className="dp-sidebar-card__eyebrow">A savoir</p>
+      <p className="dp-sidebar-card__eyebrow">À savoir</p>
       <h3>Paiement Stripe en mode test</h3>
       <p>
-        Votre session Stripe est creee cote backend, puis finalisee par webhook
-        pour mettre a jour PostgreSQL et les totaux de la campagne de maniere fiable.
+        Votre session Stripe est créée côté backend, puis confirmée côté serveur
+        pour mettre à jour PostgreSQL et les totaux de la campagne de manière fiable.
       </p>
       <ul className="dp-trust-list">
-        <li>Stripe Checkout heberge la saisie de carte</li>
+        <li>Stripe Checkout héberge la saisie de carte</li>
         <li>Le paiement reste strictement en test mode</li>
-        <li>Les webhooks evitent les doubles increments</li>
+        <li>Les webhooks et la vérification serveur évitent les doubles incréments</li>
       </ul>
     </div>
 
@@ -135,7 +135,7 @@ const DonationSidebar = ({ campaign, creator, faqItems, faqOpenIndex, onFaqToggl
       <div className="dp-compact-summary">
         <div>
           <span>Créateur</span>
-          <strong>{creator?.name || campaign?.creator_name || "Non renseigne"}</strong>
+          <strong>{creator?.name || campaign?.creator_name || "Non renseigné"}</strong>
         </div>
         <div>
           <span>Objectif</span>
@@ -201,8 +201,8 @@ const EmptyRewards = () => (
 const BlockedState = ({ onBack }) => (
   <div className="dp-blocked-state">
     <p className="dp-blocked-state__eyebrow">Campagne inactive</p>
-    <h2>Les contributions sont fermees</h2>
-    <p>Cette campagne n accepte pas de nouvelles contributions pour le moment.</p>
+    <h2>Les contributions sont fermées</h2>
+    <p>Cette campagne n'accepte pas de nouvelles contributions pour le moment.</p>
     <button type="button" className="dp-primary-btn" onClick={onBack}>
       Retour à la campagne
     </button>
@@ -472,9 +472,9 @@ const DonationPage = ({ onNavigate, isAuthenticated, onLogout }) => {
                   <p className="dp-section-header__eyebrow">Etape 2</p>
                   <h2>Confirmez votre contribution</h2>
                   <p>
-                    La session Stripe Checkout sera creee cote serveur avec vos
-                    identifiants de campagne et d utilisateur. La campagne sera
-                    mise a jour apres confirmation du webhook Stripe.
+                    La session Stripe Checkout sera créée côté serveur avec vos
+                    identifiants de campagne et d'utilisateur. La campagne sera
+                    mise à jour après confirmation serveur du paiement Stripe.
                   </p>
                 </div>
 

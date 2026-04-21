@@ -22,92 +22,14 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
   const imageInputRef = useRef(null);
   const videoInputRef = useRef(null);
 
-  const launchDateInputRef = useRef(null);
-
   const campaignId = draftProject?.campaignId;
   const title = draftProject?.title || '';
   const subtitle = draftProject?.subtitle || '';
   const category = draftProject?.category || '';
   const goal = draftProject?.goal || '';
-  const currentYear = new Date().getFullYear();
-  const launchDay = draftProject?.launchDay || '';
-  const launchMonth = draftProject?.launchMonth || '';
-  const launchYear = draftProject?.launchYear || '';
   const durationDays = Number(draftProject?.duration_days || 30);
 
   const normalizeGoalValue = (value) => value.replace(/\D/g, '').slice(0, 9);
-
-  const sanitizeDatePart = (value, maxLength) => value.replace(/\D/g, '').slice(0, maxLength);
-
-  const updateLaunchDateParts = (nextParts) => {
-    if (!onSaveDraft) return;
-
-    const nextDay = nextParts.launchDay ?? launchDay;
-    const nextMonth = nextParts.launchMonth ?? launchMonth;
-    const nextYear = nextParts.launchYear ?? launchYear;
-    const hasFullDate = nextDay.length > 0 && nextMonth.length > 0 && nextYear.length === 4;
-
-    onSaveDraft({
-      ...nextParts,
-      launchDate: hasFullDate
-        ? `${nextYear.padStart(4, '0')}-${nextMonth.padStart(2, '0')}-${nextDay.padStart(2, '0')}`
-        : '',
-    });
-  };
-
-  const handleLaunchPartChange = (field, rawValue, maxValue, maxLength) => {
-    const sanitized = sanitizeDatePart(rawValue, maxLength);
-    if (!sanitized) {
-      updateLaunchDateParts({ [field]: '' });
-      return;
-    }
-
-    const numericValue = Number(sanitized);
-    if (Number.isNaN(numericValue) || numericValue < 1 || numericValue > maxValue) {
-      return;
-    }
-
-    updateLaunchDateParts({ [field]: sanitized });
-  };
-
-  const handleLaunchYearChange = (rawValue) => {
-    const sanitized = sanitizeDatePart(rawValue, 4);
-    if (!sanitized) {
-      updateLaunchDateParts({ launchYear: '' });
-      return;
-    }
-
-    const numericValue = Number(sanitized);
-    if (Number.isNaN(numericValue)) return;
-
-    if (sanitized.length === 4 && (numericValue < currentYear || numericValue > currentYear + 10)) {
-      return;
-    }
-
-    updateLaunchDateParts({ launchYear: sanitized });
-  };
-
-  const openLaunchCalendar = () => {
-    if (!launchDateInputRef.current) return;
-
-    if (typeof launchDateInputRef.current.showPicker === 'function') {
-      launchDateInputRef.current.showPicker();
-    } else {
-      launchDateInputRef.current.click();
-    }
-  };
-
-  const handleLaunchDatePickerChange = (value) => {
-    if (!value || !onSaveDraft) return;
-
-    const [year, month, day] = value.split('-');
-    onSaveDraft({
-      launchDate: value,
-      launchDay: day ? String(Number(day)) : '',
-      launchMonth: month ? String(Number(month)) : '',
-      launchYear: year || '',
-    });
-  };
 
   const handleMediaUpload = async (file, type) => {
     if (!campaignId) {
@@ -489,95 +411,6 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
         </div>
       </div>
 
-      {/* 6. Target Launch Date */}
-      <div className="pe-split-row">
-        <div className="pe-split-left">
-          <h2>Date de lancement cible (optionnel)</h2>
-          <p style={{ marginBottom: '15px' }}>Nous vous fournirons des recommandations sur le moment idéal pour effectuer les démarches administratives qui peuvent prendre quelques jours.</p>
-        </div>
-        <div className="pe-split-right">
-          <div className="pe-form-row" style={{ alignItems: 'flex-end' }}>
-            <div className="pe-form-col">
-              <label className="pe-label">Jour</label>
-              <input
-                type="number"
-                className="pe-input"
-                placeholder="JJ"
-                min="1"
-                max="31"
-                inputMode="numeric"
-                value={launchDay}
-                onChange={e => handleLaunchPartChange('launchDay', e.target.value, 31, 2)}
-              />
-            </div>
-            <div className="pe-form-col">
-              <label className="pe-label">Mois</label>
-              <input
-                type="number"
-                className="pe-input"
-                placeholder="MM"
-                min="1"
-                max="12"
-                inputMode="numeric"
-                value={launchMonth}
-                onChange={e => handleLaunchPartChange('launchMonth', e.target.value, 12, 2)}
-              />
-            </div>
-            <div className="pe-form-col">
-              <label className="pe-label">Année</label>
-              <input
-                type="number"
-                className="pe-input"
-                placeholder="AAAA"
-                min={currentYear}
-                max={currentYear + 10}
-                inputMode="numeric"
-                value={launchYear}
-                onChange={e => handleLaunchYearChange(e.target.value)}
-              />
-            </div>
-            <div className="pe-form-col" style={{ maxWidth: '64px', marginTop: '28px' }}>
-              <button
-                type="button"
-                className="pe-upload-btn"
-                onClick={openLaunchCalendar}
-                aria-label="Ouvrir le calendrier"
-                title="Ouvrir le calendrier"
-                style={{ width: '100%', fontSize: '20px', padding: '8px 0', lineHeight: 1 }}
-              >
-                📅
-              </button>
-              <input
-                ref={launchDateInputRef}
-                type="date"
-                min={new Date().toISOString().split('T')[0]}
-                value={
-                  draftProject?.launchDate ||
-                  (launchDay && launchMonth && launchYear.length === 4
-                    ? `${launchYear.padStart(4, '0')}-${launchMonth.padStart(2, '0')}-${launchDay.padStart(2, '0')}`
-                    : '')
-                }
-                onChange={e => handleLaunchDatePickerChange(e.target.value)}
-                style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 1, height: 1 }}
-                tabIndex={-1}
-                aria-hidden="true"
-              />
-            </div>
-          </div>
-          <div className="pe-note">
-            Jour : 1-31, mois : 1-12, année : {currentYear}-{currentYear + 10}.
-          </div>
-          <p style={{ fontSize: '14px', marginBottom: '10px', marginTop: '15px' }}>Nous vous recommanderons quand vous devrez :</p>
-          <ul style={{ fontSize: '14px', color: '#a1a1aa', paddingLeft: '20px', marginBottom: '20px' }}>
-            <li>Confirmer votre identité et fournir vos coordonnées bancaires</li>
-            <li>Soumettre votre projet pour vérification</li>
-          </ul>
-          <div className="pe-note" style={{ color: '#a1a1aa' }}>
-            🎯 Fixer une date cible ne lancera pas automatiquement votre projet.
-          </div>
-        </div>
-      </div>
-
       {/* 5. Funding Goal */}
       <div className="pe-split-row">
         <div className="pe-split-left">
@@ -604,8 +437,7 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
         </div>
       </div>
 
-      {/* 6. Target Launch Date */}
-      {/* 7. Campaign Duration */}
+      {/* 6. Campaign Duration */}
       <div className="pe-split-row">
         <div className="pe-split-left">
           <h2>Durée de la campagne</h2>
