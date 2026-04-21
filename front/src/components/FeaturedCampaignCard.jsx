@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { DEFAULT_CAMPAIGN_IMAGE } from '../shared/utils/media.js';
+
 const FeaturedCampaignCard = ({ project, loading, onClick }) => {
   const progress = Math.max(0, Math.min(Number(project?.funded || 0), 100));
   const supporters = Number(project?.backerCount || 0);
@@ -21,6 +23,10 @@ const FeaturedCampaignCard = ({ project, loading, onClick }) => {
           alt={project.title}
           className="featured-campaign-image"
           loading="eager"
+          onError={(event) => {
+            event.currentTarget.onerror = null;
+            event.currentTarget.src = DEFAULT_CAMPAIGN_IMAGE;
+          }}
         />
         <div className="featured-campaign-badge">{loading ? 'Chargement...' : 'Campagne en vedette'}</div>
       </div>

@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 
 import { getCampaignDaysLeft } from '../shared/utils/campaignDates.js';
+import { DEFAULT_CAMPAIGN_IMAGE } from '../shared/utils/media.js';
 
 const ProjectCard = ({ project, onNavigate, actions, overlay }) => {
   const fundedPercent = Math.max(0, Number(project.funded || 0));
@@ -22,6 +23,10 @@ const ProjectCard = ({ project, onNavigate, actions, overlay }) => {
           alt={project.title}
           className="project-image"
           loading="lazy"
+          onError={(event) => {
+            event.currentTarget.onerror = null;
+            event.currentTarget.src = DEFAULT_CAMPAIGN_IMAGE;
+          }}
         />
         {overlay && <div className="project-card-overlay">{overlay}</div>}
       </div>

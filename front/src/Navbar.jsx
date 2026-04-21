@@ -363,7 +363,13 @@ const Navbar = ({ onNavigate, isAuthenticated, onLogout, activeTab }) => {
     >
       <div className="nav-left">
         <button type="button" className="nav-logo" onClick={() => handleViewNavigation('home')}>
-          <span className="nav-logo-mark" aria-hidden="true">H</span>
+          <img
+            src="/hive-logo-mark.png"
+            alt=""
+            aria-hidden="true"
+            className="nav-logo-mark"
+            decoding="async"
+          />
           <span className="nav-logo-text">Hive.tn</span>
         </button>
       </div>

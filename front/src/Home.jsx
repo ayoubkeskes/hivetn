@@ -7,16 +7,7 @@ import TrustSocialProofSection from './components/TrustSocialProofSection';
 import { buildApiUrl } from './shared/services/api.js';
 import { formatMillimesToTnd } from './shared/utils/currency.js';
 import { getCampaignDaysLeft } from './shared/utils/campaignDates.js';
-
-const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1528157777178-0062a444aeb8?w=800&q=80';
-
-const resolveMediaUrl = (url) => {
-  if (!url) return FALLBACK_IMAGE;
-  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
-    return url;
-  }
-  return buildApiUrl(url);
-};
+import { DEFAULT_CAMPAIGN_IMAGE, resolveMediaUrl } from './shared/utils/media.js';
 
 const CompassIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -125,7 +116,7 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
   const featuredProject = projects[0] || {
     id: 'featured-placeholder',
     title: 'Atelier solaire pour artisans tunisiens',
-    image: FALLBACK_IMAGE,
+    image: DEFAULT_CAMPAIGN_IMAGE,
     funded: 68,
     collected: '18 400 DT',
     amountRaised: 18400000,

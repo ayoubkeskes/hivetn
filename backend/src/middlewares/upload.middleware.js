@@ -1,10 +1,15 @@
 import fs from "fs";
 import multer from "multer";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsRoot = path.resolve(__dirname, "../../uploads");
 
 const createStorage = ({ destinationFolder, filePrefix }) => multer.diskStorage({
   destination: function (_req, _file, cb) {
-    const targetDirectory = path.join("uploads", destinationFolder);
+    const targetDirectory = path.join(uploadsRoot, destinationFolder);
     fs.mkdirSync(targetDirectory, { recursive: true });
     cb(null, targetDirectory);
   },
