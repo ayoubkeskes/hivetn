@@ -1,4 +1,5 @@
 ﻿import React, { useEffect, useState } from "react";
+import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 import "./SupportTicketsPage.css";
@@ -22,9 +23,56 @@ const emptySummary = {
   closed_tickets: 0,
 };
 
+const SupportFilterMenu = ({ id, label, value, options, onChange, openMenu, setOpenMenu }) => {
+  const isOpen = openMenu === id;
+  const selectedOption = options.find((option) => option.value === value) || options[0];
+
+  return (
+    <div className={`support-filter-menu ${isOpen ? "is-open" : ""}`}>
+      <span className="support-filter-menu__label">{label}</span>
+      <button
+        type="button"
+        className="support-filter-menu__button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        onClick={() => setOpenMenu(isOpen ? "" : id)}
+      >
+        <span>{selectedOption?.label || "Selectionner"}</span>
+        <span className="support-filter-menu__chevron" aria-hidden="true">⌄</span>
+      </button>
+
+      {isOpen && (
+        <div className="support-filter-menu__panel" role="listbox" aria-label={label}>
+          {options.map((option) => {
+            const selected = option.value === value;
+
+            return (
+              <button
+                key={option.value || "all"}
+                type="button"
+                className={`support-filter-menu__option ${selected ? "is-selected" : ""}`}
+                role="option"
+                aria-selected={selected}
+                onClick={() => {
+                  onChange(option.value);
+                  setOpenMenu("");
+                }}
+              >
+                <span>{option.label}</span>
+                {selected && <span aria-hidden="true">✓</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const SupportTicketsPage = ({ onNavigate, isAuthenticated, onLogout }) => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  const toolbarRef = useRef(null);
   const [tickets, setTickets] = useState([]);
   const [summary, setSummary] = useState(emptySummary);
   const [pagination, setPagination] = useState({
@@ -40,6 +88,7 @@ const SupportTicketsPage = ({ onNavigate, isAuthenticated, onLogout }) => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [openMenu, setOpenMenu] = useState("");
 
   useEffect(() => {
     if (!token) {
@@ -76,9 +125,35 @@ const SupportTicketsPage = ({ onNavigate, isAuthenticated, onLogout }) => {
     };
   }, [filters, token]);
 
+  useEffect(() => {
+    if (!openMenu) return undefined;
+
+    const closeOnOutside = (event) => {
+      if (toolbarRef.current && !toolbarRef.current.contains(event.target)) {
+        setOpenMenu("");
+      }
+    };
+
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") {
+        setOpenMenu("");
+      }
+    };
+
+    document.addEventListener("mousedown", closeOnOutside);
+    document.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [openMenu]);
+
   if (!token) return null;
 
   const hasActiveFilters = Boolean(filters.search || filters.status || filters.category);
+  const statusFilterOptions = [{ value: "", label: "Tous" }, ...supportStatusOptions];
+  const categoryFilterOptions = [{ value: "", label: "Toutes" }, ...supportCategoryOptions];
 
   return (
     <SupportCenterLayout
@@ -111,7 +186,7 @@ const SupportTicketsPage = ({ onNavigate, isAuthenticated, onLogout }) => {
         </article>
       </section>
 
-      <section className="support-toolbar">
+      <section className="support-toolbar" ref={toolbarRef}>
         <label className="support-toolbar__search">
           <span>Recherche</span>
           <input
@@ -126,55 +201,47 @@ const SupportTicketsPage = ({ onNavigate, isAuthenticated, onLogout }) => {
           />
         </label>
 
-        <label className="support-toolbar__field">
-          <span>Statut</span>
-          <select
-            value={filters.status}
-            onChange={(event) => setFilters((prev) => ({
-              ...prev,
-              status: event.target.value,
-              page: 1,
-            }))}
-          >
-            <option value="">Tous</option>
-            {supportStatusOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-        </label>
+        <SupportFilterMenu
+          id="status"
+          label="Statut"
+          value={filters.status}
+          options={statusFilterOptions}
+          openMenu={openMenu}
+          setOpenMenu={setOpenMenu}
+          onChange={(status) => setFilters((prev) => ({
+            ...prev,
+            status,
+            page: 1,
+          }))}
+        />
 
-        <label className="support-toolbar__field">
-          <span>Categorie</span>
-          <select
-            value={filters.category}
-            onChange={(event) => setFilters((prev) => ({
-              ...prev,
-              category: event.target.value,
-              page: 1,
-            }))}
-          >
-            <option value="">Toutes</option>
-            {supportCategoryOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-        </label>
+        <SupportFilterMenu
+          id="category"
+          label="Catégorie"
+          value={filters.category}
+          options={categoryFilterOptions}
+          openMenu={openMenu}
+          setOpenMenu={setOpenMenu}
+          onChange={(category) => setFilters((prev) => ({
+            ...prev,
+            category,
+            page: 1,
+          }))}
+        />
 
-        <label className="support-toolbar__field">
-          <span>Trier par</span>
-          <select
-            value={filters.sortValue}
-            onChange={(event) => setFilters((prev) => ({
-              ...prev,
-              sortValue: event.target.value,
-              page: 1,
-            }))}
-          >
-            {userSupportSortOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-        </label>
+        <SupportFilterMenu
+          id="sort"
+          label="Trier par"
+          value={filters.sortValue}
+          options={userSupportSortOptions}
+          openMenu={openMenu}
+          setOpenMenu={setOpenMenu}
+          onChange={(sortValue) => setFilters((prev) => ({
+            ...prev,
+            sortValue,
+            page: 1,
+          }))}
+        />
 
         {hasActiveFilters && (
           <button

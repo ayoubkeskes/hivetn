@@ -17,11 +17,11 @@
 .support-shell {
   position: relative;
   z-index: 1;
-  max-width: 1280px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 24px var(--container-padding) 48px;
   display: grid;
-  grid-template-columns: minmax(220px, 270px) minmax(0, 1fr);
+  grid-template-columns: minmax(210px, 250px) minmax(0, 1fr);
   gap: 22px;
 }
 
@@ -129,6 +129,7 @@
 .support-main-panel {
   padding: 24px;
   min-width: 0;
+  width: 100%;
 }
 
 .support-main-panel__header {
