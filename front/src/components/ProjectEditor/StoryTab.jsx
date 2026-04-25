@@ -12,6 +12,12 @@ const createBlock = (type = 'paragraph', content = '') => ({
   content,
 });
 
+const createFaq = (question = '', answer = '') => ({
+  id: `faq-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  question,
+  answer,
+});
+
 const normalizeStory = (story) => {
   let parsed = story;
 
@@ -35,7 +41,13 @@ const normalizeStory = (story) => {
   return {
     blocks,
     risks: typeof parsed?.risks === 'string' ? parsed.risks : '',
-    faqs: Array.isArray(parsed?.faqs) ? parsed.faqs : [],
+    faqs: Array.isArray(parsed?.faqs)
+      ? parsed.faqs.map((faq) => ({
+          id: faq?.id || `faq-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          question: faq?.question || '',
+          answer: faq?.answer || '',
+        }))
+      : [],
   };
 };
 
@@ -360,7 +372,7 @@ const StoryTab = ({ draftProject, onSaveDraft }) => {
         <div className="pe-split-right" style={{ background: 'transparent', border: 'none', padding: 0 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {faqs.map((faq, index) => (
-              <div key={`${faq.question}-${index}`} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '12px', padding: '24px' }}>
+              <div key={faq.id || index} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '12px', padding: '24px' }}>
                 <div style={{ marginBottom: '15px' }}>
                   <label className="pe-label">Question</label>
                   <input
@@ -403,7 +415,7 @@ const StoryTab = ({ draftProject, onSaveDraft }) => {
               <button
                 className="pe-new-item-btn"
                 style={{ background: '#111', color: '#fff', border: '1px solid rgba(255, 255, 255, 0.1)', boxShadow: 'none' }}
-                onClick={() => setFaqs([...faqs, { question: '', answer: '' }])}
+                onClick={() => setFaqs([...faqs, createFaq()])}
               >
                 Ajouter une autre FAQ
               </button>

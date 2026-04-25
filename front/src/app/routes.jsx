@@ -29,6 +29,61 @@ const SupportTicketDetailsPage = React.lazy(() => import("@/modules/support/page
 const InfoPage = React.lazy(() => import("@/InfoPage.jsx"));
 const Footer = React.lazy(() => import("@/shared/components/Footer.jsx"));
 
+class AdminRouteErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, message: "" };
+  }
+
+  static getDerivedStateFromError(error) {
+    return {
+      hasError: true,
+      message: error?.message || "Une erreur est survenue lors du chargement de l'espace admin.",
+    };
+  }
+
+  componentDidCatch(error) {
+    console.error("Admin route error:", error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+            background: "#0b0f19",
+            color: "#f8fafc",
+          }}
+        >
+          <div
+            style={{
+              width: "min(560px, 100%)",
+              padding: "24px",
+              borderRadius: "20px",
+              border: "1px solid rgba(248, 113, 113, 0.22)",
+              background: "rgba(17, 24, 39, 0.96)",
+              boxShadow: "0 20px 44px rgba(0, 0, 0, 0.28)",
+            }}
+          >
+            <p style={{ margin: "0 0 10px", color: "#fca5a5", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              Erreur admin
+            </p>
+            <h1 style={{ margin: "0 0 12px", fontSize: "24px" }}>Le dashboard admin n'a pas pu s'afficher.</h1>
+            <p style={{ margin: 0, color: "#cbd5e1", lineHeight: 1.6 }}>{this.state.message}</p>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 function AppRoutes() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -316,7 +371,14 @@ function AppRoutes() {
           path="/support/:id"
           element={<SupportTicketDetailsPage isAuthenticated={isAuthenticated} onNavigate={handleNavigate} onLogout={handleLogout} />}
         />
-        <Route path="/admin/*" element={<AdminDashboard />} />
+        <Route
+          path="/admin/*"
+          element={
+            <AdminRouteErrorBoundary>
+              <AdminDashboard onNavigate={handleNavigate} />
+            </AdminRouteErrorBoundary>
+          }
+        />
       </Routes>
 
       {shouldShowFooter && <Footer />}

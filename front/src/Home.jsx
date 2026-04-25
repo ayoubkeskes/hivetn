@@ -42,16 +42,6 @@ const TRUST_PROOF_FALLBACK_TESTIMONIALS = [
   { id: 'evolution', quote: 'Plateforme en constante évolution' },
 ];
 
-const CATEGORY_FILTERS = [
-  { id: 'artisanat', label: 'Artisanat', matches: ['artisanat'] },
-  { id: 'tech', label: 'Tech', matches: ['tech', 'tech & app', 'technologie', 'app'] },
-  { id: 'social', label: 'Social', matches: ['social'] },
-  { id: 'culture', label: 'Culture', matches: ['culture'] },
-  { id: 'startup', label: 'Startup', matches: ['startup'] },
-];
-
-const normalizeCategory = (value) => (value || '').trim().toLowerCase();
-
 const compareFeaturedProjects = (left, right) => {
   const amountGap = Number(right?.amountRaised || 0) - Number(left?.amountRaised || 0);
   if (amountGap !== 0) return amountGap;
@@ -68,7 +58,6 @@ const compareFeaturedProjects = (left, right) => {
 const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
-  const [activeCategoryFilter, setActiveCategoryFilter] = useState(null);
 
   const handleCreateProject = () => {
     if (isAuthenticated) {
@@ -126,13 +115,7 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
 
   const trustProofStats = TRUST_PROOF_FALLBACK_STATS;
   const trustProofTestimonials = TRUST_PROOF_FALLBACK_TESTIMONIALS;
-  const filteredProjects = activeCategoryFilter
-    ? projects.filter((project) => {
-      const normalized = normalizeCategory(project.category);
-      return activeCategoryFilter.matches.some((match) => normalized.includes(match));
-    })
-    : projects;
-  const featuredProjects = filteredProjects.slice(0, 4);
+  const featuredProjects = projects.slice(0, 4);
 
   return (
     <div className="home-container">
@@ -180,31 +163,12 @@ const Home = ({ onNavigate, isAuthenticated, onLogout }) => {
         <section className="projects-section" id="projets-recents">
           <div className="projects-header">
             <h2 className="section-title">4 campagnes vedettes</h2>
-            <div className="category-filter-row" aria-label="Filtrer les campagnes par catégorie">
-              {CATEGORY_FILTERS.map((filter) => {
-                const isActive = activeCategoryFilter?.id === filter.id;
-
-                return (
-                  <button
-                    key={filter.id}
-                    type="button"
-                    className={`category-filter-chip${isActive ? ' is-active' : ''}`}
-                    onClick={() => setActiveCategoryFilter(isActive ? null : filter)}
-                    aria-pressed={isActive}
-                  >
-                    {filter.label}
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
           {loadingProjects ? (
             <div style={{ textAlign: 'center', color: '#a1a1aa', padding: '40px 0' }}>Chargement des campagnes...</div>
           ) : projects.length === 0 ? (
             <div style={{ textAlign: 'center', color: '#a1a1aa', padding: '40px 0' }}>Aucune campagne active à afficher pour le moment.</div>
-          ) : filteredProjects.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#a1a1aa', padding: '40px 0' }}>Aucune campagne dans cette catégorie pour le moment.</div>
           ) : (
             <div className="projects-grid">
               {featuredProjects.map((project) => (

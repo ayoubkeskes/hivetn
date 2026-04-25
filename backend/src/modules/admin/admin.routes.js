@@ -7,6 +7,7 @@ import { deleteAdminComment, getAdminCampaignComments } from "../comments/commen
 import {
   approveCampaign,
   changeUserRole,
+  createUser,
   deleteCampaign,
   deleteUser,
   getAllCampaigns,
@@ -40,6 +41,7 @@ router.get("/campaigns/pending", getPendingCampaigns);
 router.get("/campaigns/:id/comments", getAdminCampaignComments);
 router.get("/pledges", getPledges);
 router.get("/users", getUsers);
+router.post("/users", createUser);
 router.put("/campaigns/:id", updateAcceptedCampaign);
 router.post("/campaigns/:id/image", uploadMedia.single("file"), updateAcceptedCampaignImage);
 router.post("/campaigns/:id/video", uploadMedia.single("file"), updateAcceptedCampaignVideo);

@@ -2,6 +2,8 @@
 // Admin Controller — Dashboard KPIs & Moderation
 // ──────────────────────────────────────────────
 
+import bcrypt from "bcrypt";
+
 import * as AdminModel from "./admin.model.js";
 import * as SettingsModel from "./settings.model.js";
 import * as CampaignModel from "../campaigns/campaign.model.js";
@@ -184,6 +186,77 @@ export const getUsers = async (_req, res) => {
     return res.status(200).json({ success: true, count: users.length, users });
   } catch (error) {
     console.error("Users list error:", error);
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
+  }
+};
+
+/**
+ * POST /api/admin/users
+ * Creates a platform user from the admin dashboard.
+ */
+export const createUser = async (req, res) => {
+  try {
+    const { name, email, password, role = "USER", bio = "", avatar = "" } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: "Le nom est obligatoire." });
+    }
+
+    if (!email || !email.trim()) {
+      return res.status(400).json({ success: false, message: "L'email est obligatoire." });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(normalizedEmail)) {
+      return res.status(400).json({ success: false, message: "Format d'email invalide." });
+    }
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ success: false, message: "Le mot de passe doit contenir au moins 6 caracteres." });
+    }
+
+    if (!["USER", "ADMIN"].includes(role)) {
+      return res.status(400).json({ success: false, message: "Le role doit etre 'USER' ou 'ADMIN'." });
+    }
+
+    const existingUser = await UserModel.findByEmail(normalizedEmail);
+    if (existingUser) {
+      return res.status(409).json({ success: false, message: "Un compte avec cet email existe deja." });
+    }
+
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 12;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+    const user = await AdminModel.createUser({
+      name: name.trim(),
+      email: normalizedEmail,
+      passwordHash,
+      role,
+      bio,
+      avatar,
+    });
+
+    await logAdminAction({
+      ...adminLogContext(req),
+      actionType: "USER_CREATED",
+      entityType: "user",
+      entityId: user.id,
+      targetUserId: user.id,
+      description: `Utilisateur "${user.name}" cree par l'administration.`,
+      metadata: {
+        userName: user.name,
+        userEmail: user.email,
+        role: user.role,
+      },
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: `Utilisateur "${user.name}" cree avec succes.`,
+      user,
+    });
+  } catch (error) {
+    console.error("Create user error:", error);
     return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };

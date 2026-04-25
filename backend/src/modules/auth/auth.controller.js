@@ -56,6 +56,13 @@ const ensureGoogleConfig = () => {
   }
 };
 
+const createGoogleApiError = (fallbackMessage, data = {}) => {
+  const detail = [data.error, data.error_description].filter(Boolean).join(': ');
+  const error = new Error(detail || fallbackMessage);
+  error.googleError = data;
+  return error;
+};
+
 const exchangeCodeForTokens = async (code) => {
   const response = await fetch(GOOGLE_TOKEN_URL, {
     method: 'POST',
@@ -71,7 +78,7 @@ const exchangeCodeForTokens = async (code) => {
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.error_description || data.error || 'Impossible de récupérer les jetons Google.');
+    throw createGoogleApiError('Impossible de récupérer les jetons Google.', data);
   }
   return data;
 };
@@ -83,7 +90,7 @@ const fetchGoogleProfile = async (accessToken) => {
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.error_description || data.error || 'Impossible de récupérer le profil Google.');
+    throw createGoogleApiError('Impossible de récupérer le profil Google.', data);
   }
   return data;
 };
@@ -274,14 +281,15 @@ export const handleGoogleCallback = async (req, res) => {
     const tokens = await exchangeCodeForTokens(String(code));
     const googleProfile = await fetchGoogleProfile(tokens.access_token);
     const user = await resolveGoogleUser(googleProfile);
-    const appUser = sanitizeUser(user);
-
     return redirectToFrontend(res, {
       token: issueToken(user),
-      user: encodeFrontendUser(appUser),
     });
   } catch (error) {
-    console.error('Google callback error:', error);
+    console.error('Google callback error:', {
+      message: error.message,
+      googleError: error.googleError,
+      callbackUrl: getGoogleCallbackUrl(),
+    });
     return redirectToFrontend(res, {
       error: error.message || 'Impossible de finaliser la connexion Google.',
     });

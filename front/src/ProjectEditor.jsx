@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Eye, PencilLine } from 'lucide-react';
 import './ProjectEditor.css';
 import './CreateProject.css';
 import BasicsTab from './components/ProjectEditor/BasicsTab';
@@ -410,13 +411,13 @@ const ProjectEditor = ({ onNavigate, draftProject, onSaveDraft }) => {
                 className={`pe-mode-btn ${!showPreview ? 'pe-mode-btn--active' : ''}`}
                 onClick={() => setShowPreview(false)}
               >
-                <span className="pe-mode-icon">E</span> Éditeur
+                <span className="pe-mode-icon"><PencilLine size={14} strokeWidth={2.4} /></span> Éditeur
               </button>
               <button
                 className={`pe-mode-btn pe-mode-btn--preview ${showPreview ? 'pe-mode-btn--active pe-mode-btn--preview-active' : ''}`}
                 onClick={() => setShowPreview(true)}
               >
-                <span className="pe-mode-icon">V</span> Aperçu
+                <span className="pe-mode-icon"><Eye size={15} strokeWidth={2.4} /></span> Aperçu
               </button>
             </div>
           </div>

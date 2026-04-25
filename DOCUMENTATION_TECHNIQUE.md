@@ -1,14 +1,15 @@
   # 📋 DOCUMENTATION TECHNIQUE - HIVE.TN MVP
-  **Date**: Avril 2026 | **Version**: 1.0 | **Scope**: Statut fonctionnel exhaustif  
+  **Date**: Avril 2026 | **Version**: 1.1 | **Scope**: Statut fonctionnel exhaustif
   **Auteur**: Audit code automatisé | **Confiance**: Basé sur analyse directe sources
 
   ---
 
   ## ⚠️ RÉSUMÉ EXÉCUTIF
 
-  **Hive.tn** est une plateforme de crowdfunding tunisienne moderne, **60% implémentée** en production-ready:
-  - ✅ **Authentification, campagnes CRUD, commentaires, support, admin modération** : Complet
-  - ⚠️ **Paiements Flouci, notifications temps réel, contributions** : Stubs/partiels
+  **Hive.tn** est une plateforme de crowdfunding tunisienne moderne, **70% implémentée** en production-ready:
+  - ✅ **Authentification, campagnes CRUD, commentaires, support, admin modération, audit logs** : Complet
+  - ✅ **Stripe Checkout en mode test** : Création de sessions, retour succès/annulation, webhooks signés, idempotence
+  - ⚠️ **Paiements production, notifications temps réel, contributions manuelles legacy** : Partiels
   - ❌ **Milestones blockchain, analytics avancées, webhooks externes** : Prévus uniquement
 
   ---
@@ -24,8 +25,8 @@
   ```
   server.js (charge .env via config/env.js)
     → db.js (Pool PostgreSQL + ensureRuntimeSchema())
-    → schemaInit.js (ALTER/CREATE 11 tables + triggers)
-    → app.js (Express + CORS + routes)
+    → schemaInit.js (ALTER/CREATE tables métier + triggers)
+    → app.js (Express + CORS + raw Stripe webhook + routes)
     → écoute PORT
   ```
 
@@ -33,6 +34,7 @@
   | Middleware | Route | Fonction |
   |---|---|---|
   | CORS | * | Accepte toute origine ⚠️ |
+  | Stripe raw parser | /api/payments/webhook | Préserve le payload signé avant JSON parser |
   | JSON parser (50MB limit) | * | [app.js L15](backend/src/app.js#L15) |
   | Static /uploads | /uploads | Sert fichiers campagnes/support |
   | Auth JWT | Routes protégées | [auth.middleware.js](backend/src/middlewares/auth.middleware.js) |
@@ -103,6 +105,7 @@
   current_amount = SUM(pledges.amount WHERE status='SUCCESS')
                 + SUM(donations.amount_millimes WHERE status='PAID')
                 + SUM(contributions.amount * 1000 WHERE status='CONFIRMED')
+                + SUM(payments.amount * 1000 WHERE status='paid')
   ```
 
   #### `pledges` (Legacy payment stub)
@@ -147,6 +150,34 @@
   contributor_note TEXT
   created_at, updated_at TIMESTAMPTZ
   ```
+
+  #### `payments` (Stripe Checkout test mode)
+  ```sql
+  id UUID PK
+  user_id UUID FK→users
+  campaign_id UUID FK→campaigns
+  stripe_session_id TEXT UNIQUE WHERE NOT NULL
+  stripe_payment_intent_id TEXT UNIQUE WHERE NOT NULL
+  amount NUMERIC(12,2) (TND display)
+  currency VARCHAR(10) DEFAULT 'tnd'
+  status VARCHAR(20) DEFAULT 'pending' -- pending, paid, cancelled
+  provider VARCHAR(30) DEFAULT 'stripe'
+  payment_mode VARCHAR(20) DEFAULT 'test'
+  reward_id TEXT
+  contributor_note TEXT
+  paid_at TIMESTAMPTZ
+  created_at, updated_at TIMESTAMPTZ
+  ```
+
+  #### `payment_webhook_events`
+  ```sql
+  stripe_event_id TEXT PK
+  event_type VARCHAR(120)
+  stripe_session_id TEXT
+  created_at TIMESTAMPTZ
+  ```
+
+  **Rôle**: garde l'idempotence des webhooks Stripe (`checkout.session.completed`, `checkout.session.expired`).
 
   #### `notifications`
   ```sql
@@ -292,7 +323,7 @@
   | POST | `/login` | ❌ | `{email, password}` | `{success, token, user}` | 400 (Google-only user), 401 (credentiels) | ✅ |
   | GET | `/me` | ✅ JWT | - | `{success, user}` | 401, 404 | ✅ |
   | GET | `/google` | ❌ | - | Redirect Google OAuth | Config missing | ✅ |
-  | GET | `/google/callback` | ❌ | `?code&state` query | Redirect frontend `#token=...&user=...` | OAuth error | ✅ |
+  | GET | `/google/callback` | ❌ | `?code&state` query | Redirect frontend `#token=...` puis refresh user via `/me` | OAuth error détaillée | ✅ |
   | PUT | `/profile` | ✅ JWT | `{name?, email?, bio?, avatar?}` | `{success, user}` | 400, 409 (email), 404 | ✅ |
   | PUT | `/password` | ✅ JWT | `{currentPassword?, newPassword}` | `{success, message}` | 400 (validation), 401 (pwd) | ✅ |
 
@@ -301,6 +332,7 @@
   - JWT expiry: 24h (env: `JWT_EXPIRES_IN`) | Secret: env `JWT_SECRET`
   - Google: Client ID/Secret via env `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
   - Auth provider: 'local' | 'google' | 'hybrid' (local + google linked)
+  - Callback Google: le backend ne dépend plus du payload `user` encodé dans l'URL ; le frontend relit `/api/auth/me` après réception du token.
 
   ---
 
@@ -339,35 +371,58 @@
 
   ---
 
-  ### 3.3 CONTRIBUTIONS & PLEDGES
+  ### 3.3 PAIEMENTS, CONTRIBUTIONS & PLEDGES
 
-  #### Contributions (`/api/campaigns/:id/contributions`)
-  **Status**: ✅ Implémenté | **Note**: MVP sans paiement réel  
+  #### Stripe Checkout (`/api/payments`)
+  **Status**: ✅ Implémenté en mode test | [payment.routes.js](backend/src/modules/payments/payment.routes.js) + [payment.controller.js](backend/src/modules/payments/payment.controller.js)
+
+  | Méthode | Chemin | Auth | Impl | Notes |
+  |---|---|---|---|---|
+  | POST | `/create-checkout-session` | ✅ | ✅ | Crée `payments` pending + session Stripe Checkout |
+  | GET | `/session/:id` | ✅ | ✅ | Vérifie Stripe, finalise si `payment_status=paid` |
+  | POST | `/webhook` | ❌ signature Stripe | ✅ | `checkout.session.completed` / `expired`, idempotent via `payment_webhook_events` |
+
+  **Flux Stripe**:
+  1. Frontend appelle `POST /api/payments/create-checkout-session`
+  2. Backend valide campagne ACTIVE, montant, récompense, self-support interdit
+  3. Insertion `payments(status='pending', provider='stripe', payment_mode='test')`
+  4. Création session Stripe Checkout hébergée
+  5. Retour `/payment/success?session_id=...` ou `/payment/cancel?...`
+  6. Confirmation via webhook signé ou synchronisation `GET /api/payments/session/:id`
+  7. Si succès: `payments.status='paid'`, agrégats campagne incrémentés, notification `NEW_SUPPORT`
+
+  **Limites**:
+  - Clés Stripe test uniquement (`sk_test_...`) ; pas de paiement production.
+  - Webhook requis pour fiabilité complète en local/production.
+  - Les anciennes tables `donations`, `pledges` et `contributions` restent prises en compte dans les agrégats.
+
+  #### Contributions manuelles (`/api/campaigns/:id/contributions`)
+  **Status**: ⚠️ Legacy/MVP | **Note**: crée un soutien confirmé sans PSP
   [contribution.controller.js](backend/src/modules/contributions/contribution.controller.js) + [contribution.model.js](backend/src/modules/contributions/contribution.model.js)
 
   - POST crée row `contributions` avec status='CONFIRMED' hardcoded
   - Ajoute notification `NEW_SUPPORT` (via notification.service.js)
   - Met à jour campagne agrégats: `collected_amount`, `contribution_count`, `current_amount`
-  - **Aucune logique paiement réelle**
+  - À réserver aux tests internes ou à supprimer quand Stripe/Konnect production devient source unique
 
   #### Pledges (`/api/pledges`)
-  **Status**: ⚠️ Stub | [pledge.controller.js](backend/src/modules/pledges/pledge.controller.js)
+  **Status**: ⚠️ Stub legacy | [pledge.controller.js](backend/src/modules/pledges/pledge.controller.js)
 
   | Méthode | Chemin | Impl | Notes |
   |---|---|---|---|
-  | GET | `/my` | ✅ | Retourne campaigns supportées (pledges + donations + contributions combined) |
-  | POST | `/` | ⚠️ | **Validation carte sans Luhn** + auto-mark `PAID` → Bypass paiement |
+  | GET | `/my` | ✅ | Retourne campaigns supportées (pledges + donations + contributions + payments) |
+  | POST | `/` | ⚠️ | Validation carte sans Luhn + auto-mark `PAID` via `donations` |
 
-  **Pledge Flow** (pledge.controller.js L55):
+  **Pledge Flow legacy**:
   1. Valide montant + carte (regex seulement, pas Luhn)
   2. Crée `donations` row avec provider='manual'
-  3. **Immédiatement marque status='PAID'** → aucun appel Flouci
+  3. Marque immédiatement status='PAID'
   4. Met à jour `campaigns.current_amount` + notification
 
-  **Codes validation manquants**:
+  **Codes validation manquants côté legacy**:
   - ❌ Luhn check → cartes invalides acceptées
-  - ❌ Flouci API integration
-  - ❌ Webhook processing (table `payment_webhook_events` droppée en schemaInit.js L275)
+  - ❌ Flouci/Konnect production non branché
+  - ✅ Webhooks Stripe disponibles dans le module `payments`
 
   ---
 
@@ -458,7 +513,7 @@
 
   | Méthode | Chemin | Impl | Notes |
   |---|---|---|---|
-  | GET | `/stats` | ✅ | KPIs: funds, campaigns (active/pending/draft/rejected), users, success rate, category split |
+  | GET | `/stats` | ✅ | KPIs: fonds confirmés, supports confirmés, campagnes réussies, users, success rate, category split |
   | GET | `/settings` | ✅ | All platform settings |
   | PUT | `/settings/:key` | ✅ | Update setting with validation |
   | GET | `/logs` | ✅ | Admin audit logs paginated + search + facets |
@@ -466,8 +521,9 @@
   | GET | `/campaigns` | ✅ | All campaigns |
   | GET | `/campaigns/pending` | ✅ | Pending moderation |
   | GET | `/campaigns/:id/comments` | ✅ | Campaign comments (all, incl. deleted) |
-  | GET | `/pledges` | ✅ | All supports (pledges + donations combined) |
+  | GET | `/pledges` | ✅ | All supports (pledges + donations + contributions + payments) |
   | GET | `/users` | ✅ | All users |
+  | POST | `/users` | ✅ | Create local USER/ADMIN from dashboard (bcrypt + email unique + audit log) |
   | PUT | `/campaigns/:id` | ✅ | Edit accepted campaign (title, desc, category, target_amount) |
   | POST | `/campaigns/:id/image` | ✅ | Replace campaign image (ACTIVE only) |
   | POST | `/campaigns/:id/video` | ✅ | Replace campaign video (ACTIVE only) |
@@ -482,7 +538,7 @@
 
   **Admin Logs** (admin_logs table):
   - All admin actions logged avec metadata
-  - Loggable action_types: CAMPAIGN_APPROVED, CAMPAIGN_REJECTED, CAMPAIGN_UPDATED, CAMPAIGN_DELETED, CAMPAIGN_MEDIA_UPDATED, USER_UPDATED, USER_DELETED, USER_ROLE_CHANGED, COMMENT_DELETED, SUPPORT_TICKET_*, SETTINGS_UPDATED
+  - Loggable action_types: CAMPAIGN_APPROVED, CAMPAIGN_REJECTED, CAMPAIGN_UPDATED, CAMPAIGN_DELETED, CAMPAIGN_MEDIA_UPDATED, USER_CREATED, USER_UPDATED, USER_DELETED, USER_ROLE_CHANGED, COMMENT_DELETED, SUPPORT_TICKET_*, SETTINGS_UPDATED
 
   ---
 
@@ -491,6 +547,7 @@
 
   | Méthode | Chemin | Auth | Impl |
   |---|---|---|---|
+  | GET | `/me/supports` | ✅ | Supports du compte connecté |
   | GET | `/:id/profile` | ❌ | Public profile + created campaigns + backed campaigns (ACTIVE/CLOSED only) |
 
   ---
@@ -516,7 +573,8 @@
     2. User approves scope: openid email profile
     3. Google: POST token endpoint
     4. Backend: exchange code + fetch profile + create/link user
-    5. Redirect: `{FRONTEND_URL}/auth/google/callback#{token}&{user}`
+    5. Redirect: `{FRONTEND_URL}/auth/google/callback#token=...`
+    6. Frontend: `GET /api/auth/me` avec le token pour récupérer l'utilisateur courant
   - **Config**: env `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`
   - **Hybrid**: User peut auth local + google sur même email
 
@@ -533,12 +591,12 @@
 
   ### ⚠️ SÉCURITÉ GAPS
   1. **CORS Unrestricted**: [app.js L14](backend/src/app.js#L14) `app.use(cors())` → accepte toute origine
-  2. **Card Validation Fake**: [pledge.controller.js L48](backend/src/modules/pledges/pledge.controller.js#L48) regex only, no Luhn
+  2. **Card Validation Fake legacy**: [pledge.controller.js](backend/src/modules/pledges/pledge.controller.js) regex only, no Luhn
   3. **JWT_SECRET not validated**: Si env missing → verify() échoue silencieusement
   4. **No rate limiting** → Brute force possible
   5. **No HTTPS enforcement** → Token en clair sur HTTP
   6. **Upload MIME not validated** → Malware upload possible
-  7. **VITE_API_URL hardcoded** en 5+ fichiers frontend → Production URL impossible
+  7. **VITE_API_URL partiellement centralisé** → plusieurs fichiers legacy restent hardcodés
 
   ---
 
@@ -568,14 +626,14 @@
   ### Google OAuth
   ```
   Frontend: GoogleAuthButton
-    → window.location.assign(http://localhost:5000/api/auth/google)
+    → window.location.assign(buildApiUrl('/api/auth/google'))
     → Google consent screen
     → Redirect callback URL
     → Backend: exchange code + fetch profile
       → Si user existe: linkGoogleAccount() (hybrid)
       → Sinon: createGoogleUser()
-    → Redirect: {FRONTEND_URL}/auth/google/callback#{token}&{user}
-      → Frontend: decode hash + localStorage + navigate
+    → Redirect: {FRONTEND_URL}/auth/google/callback#token=...
+      → Frontend: GET /api/auth/me + localStorage + navigate
   ```
 
   ### Logout
@@ -637,7 +695,7 @@
 
   ## 7. FLUX UTILISATEUR - CONTRIBUTEUR (Soutien & Donation)
 
-  ### Soutien Campagne (Pledge)
+  ### Soutien Campagne (Stripe Checkout)
   ```
   Frontend: ProjectDetails → Soutenir button
     → Authenticate check (redirect /login si not auth)
@@ -646,24 +704,24 @@
         → Affiche rewards + FAQ + summary
       2. Select reward ou montant libre
       3. Form: montant, message
-      4. MVP Alert: "Pas de vraie passerelle paiement"
-      5. POST /api/campaigns/:id/contributions
-        → Backend: lock campaign + valide + crée contributions row
-                  + update campaigns.collected_amount + notification
-        → Success: DonationSuccessState modal
+      4. POST /api/payments/create-checkout-session
+        → Backend: crée payments pending + session Stripe Checkout
+        → Frontend: redirect vers checkoutUrl Stripe
+      5. Retour /payment/success?session_id=...
+        → GET /api/payments/session/:id
+        → Backend: finalise si Stripe confirme le paiement
   ```
 
-  ### Paiement (Stub - Pas implémenté)
+  ### Paiement legacy (stub à retirer)
   ```
-  Frontend ProjectDetails → Pledge via API
-    → POST /api/pledges (legacy endpoint)
+  Ancien endpoint public:
+    → POST /api/pledges
       Backend: validate card (regex, no Luhn)
             → CREATE donations (status='PAID' immédiatement)
             → NO appel Flouci API
-            → NO webhooks
     → Fausse transaction enregistrée
     
-  RÉALITÉ: Toute donation → PAID auto, donation amount jamais vérifié
+  RÉALITÉ: route conservée pour compatibilité, mais ne doit pas être utilisée pour un paiement réel.
   ```
 
   ---
@@ -768,21 +826,22 @@
   | **auth** | auth.{routes,controller,model}.js | ✅ COMPLET | Register, login, Google OAuth, profile update, password change |
   | **campaigns** | campaign.{routes,controller,model}.js | ✅ COMPLET | CRUD, lifecycle, media upload, submission flow |
   | **comments** | comment.{controller,model}.js | ✅ COMPLET | Create, read, admin soft-delete, ACTIVE-only |
-  | **contributions** | contribution.{controller,model}.js | ✅ COMPLET | Create soutien + notification, no real payment |
+  | **payments/stripe** | payment.{routes,controller,model,service}.js | ✅ TEST MODE | Checkout Session, webhook signé, sync status, idempotence |
+  | **contributions** | contribution.{controller,model}.js | ⚠️ LEGACY | Create soutien + notification, sans PSP |
   | **pledges** | pledge.{routes,controller,model}.js | ⚠️ STUB | Auto-mark PAID, no Flouci, card validation fake |
   | **payments/flouci** | flouci.service.js | ❌ UNUSED | Fichier existe, code jamais appelé |
   | **saved** | saved.{routes,controller,model,service}.js | ✅ COMPLET | Add/remove/check/list saved campaigns |
   | **notifications** | notification.{routes,controller,model,service}.js | ✅ COMPLET | Create, list, mark read/all-read, 7 event types |
   | **support** | support.{routes,controller,model}.js | ✅ COMPLET | User tickets + admin dashboard + messages |
   | **admin/support** | admin-support.{routes,controller}.js | ✅ COMPLET | Admin ticket management + assignment + notes |
-  | **admin** | admin.{routes,controller,model}.js + settings.* | ✅ COMPLET | Stats, moderation, user mgmt, settings, logs |
-  | **users** | user.{routes,controller,model}.js | ⚠️ MINIMAL | Public profile + campaigns only |
+  | **admin** | admin.{routes,controller,model}.js + settings.* | ✅ COMPLET | Stats supports confirmés, moderation, create/edit users, settings, logs |
+  | **users** | user.{routes,controller,model}.js | ⚠️ MINIMAL | Public profile + my supports |
 
   ---
 
   ## 11. FRONTEND - PAGES & ROUTES
 
-  Fichier: [front/src/app/routes.jsx](front/src/app/routes.jsx) (310+ lignes, 25+ lazy-loaded pages)
+  Fichier: [front/src/app/routes.jsx](front/src/app/routes.jsx) (370+ lignes, 25+ lazy-loaded pages + boundary admin)
 
   ### Public Routes
 
@@ -791,7 +850,9 @@
   | `/` | Home | `GET /api/campaigns` | ✅ Featured + categories (hardcodé fallback) |
   | `/discover` | Discover | `GET /api/campaigns` + `GET /api/saved/check/:id` per campaign | ✅ N+1 queries ⚠️ |
   | `/project/:id` | ProjectDetails | `GET /api/campaigns/:id` + `GET /api/saved/check/:id` | ✅ Soutenir action → DonationPage |
-  | `/campaigns/:id/contribute`, `/project/:id/soutenir` | DonationPage | `GET /api/campaigns/:id/contribution-context` + `POST /api/campaigns/:id/contributions` | ✅ MVP (no real payment) |
+  | `/campaigns/:id/contribute`, `/project/:id/soutenir` | DonationPage | `GET /api/campaigns/:id/contribution-context` + `POST /api/payments/create-checkout-session` | ✅ Stripe Checkout test |
+  | `/payment/success` | PaymentSuccessPage | `GET /api/payments/session/:id` | ✅ Confirmation serveur Stripe |
+  | `/payment/cancel` | PaymentCancelPage | Aucun | ✅ Retour annulation Stripe |
   | `/about`, `/terms`, `/privacy`, `/cookies` | InfoPage | Aucun (statique) | ✅ Hardcodé PAGE_CONTENT |
 
   ### Auth Routes
@@ -800,14 +861,14 @@
   |---|---|---|---|
   | `/login` | SignIn | `POST /api/auth/login` | ✅ |
   | `/register` | SignUp | `POST /api/auth/register` | ✅ |
-  | `/auth/google/callback` | GoogleAuthCallback | `GET /api/auth/me` (fallback) | ✅ |
+  | `/auth/google/callback` | GoogleAuthCallback | `GET /api/auth/me` après token | ✅ |
   | `/forgot-password` | ForgotPassword | Aucun ⚠️ | ⚠️ UI mock, pas de reset email |
 
   ### Authenticated Routes
 
   | Route | Page | API calls | Impl |
   |---|---|---|---|
-  | `/profile` | Profile | `GET /api/campaigns/my` + `GET /api/pledges/my` | ✅ Tabs: About, Created, Backed |
+  | `/profile` | Profile | `GET /api/campaigns/my` + `GET /api/users/me/supports` | ✅ Tabs: About, Created, Backed |
   | `/settings` | Settings | `PUT /api/auth/profile` (2x) + `PUT /api/auth/password` | ✅ Account/Profile/Security tabs |
   | `/saved` | SavedProjects | `GET /api/saved` + `DELETE /api/saved/:id` | ✅ |
   | `/users/:id` | PublicUserProfile | `GET /api/users/:id/profile` | ✅ |
@@ -834,7 +895,7 @@
 
   | Route | Page | API calls | Impl |
   |---|---|---|---|
-  | `/admin/*` | AdminDashboard | 40+ API calls (huge SPA in one file) | ⚠️ PARTIAL 1000+ lignes, many modals |
+  | `/admin/*` | AdminDashboard | 40+ API calls | ✅ SPA admin avec error boundary, settings, logs, support, users, moderation |
 
   ---
 
@@ -846,7 +907,7 @@
     → AppProviders (empty pass-through)
     → BrowserRouter
     → ScrollToTop
-    → AppRoutes (render routes + Footer)
+    → AppRoutes (render routes + Footer + AdminRouteErrorBoundary)
   ```
 
   **State Management**: ❌ Zero global state
@@ -864,8 +925,9 @@
   requestJson(path, options) → fetch + error handling
   ```
 
-  **⚠️ Hardcoded API_URL** en 5+ fichiers:
-  - [SignIn.jsx](front/src/SignIn.jsx) L5, [SignUp.jsx](front/src/SignUp.jsx) L5, [Settings.jsx](front/src/Settings.jsx) L5, [ProjectEditor.jsx](front/src/ProjectEditor.jsx) L8, [Navbar.jsx](front/src/Navbar.jsx) L14
+  **⚠️ Centralisation partielle API_URL**:
+  - `GoogleAuthButton`, `GoogleAuthCallback`, admin services, support/payments services utilisent `buildApiUrl` / `requestJson`.
+  - Plusieurs wrappers/pages legacy gardent encore `http://localhost:5000` ou un helper local: [SignIn.jsx](front/src/SignIn.jsx), [SignUp.jsx](front/src/SignUp.jsx), [Settings.jsx](front/src/Settings.jsx), [ProjectEditor.jsx](front/src/ProjectEditor.jsx), [Navbar.jsx](front/src/Navbar.jsx), [DonationPage.jsx](front/src/DonationPage.jsx), composants `ProjectEditor/*`.
 
   ### Components Structure
   ```
@@ -898,8 +960,8 @@
 
   ### 🔴 Critiques
 
-  1. **Hardcoded API_URL** en 5+ fichiers → Production URL impossible
-    - Fix: Use env var everywhere ou service centralisé
+  1. **API_URL encore hardcodé dans des fichiers legacy** → Déploiement multi-environnement fragile
+    - Fix: utiliser `buildApiUrl` / `requestJson` partout
 
   2. **Aucun state management** → Pas de synchronisation cross-tab
     - Symptôme: User logout dans tab A, tab B still sees user
@@ -929,8 +991,8 @@
   9. **Pas de linter/formatter** → Code inconsistent (quote styles, indentation)
     - Fix: ESLint + Prettier
 
-  10. **Donation page mock** → FAQ default explique "MVP sans vraie passerelle"
-      - Réalité: Aucun paiement possible
+  10. **Deux chemins de contribution coexistent** → Stripe test mode + routes manuelles legacy
+      - Risque: confusion produit et agrégats difficiles à auditer si les routes legacy restent publiques
 
   ---
 
@@ -945,7 +1007,8 @@
   | Campaign Submit | image_url OR video_url required | ✅ |
   | Comment | content (1-1000 chars) | ❌ XSS possible si pas frontend escape |
   | Support Ticket | title, message, attachment (≤10MB) | ⚠️ Weak |
-  | Pledge/Donation | card number (regex 13-19 digits, NO Luhn), expiry (MM/YY + date check), CVC (3-4 digits) | 🔴 Carte invalide acceptée |
+  | Pledge/Donation legacy | card number (regex 13-19 digits, NO Luhn), expiry (MM/YY + date check), CVC (3-4 digits) | 🔴 Carte invalide acceptée |
+  | Stripe Payment | campaignId UUID, amount decimal, rewardId, self-support interdit, signature webhook | ⚠️ test mode uniquement |
 
   ### Frontend Validation
 
@@ -982,18 +1045,21 @@
   current_amount = SUM(pledges.amount WHERE status='SUCCESS')
                 + SUM(donations.amount_millimes WHERE status='PAID')
                 + SUM(contributions.amount * 1000 WHERE status='CONFIRMED')
+                + SUM(payments.amount * 1000 WHERE status='paid')
 
   collected_amount = current_amount / 1000 (converted TND)
 
   contribution_count = COUNT(pledges WHERE status='SUCCESS')
                     + COUNT(donations WHERE status='PAID')
                     + COUNT(contributions WHERE status='CONFIRMED')
+                    + COUNT(payments WHERE status='paid')
 
   funded_percent = (current_amount / target_amount) * 100
   ```
 
   **Recalculated on**:
-  - POST /api/campaigns/:id/contributions (UPDATE campaigns SET...)
+  - POST /api/payments/create-checkout-session puis webhook/sync Stripe (UPDATE campaigns SET...)
+  - POST /api/campaigns/:id/contributions (legacy/manual UPDATE campaigns SET...)
   - POST /api/pledges (UPDATE campaigns SET current_amount = ...)
   - schemaInit.js at startup (reconcile all campaigns)
 
@@ -1002,7 +1068,8 @@
   - `GET /api/admin/campaigns` → all campaigns
 
   ### User-Backed Campaigns
-  - `GET /api/pledges/my` → campaigns user supported (UNION pledges + donations + contributions)
+  - `GET /api/pledges/my` → campaigns user supported (UNION pledges + donations + contributions + payments)
+  - `GET /api/users/me/supports` → supports du compte connecté
   - `GET /api/users/:id/profile` → public supported campaigns (ACTIVE/CLOSED only)
 
   ---
@@ -1037,6 +1104,9 @@
   PORT=5000
   FRONTEND_URL=http://localhost:5173
   BACKEND_URL=http://localhost:5000
+  STRIPE_SECRET_KEY=sk_test_...
+  STRIPE_WEBHOOK_SECRET=whsec_...
+  STRIPE_CURRENCY=tnd
   DB_HOST=localhost
   DB_PORT=5432
   DB_USER=postgres
@@ -1106,15 +1176,15 @@
 
   ### 🔴 Blockers (Production Risk)
 
-  1. **Paiements Flouci non implémentés** → Toute donation = PAID sans paiement réel
-    - Impact: Collectes fictives, audit fail, non-conformité
-    - Fix: Implémenter Flouci API + webhooks + state machine paiement
+  1. **Paiements production non finalisés** → Stripe est limité au mode test et les routes legacy peuvent encore confirmer sans PSP
+    - Impact: Collectes non exploitables en production, audit paiement incomplet
+    - Fix: Brancher le PSP cible production (Konnect/Flouci/Stripe live), désactiver `pledges`/`contributions` manuels ou les réserver à un rôle admin explicite
 
   2. **CORS ouvert** → CSRF, données exposées
     - Fix: `cors({origin: process.env.FRONTEND_URL})`
 
-  3. **Card validation faux** → Cartes invalides acceptées
-    - Fix: Luhn check + 3D Secure redirect
+  3. **Routes legacy de carte factice** → `POST /api/pledges` accepte une carte regex et marque `donations` PAID
+    - Fix: supprimer cette route publique ou la rediriger vers `/api/payments/create-checkout-session`
 
   4. **Pas de rate limiting** → Brute force, DDoS
     - Fix: `express-rate-limit` on /api/auth, /api/support/tickets
@@ -1126,7 +1196,7 @@
 
   6. Implémenter TypeScript pour type safety
   7. Ajouter test suite (Jest + React Testing Library)
-  8. Centraliser API_URL frontend (env var unique)
+  8. Terminer la centralisation API_URL frontend (remplacer les wrappers legacy par `buildApiUrl` / `requestJson`)
   9. Implémenter Context/Zustand pour auth state
   10. Ajouter Nginx/reverse proxy pour HTTPS + security headers
 
@@ -1158,7 +1228,7 @@
   - Support API: [supportApi.js](front/src/modules/support/services/supportApi.js)
 
   ### Admin
-  - Dashboard: [AdminDashboard.jsx](front/src/admin/AdminDashboard.jsx) (1000+ lignes)
+  - Dashboard: [AdminDashboard.jsx](front/src/admin/AdminDashboard.jsx) (3000+ lignes)
   - Logs service: [adminLogService.js](backend/src/services/adminLogService.js)
   - Settings: [settings.model.js](backend/src/modules/admin/settings.model.js)
 

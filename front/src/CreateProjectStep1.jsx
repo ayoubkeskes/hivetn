@@ -1,9 +1,11 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import './CreateProject.css';
 import { CAMPAIGN_CATEGORIES } from './shared/constants/campaignCategories.js';
 
 const CreateProjectStep1 = ({ onNavigate, onSaveDraft, draftProject }) => {
   const [category, setCategory] = useState(draftProject?.category || '');
+  const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
+  const categoryMenuRef = useRef(null);
   const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
   const userName = storedUser.name || 'Utilisateur';
   const userAvatar = storedUser.avatar || '';
@@ -15,6 +17,35 @@ const CreateProjectStep1 = ({ onNavigate, onSaveDraft, draftProject }) => {
     .slice(0, 2);
 
   const isFormComplete = category !== '';
+
+  useEffect(() => {
+    if (!categoryMenuOpen) return undefined;
+
+    const closeOnOutsideClick = (event) => {
+      if (!categoryMenuRef.current?.contains(event.target)) {
+        setCategoryMenuOpen(false);
+      }
+    };
+
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') {
+        setCategoryMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', closeOnOutsideClick);
+    document.addEventListener('keydown', closeOnEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', closeOnOutsideClick);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [categoryMenuOpen]);
+
+  const handleCategorySelect = (nextCategory) => {
+    setCategory(nextCategory);
+    setCategoryMenuOpen(false);
+  };
 
   const handleNext = () => {
     if (isFormComplete) {
@@ -66,17 +97,42 @@ const CreateProjectStep1 = ({ onNavigate, onSaveDraft, draftProject }) => {
           </p>
 
           <div className="cp-form-row">
-            <div className="cp-select-wrapper" style={{ maxWidth: '400px', width: '100%' }}>
-              <select 
-                className="cp-select" 
-                value={category} 
-                onChange={(e) => setCategory(e.target.value)}
+            <div
+              className={`cp-category-menu${categoryMenuOpen ? ' is-open' : ''}`}
+              ref={categoryMenuRef}
+            >
+              <button
+                type="button"
+                className={`cp-category-menu__trigger${category ? ' has-value' : ''}`}
+                aria-haspopup="listbox"
+                aria-expanded={categoryMenuOpen}
+                onClick={() => setCategoryMenuOpen((isOpen) => !isOpen)}
               >
-                <option value="" disabled>Sélectionnez une catégorie</option>
-                {CAMPAIGN_CATEGORIES.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
+                <span>{category || 'Sélectionnez une catégorie'}</span>
+                <span className="cp-category-menu__chevron" aria-hidden="true">▾</span>
+              </button>
+
+              {categoryMenuOpen && (
+                <div className="cp-category-menu__panel" role="listbox" aria-label="Catégorie du projet">
+                  {CAMPAIGN_CATEGORIES.map((cat) => {
+                    const isSelected = category === cat;
+
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        className={`cp-category-menu__option${isSelected ? ' is-selected' : ''}`}
+                        role="option"
+                        aria-selected={isSelected}
+                        onClick={() => handleCategorySelect(cat)}
+                      >
+                        <span>{cat}</span>
+                        {isSelected && <span className="cp-category-menu__check" aria-hidden="true">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -8,7 +8,7 @@ const navigationItems = [
   {
     to: "/support",
     label: "Tous les tickets",
-    description: "Suivre vos demandes et les dernieres reponses.",
+    description: "Suivre vos demandes et les dernières réponses.",
   },
   {
     to: "/support/new",
@@ -40,7 +40,7 @@ const SupportCenterLayout = ({
 
       <div className="support-shell">
         <aside className="support-sidebar">
-          <div className="support-sidebar__eyebrow">Support centre</div>
+          <div className="support-sidebar__eyebrow">Centre support</div>
           <h2 className="support-sidebar__title">Nous restons disponibles à chaque étape.</h2>
           <p className="support-sidebar__copy">
             Ouvrez un ticket clair, suivez les réponses de l'équipe et gardez un historique propre de vos demandes.
@@ -68,7 +68,7 @@ const SupportCenterLayout = ({
           <div className="support-sidebar__card">
             <p className="support-sidebar__card-label">Conseil</p>
             <p className="support-sidebar__card-text">
-              Ajoutez le contexte complet de votre demande et, si besoin, associez la campagne concernee pour accelerer le traitement.
+              Ajoutez le contexte complet de votre demande et, si besoin, associez la campagne concernée pour accélérer le traitement.
             </p>
           </div>
         </aside>

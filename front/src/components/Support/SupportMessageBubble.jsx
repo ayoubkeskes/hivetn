@@ -36,7 +36,7 @@ const SupportMessageBubble = ({
               target="_blank"
               rel="noreferrer"
             >
-              Ouvrir la piece jointe
+              Ouvrir la pièce jointe
               {message.attachment_name ? ` - ${message.attachment_name}` : ""}
             </a>
           )}

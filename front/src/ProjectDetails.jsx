@@ -72,10 +72,7 @@ const hasVisibleStoryContent = (story) => {
     return Boolean(String(block.content || "").trim());
   });
 
-  const hasRisks = Boolean(String(story.risks || "").trim());
-  const hasFaqs = (story.faqs || []).some((faq) => Boolean(String(faq?.question || faq?.answer || "").trim()));
-
-  return hasBlocks || hasRisks || hasFaqs;
+  return hasBlocks;
 };
 
 const getVideoEmbedUrl = (url) => {
@@ -118,6 +115,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
   const [loginError, setLoginError] = useState("");
   const [postLoginAction, setPostLoginAction] = useState(null);
   const [campaign, setCampaign] = useState(null);
+  const [creatorAvatarFailed, setCreatorAvatarFailed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isSaved, setIsSaved] = useState(false);
@@ -227,6 +225,10 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
     return () => window.clearTimeout(timeout);
   }, [campaign, supportRequested]);
 
+  useEffect(() => {
+    setCreatorAvatarFailed(false);
+  }, [campaign?.creator_avatar]);
+
   const handleSaveCampaign = async (tokenOverride) => {
     if (!campaignId) return;
 
@@ -298,6 +300,7 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
   const progressPercent = Math.min(fundedPercent, 100);
   const backerCount = Number(campaign?.backer_count || 0);
   const creatorName = campaign?.creator_name || "Créateur inconnu";
+  const creatorAvatar = creatorAvatarFailed ? "" : resolveMediaUrl(campaign?.creator_avatar);
   const creatorInitials = creatorName
     .split(" ")
     .filter(Boolean)
@@ -308,6 +311,8 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
   const story = campaign?.story || { blocks: [], risks: "", faqs: [] };
   const storyBlocks = story.blocks || [];
   const storyFaqs = (story.faqs || []).filter((faq) => faq?.question || faq?.answer);
+  const hasRisks = Boolean(String(story.risks || "").trim());
+  const faqCount = storyFaqs.length;
   const hasStoryContent = hasVisibleStoryContent(story);
   const campaignEndDate = getCampaignEndDate(campaign);
 
@@ -382,7 +387,18 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                 role="button"
                 tabIndex={0}
               >
-                <div className="pd-creator-avatar" aria-hidden="true">{creatorInitials || "?"}</div>
+                <div className={`pd-creator-avatar${creatorAvatar ? " pd-creator-avatar--photo" : ""}`} aria-hidden="true">
+                  {creatorAvatar ? (
+                    <img
+                      src={creatorAvatar}
+                      alt=""
+                      loading="lazy"
+                      onError={() => setCreatorAvatarFailed(true)}
+                    />
+                  ) : (
+                    creatorInitials || "?"
+                  )}
+                </div>
                 <div className="pd-creator-copy">
                   <span className="pd-creator-label">Porteur du projet</span>
                   <span className="pd-creator-name">{creatorName}</span>
@@ -689,26 +705,6 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                     })}
                   </div>
 
-                  {story.risks && story.risks.trim() && (
-                    <section className="pd-story-section">
-                      <h2>Risques et défis</h2>
-                      <p className="pd-story-paragraph">{story.risks}</p>
-                    </section>
-                  )}
-
-                  {storyFaqs.length > 0 && (
-                    <section className="pd-story-section">
-                      <h2>Foire aux questions</h2>
-                      <div className="pd-faq-list">
-                        {storyFaqs.map((faq, index) => (
-                          <article key={`${faq.question || "faq"}-${index}`} className="pd-faq-card">
-                            <h3 className="pd-faq-question">{faq.question || `Question ${index + 1}`}</h3>
-                            <p className="pd-faq-answer">{faq.answer || "Réponse à venir."}</p>
-                          </article>
-                        ))}
-                      </div>
-                    </section>
-                  )}
                 </div>
               ) : (
                 <div>
@@ -721,6 +717,41 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
                       ? "Le créateur n'a pas encore publié d'éléments supplémentaires pour approfondir cette campagne."
                       : "Le créateur n'a pas encore publié l'histoire détaillée de cette campagne."}
                   </p>
+                </div>
+              )
+            )}
+
+            {activeTab === "risks" && (
+              hasRisks ? (
+                <div>
+                  <h2>Risques et défis</h2>
+                  <p className="pd-story-paragraph">{story.risks}</p>
+                </div>
+              ) : (
+                <div>
+                  <h2>Risques et défis</h2>
+                  <p>Le créateur n'a pas encore publié les risques et défis de cette campagne.</p>
+                </div>
+              )
+            )}
+
+            {activeTab === "faqs" && (
+              faqCount > 0 ? (
+                <div>
+                  <h2>Foire aux questions</h2>
+                  <div className="pd-faq-list">
+                    {storyFaqs.map((faq, index) => (
+                      <article key={`${faq.id || faq.question || "faq"}-${index}`} className="pd-faq-card">
+                        <h3 className="pd-faq-question">{faq.question || `Question ${index + 1}`}</h3>
+                        <p className="pd-faq-answer">{faq.answer || "Réponse à venir."}</p>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h2>Foire aux questions</h2>
+                  <p>Le créateur n'a pas encore ajouté de questions fréquentes pour cette campagne.</p>
                 </div>
               )
             )}
@@ -770,6 +801,8 @@ const ProjectDetails = ({ onNavigate, isAuthenticated, onLogout, onLoginSuccess 
             <div className="pd-sidebar-menu" role="tablist" aria-label="Navigation du projet">
               <span className={`pd-tab-vertical ${activeTab === "story" ? "active" : ""}`} onClick={() => setActiveTab("story")} role="tab" aria-selected={activeTab === "story"} tabIndex={0}>Histoire</span>
               <span className={`pd-tab-vertical ${activeTab === "rewards" ? "active" : ""}`} onClick={() => setActiveTab("rewards")} role="tab" aria-selected={activeTab === "rewards"} tabIndex={0}>Récompenses <span className="pd-tab-count">{rewardCount}</span></span>
+              <span className={`pd-tab-vertical ${activeTab === "risks" ? "active" : ""}`} onClick={() => setActiveTab("risks")} role="tab" aria-selected={activeTab === "risks"} tabIndex={0}>Risques et défis</span>
+              <span className={`pd-tab-vertical ${activeTab === "faqs" ? "active" : ""}`} onClick={() => setActiveTab("faqs")} role="tab" aria-selected={activeTab === "faqs"} tabIndex={0}>Foire aux questions <span className="pd-tab-count">{faqCount}</span></span>
               <span className={`pd-tab-vertical ${activeTab === "comments" ? "active" : ""}`} onClick={() => setActiveTab("comments")} role="tab" aria-selected={activeTab === "comments"} tabIndex={0}>Commentaires <span className="pd-tab-count">{commentCount}</span></span>
             </div>
           </aside>

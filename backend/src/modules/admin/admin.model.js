@@ -8,7 +8,7 @@ export const getStats = async () => {
     campaignStats,
     userCount,
     categoryBreakdown,
-    paymentStats,
+    confirmedSupportStats,
     latestPaidDonations,
     settingsResult,
   ] = await Promise.all([
@@ -18,6 +18,11 @@ export const getStats = async () => {
         COUNT(*) FILTER (WHERE status = 'CLOSED') AS closed_campaigns,
         COUNT(*) FILTER (WHERE status = 'PENDING') AS pending_campaigns,
         COUNT(*) FILTER (WHERE status = 'DRAFT') AS draft_campaigns,
+        COUNT(*) FILTER (
+          WHERE status IN ('ACTIVE', 'CLOSED')
+            AND target_amount > 0
+            AND current_amount >= target_amount
+        ) AS successful_campaigns,
         COUNT(*) AS total_campaigns,
         COALESCE(SUM(target_amount) FILTER (WHERE status IN ('ACTIVE', 'CLOSED')), 0) AS total_target
       FROM campaigns
@@ -34,10 +39,33 @@ export const getStats = async () => {
     `),
 
     pool.query(`
+      WITH confirmed_supports AS (
+        SELECT amount
+        FROM pledges
+        WHERE status = 'SUCCESS'
+
+        UNION ALL
+
+        SELECT amount_millimes AS amount
+        FROM donations
+        WHERE status = 'PAID'
+
+        UNION ALL
+
+        SELECT ROUND(amount * 1000)::int AS amount
+        FROM contributions
+        WHERE status = 'CONFIRMED'
+
+        UNION ALL
+
+        SELECT ROUND(amount * 1000)::int AS amount
+        FROM payments
+        WHERE status = 'paid'
+      )
       SELECT
-        COUNT(*) FILTER (WHERE status = 'PAID')::int AS total_paid_donations,
-        COALESCE(SUM(amount_millimes) FILTER (WHERE status = 'PAID'), 0)::bigint AS total_amount_processed
-      FROM donations
+        COUNT(*)::int AS total_confirmed_supports,
+        COALESCE(SUM(amount), 0)::bigint AS total_confirmed_amount
+      FROM confirmed_supports
     `),
 
     pool.query(`
@@ -64,23 +92,26 @@ export const getStats = async () => {
   ]);
 
   const cs = campaignStats.rows[0];
-  const ps = paymentStats.rows[0];
+  const ss = confirmedSupportStats.rows[0];
   const platformSettings = settingsResult.rows[0]?.value || {};
   const commissionRate = Number(platformSettings.commission_rate || 5) / 100;
   const totalCampaigns = parseInt(cs.active_campaigns, 10) + parseInt(cs.closed_campaigns, 10);
+  const successfulCampaigns = parseInt(cs.successful_campaigns || 0, 10);
   const successRate = totalCampaigns > 0
-    ? Math.round((parseInt(cs.closed_campaigns, 10) / totalCampaigns) * 100)
+    ? Math.round((successfulCampaigns / totalCampaigns) * 100)
     : 0;
 
   return {
-    totalFunds: parseInt(ps.total_amount_processed || 0, 10) / 1000,
-    totalAmountProcessed: parseInt(ps.total_amount_processed || 0, 10) / 1000,
-    totalPaidDonations: parseInt(ps.total_paid_donations || 0, 10),
+    totalFunds: parseInt(ss.total_confirmed_amount || 0, 10) / 1000,
+    totalAmountProcessed: parseInt(ss.total_confirmed_amount || 0, 10) / 1000,
+    totalConfirmedSupports: parseInt(ss.total_confirmed_supports || 0, 10),
+    totalPaidDonations: parseInt(ss.total_confirmed_supports || 0, 10),
     totalTarget: parseInt(cs.total_target || 0, 10) / 1000,
     activeCampaigns: parseInt(cs.active_campaigns, 10),
     closedCampaigns: parseInt(cs.closed_campaigns, 10),
     pendingCampaigns: parseInt(cs.pending_campaigns, 10),
     draftCampaigns: parseInt(cs.draft_campaigns, 10),
+    successfulCampaigns,
     totalCampaigns: parseInt(cs.total_campaigns, 10),
     successRate,
     totalUsers: parseInt(userCount.rows[0].total_users, 10),
@@ -167,6 +198,19 @@ export const getAllUsers = async () => {
     ORDER BY created_at DESC
   `);
   return rows;
+};
+
+/**
+ * Create a platform user from the admin dashboard.
+ */
+export const createUser = async ({ name, email, passwordHash, role, bio = "", avatar = "" }) => {
+  const { rows } = await pool.query(
+    `INSERT INTO users (name, email, password_hash, role, bio, avatar, auth_provider, email_verified)
+     VALUES ($1, $2, $3, $4, $5, $6, 'local', TRUE)
+     RETURNING id, name, email, role, bio, avatar, created_at`,
+    [name, email.trim().toLowerCase(), passwordHash, role, bio, avatar]
+  );
+  return rows[0];
 };
 
 /**

@@ -321,9 +321,13 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
         </div>
         <div className="pe-split-right">
           <div className="pe-upload-box">
-            <button className="pe-upload-btn" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage}>
-              {uploadingImage ? 'Importation...' : (draftProject?.video_url ? 'Remplacer la vidéo par une image' : 'Importer une image')}
-            </button>
+            {!draftProject?.image_url && (
+              <div className="pe-upload-box__header">
+                <button className="pe-upload-btn" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage}>
+                  {uploadingImage ? 'Importation...' : (draftProject?.video_url ? 'Remplacer la vidéo par une image' : 'Importer une image')}
+                </button>
+              </div>
+            )}
             <input 
               type="file" 
               accept="image/*" 
@@ -334,29 +338,25 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
                 e.target.value = '';
               }}
             />
-            <div className="pe-upload-text">
-              Formats acceptés : JPG, PNG, GIF, ou WEBP, ne dépassant pas 50 Mo.
-              <br />
-              Une campagne doit contenir une image ou une vidéo principale avant publication.
-              <br />
-              Un seul média principal est autorisé à la fois : image ou vidéo.
-              <br /><br />
-              {draftProject?.image_url && (
-                <div className="pe-media-preview-block">
-                  <span style={{ color: '#0ce688' }}>✅ Image enregistrée</span>
-                  <br/>
-                  <img src={`${API_URL}${draftProject.image_url}`} alt="Preview" className="pe-media-preview pe-media-preview--image" />
-                  <button
-                    type="button"
-                    className="pe-media-remove-btn"
-                    onClick={() => handleRemoveMedia('image')}
-                    disabled={uploadingImage}
-                  >
-                    Supprimer l'image
-                  </button>
-                </div>
-              )}
-            </div>
+            {draftProject?.image_url ? (
+              <div className="pe-media-preview-block">
+                <img src={`${API_URL}${draftProject.image_url}`} alt="Preview" className="pe-media-preview pe-media-preview--image" />
+                <button
+                  type="button"
+                  className="pe-media-remove-btn"
+                  onClick={() => handleRemoveMedia('image')}
+                  disabled={uploadingImage}
+                >
+                  Supprimer l'image
+                </button>
+              </div>
+            ) : (
+              <div className="pe-upload-text">
+                <span>JPG, PNG, GIF ou WEBP · 50 Mo max</span>
+                <span>Image ou vidéo principale obligatoire avant publication.</span>
+                <span>Un seul média principal à la fois.</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -370,9 +370,13 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
         </div>
         <div className="pe-split-right">
           <div className="pe-upload-box">
-            <button className="pe-upload-btn" onClick={() => videoInputRef.current?.click()} disabled={uploadingVideo}>
-              {uploadingVideo ? 'Importation en cours...' : (draftProject?.image_url ? "Remplacer l'image par une vidéo" : 'Importer une vidéo')}
-            </button>
+            {!draftProject?.video_url && (
+              <div className="pe-upload-box__header">
+                <button className="pe-upload-btn" onClick={() => videoInputRef.current?.click()} disabled={uploadingVideo}>
+                  {uploadingVideo ? 'Importation en cours...' : (draftProject?.image_url ? "Remplacer l'image par une vidéo" : 'Importer une vidéo')}
+                </button>
+              </div>
+            )}
             <input 
               type="file" 
               accept="video/*" 
@@ -383,27 +387,24 @@ const BasicsTab = ({ draftProject, onSaveDraft, onNavigate }) => {
                 e.target.value = '';
               }}
             />
-            <div className="pe-upload-text">
-              Formats acceptés : MOV, MPEG, AVI, MP4, 3GP, WMV ou FLV, ne dépassant pas 5120 Mo.
-              <br />
-              Cette vidéo peut remplacer l'image principale si vous préférez présenter le projet en mouvement.
-              <br /><br />
-              {draftProject?.video_url && (
-                <div className="pe-media-preview-block">
-                  <span style={{ color: '#0ce688' }}>✅ Vidéo enregistrée</span>
-                  <br/>
-                  <video src={`${API_URL}${draftProject.video_url}`} controls className="pe-media-preview pe-media-preview--video" />
-                  <button
-                    type="button"
-                    className="pe-media-remove-btn"
-                    onClick={() => handleRemoveMedia('video')}
-                    disabled={uploadingVideo}
-                  >
-                    Supprimer la vidéo
-                  </button>
-                </div>
-              )}
-            </div>
+            {draftProject?.video_url ? (
+              <div className="pe-media-preview-block pe-media-preview-block--video">
+                <video src={`${API_URL}${draftProject.video_url}`} controls className="pe-media-preview pe-media-preview--video" />
+                <button
+                  type="button"
+                  className="pe-media-remove-btn"
+                  onClick={() => handleRemoveMedia('video')}
+                  disabled={uploadingVideo}
+                >
+                  Supprimer la vidéo
+                </button>
+              </div>
+            ) : (
+              <div className="pe-upload-text">
+                <span>MOV, MPEG, AVI, MP4, 3GP, WMV ou FLV · 5120 Mo max</span>
+                <span>La vidéo peut remplacer l'image principale.</span>
+              </div>
+            )}
           </div>
           <div className="pe-note">
             ⚡ 80 % des projets réussis comportent une vidéo. Créez-en une excellente, quel que soit votre budget.

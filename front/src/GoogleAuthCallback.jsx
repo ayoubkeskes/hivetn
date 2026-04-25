@@ -1,8 +1,7 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { buildApiUrl } from './shared/services/httpClient.js';
 import './SignIn.css';
-
-const API_URL = 'http://localhost:5000';
 
 const decodeBase64Url = (value) => {
   try {
@@ -40,17 +39,17 @@ const GoogleAuthCallback = ({ onAuthSuccess }) => {
 
       let user = encodedUser ? decodeBase64Url(encodedUser) : null;
 
-      if (!user) {
-        try {
-          const response = await fetch(`${API_URL}/api/auth/me`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const data = await response.json();
-          if (!response.ok || !data.success) {
-            throw new Error(data.message || 'Impossible de récupérer votre session.');
-          }
-          user = data.user;
-        } catch (fetchError) {
+      try {
+        const response = await fetch(buildApiUrl('/api/auth/me'), {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'Impossible de récupérer votre session.');
+        }
+        user = data.user;
+      } catch (fetchError) {
+        if (!user) {
           setError(fetchError.message || "Connexion Google réussie, mais la session n'a pas pu être finalisée.");
           setMessage('');
           return;

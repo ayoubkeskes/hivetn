@@ -16,11 +16,11 @@ export const supportStatusMeta = {
     className: "support-badge--waiting",
   },
   RESOLVED: {
-    label: "Resolu",
+    label: "Résolu",
     className: "support-badge--resolved",
   },
   CLOSED: {
-    label: "Ferme",
+    label: "Fermé",
     className: "support-badge--closed",
   },
 };
@@ -45,7 +45,7 @@ export const supportPriorityMeta = {
 };
 
 export const supportCategoryOptions = [
-  { value: "GENERAL", label: "General" },
+  { value: "GENERAL", label: "Général" },
   { value: "CAMPAIGN", label: "Campagne" },
   { value: "PAYMENT", label: "Paiement" },
   { value: "ACCOUNT", label: "Compte" },
@@ -65,22 +65,22 @@ export const supportStatusOptions = [
   { value: "OPEN", label: "Ouvert" },
   { value: "IN_PROGRESS", label: "En cours" },
   { value: "WAITING_USER", label: "En attente client" },
-  { value: "RESOLVED", label: "Resolu" },
-  { value: "CLOSED", label: "Ferme" },
+  { value: "RESOLVED", label: "Résolu" },
+  { value: "CLOSED", label: "Fermé" },
 ];
 
 export const userSupportSortOptions = [
-  { value: "last_message_at:DESC", label: "Activite recente" },
-  { value: "created_at:DESC", label: "Plus recents" },
+  { value: "last_message_at:DESC", label: "Activité récente" },
+  { value: "created_at:DESC", label: "Plus récents" },
   { value: "created_at:ASC", label: "Plus anciens" },
-  { value: "priority:ASC", label: "Priorite la plus haute" },
+  { value: "priority:ASC", label: "Priorité la plus haute" },
   { value: "status:ASC", label: "Par statut" },
 ];
 
 export const adminSupportSortOptions = [
-  { value: "last_message_at:DESC", label: "A traiter en premier" },
-  { value: "created_at:DESC", label: "Plus recents" },
-  { value: "priority:ASC", label: "Priorite la plus haute" },
+  { value: "last_message_at:DESC", label: "À traiter en premier" },
+  { value: "created_at:DESC", label: "Plus récents" },
+  { value: "priority:ASC", label: "Priorité la plus haute" },
   { value: "status:ASC", label: "Par statut" },
   { value: "updated_at:DESC", label: "Dernière mise à jour" },
 ];
@@ -130,7 +130,7 @@ export const getPriorityMeta = (priority) => supportPriorityMeta[priority] || {
 };
 
 export const getCategoryLabel = (category) => (
-  supportCategoryOptions.find((option) => option.value === category)?.label || category || "General"
+  supportCategoryOptions.find((option) => option.value === category)?.label || category || "Général"
 );
 
 export const getInitials = (name = "U") => (

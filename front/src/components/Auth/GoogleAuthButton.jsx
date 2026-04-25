@@ -1,12 +1,11 @@
 import React from 'react';
+import { buildApiUrl } from '../../shared/services/httpClient.js';
 import './GoogleAuthButton.css';
-
-const API_URL = 'http://localhost:5000';
 
 const GoogleAuthButton = ({ label = 'Continuer avec Google', disabled = false }) => {
   const handleGoogleAuth = () => {
     if (disabled) return;
-    window.location.assign(`${API_URL}/api/auth/google`);
+    window.location.assign(buildApiUrl('/api/auth/google'));
   };
 
   return (
