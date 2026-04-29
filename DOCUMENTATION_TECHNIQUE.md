@@ -118,21 +118,21 @@
   created_at, updated_at TIMESTAMPTZ
   ```
 
-  #### `donations` (Flouci integration point)
+  #### `donations` (legacy/manual donation records)
   ```sql
   id UUID PK
   campaign_id UUID FK→campaigns
   user_id UUID FK→users
-  provider VARCHAR(30) DEFAULT 'manual' (e.g., 'flouci')
+  provider VARCHAR(30) DEFAULT 'manual'
   amount_millimes INTEGER (CHECK > 0) in 1/1000 DT
   currency_token VARCHAR(10) DEFAULT 'TND'
   status ENUM('PENDING', 'PAID', 'FAILED', 'EXPIRED', 'CANCELED')
-  provider_payment_ref TEXT (UNIQUE index, Flouci reference)
+  provider_payment_ref TEXT (UNIQUE index, provider reference)
   provider_short_id TEXT
   provider_order_id TEXT
   provider_status VARCHAR(80)
-  provider_payload_init JSONB (Flouci init request)
-  provider_payload_details JSONB (Flouci response)
+  provider_payload_init JSONB (provider init request)
+  provider_payload_details JSONB (provider response)
   description TEXT
   paid_at TIMESTAMPTZ
   created_at, updated_at TIMESTAMPTZ
@@ -403,7 +403,7 @@
   - POST crée row `contributions` avec status='CONFIRMED' hardcoded
   - Ajoute notification `NEW_SUPPORT` (via notification.service.js)
   - Met à jour campagne agrégats: `collected_amount`, `contribution_count`, `current_amount`
-  - À réserver aux tests internes ou à supprimer quand Stripe/Konnect production devient source unique
+  - À réserver aux tests internes ou à supprimer quand Stripe production devient source unique
 
   #### Pledges (`/api/pledges`)
   **Status**: ⚠️ Stub legacy | [pledge.controller.js](backend/src/modules/pledges/pledge.controller.js)
@@ -421,7 +421,7 @@
 
   **Codes validation manquants côté legacy**:
   - ❌ Luhn check → cartes invalides acceptées
-  - ❌ Flouci/Konnect production non branché
+  - ❌ PSP production non branché pour les routes legacy
   - ✅ Webhooks Stripe disponibles dans le module `payments`
 
   ---
@@ -718,7 +718,7 @@
     → POST /api/pledges
       Backend: validate card (regex, no Luhn)
             → CREATE donations (status='PAID' immédiatement)
-            → NO appel Flouci API
+            → NO appel PSP externe
     → Fausse transaction enregistrée
     
   RÉALITÉ: route conservée pour compatibilité, mais ne doit pas être utilisée pour un paiement réel.
@@ -828,8 +828,7 @@
   | **comments** | comment.{controller,model}.js | ✅ COMPLET | Create, read, admin soft-delete, ACTIVE-only |
   | **payments/stripe** | payment.{routes,controller,model,service}.js | ✅ TEST MODE | Checkout Session, webhook signé, sync status, idempotence |
   | **contributions** | contribution.{controller,model}.js | ⚠️ LEGACY | Create soutien + notification, sans PSP |
-  | **pledges** | pledge.{routes,controller,model}.js | ⚠️ STUB | Auto-mark PAID, no Flouci, card validation fake |
-  | **payments/flouci** | flouci.service.js | ❌ UNUSED | Fichier existe, code jamais appelé |
+  | **pledges** | pledge.{routes,controller,model}.js | ⚠️ STUB | Auto-mark PAID, no PSP, card validation fake |
   | **saved** | saved.{routes,controller,model,service}.js | ✅ COMPLET | Add/remove/check/list saved campaigns |
   | **notifications** | notification.{routes,controller,model,service}.js | ✅ COMPLET | Create, list, mark read/all-read, 7 event types |
   | **support** | support.{routes,controller,model}.js | ✅ COMPLET | User tickets + admin dashboard + messages |
@@ -1178,7 +1177,7 @@
 
   1. **Paiements production non finalisés** → Stripe est limité au mode test et les routes legacy peuvent encore confirmer sans PSP
     - Impact: Collectes non exploitables en production, audit paiement incomplet
-    - Fix: Brancher le PSP cible production (Konnect/Flouci/Stripe live), désactiver `pledges`/`contributions` manuels ou les réserver à un rôle admin explicite
+    - Fix: Brancher Stripe live ou un PSP cible production, désactiver `pledges`/`contributions` manuels ou les réserver à un rôle admin explicite
 
   2. **CORS ouvert** → CSRF, données exposées
     - Fix: `cors({origin: process.env.FRONTEND_URL})`

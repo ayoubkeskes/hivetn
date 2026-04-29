@@ -1,4 +1,4 @@
-# Hive.tn Konnect MVP
+# Hive.tn MVP
 
 Hive.tn est organise autour d'une architecture modulaire plus lisible, tout en conservant les routes et les fonctionnalites existantes du MVP crowdfunding.
 
